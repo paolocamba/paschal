@@ -1,0 +1,4 @@
+LoanID,square_meters,type_of_land,location_name,right_of_way,has_hospital,has_clinic,has_school,has_market,has_church,has_terminal
+64,500,Residential,"Bagong Barrio",Yes,No,Yes,Yes,No,No,No
+71,120,Residential,Masuso,No,No,Yes,Yes,No,Yes,No
+72,120,Commercial,Pinagkuartelan,Yes,Yes,No,Yes,No,No,No
