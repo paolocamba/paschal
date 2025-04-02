@@ -1089,6 +1089,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                   ModeOfPayment, 
                   userID, 
                   DateOfLoan, 
+                  application_date,
                   Status 
                   FROM loanapplication
                   WHERE userID = ?";
@@ -1159,6 +1160,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                               <th>Loan Term</th>
                                               <th>Mode of Payment</th>
                                               <th>Date of Loan</th>
+                                              <th>Date of Application</th>  
                                               <th>Status</th>
                                               <th>Action</th>
                                           </tr>
@@ -1172,6 +1174,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                   <td><?php echo htmlspecialchars($loans['LoanTerm']); ?></td>
                                                   <td><?php echo htmlspecialchars($loans['ModeOfPayment']); ?></td>
                                                   <td><?php echo date('M d, Y', strtotime($loans['DateOfLoan'])); ?></td>
+                                                  <td><?php echo date('M d, Y', strtotime($loans['application_date'])); ?></td>
                                                   <td><?php echo htmlspecialchars($loans['Status']); ?></td>
                                                   <td>
                                                   <?php if ($loans['Status'] == 'In Progress'): ?>
@@ -1195,27 +1198,34 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                       </div>
                   </div>
 
-                  <!-- Cancel Loan Modal -->
-                  <div class="modal fade" id="cancelLoanModal" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
-                      <div class="modal-dialog">
-                          <div class="modal-content">
-                              <div class="modal-header">
-                                  <h5 class="modal-title" id="cancelLoanModalLabel">Cancel Loan Application</h5>
-                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                              </div>
-                              <div class="modal-body">
-                                  Are you sure you want to cancel this loan application?
-                              </div>
-                              <div class="modal-footer">
-                                  <form id="cancelLoanForm" action="cancel_loan.php" method="POST">
-                                      <input type="hidden" id="loanID" name="loanID" value="">
-                                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                      <button type="submit" class="btn btn-danger">Cancel Loan</button>
-                                  </form>
-                              </div>
-                          </div>
-                      </div>
-                  </div>
+                    <!-- Cancel Loan Modal -->
+                    <div class="modal fade" id="cancelLoanModal" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title" id="cancelLoanModalLabel">Cancel Loan Application</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle me-2"></i>
+                                        <strong>Important:</strong> You can only cancel your loan application within 3 days of submission. After this period, cancellation will no longer be possible.
+                                    </div>
+                                    <p>Are you sure you want to cancel this loan application? This action cannot be undone.</p>
+                                    <div id="loanDetailsContainer"></div>
+                                </div>
+                                <div class="modal-footer">
+                                    <form id="cancelLoanForm" action="cancel_loan.php" method="POST">
+                                        <input type="hidden" id="loanID" name="loanID" value="">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="submit" class="btn btn-danger" id="cancelLoanBtn">
+                                            <i class="fas fa-times-circle me-2"></i>Cancel Loan
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
                   <!-- Active Loans -->
                   <div class="card mb-4">
@@ -1628,6 +1638,118 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
   <!-- Custom js for this page-->
   <script src="../dist/assets/js/jquery.cookie.js" type="text/javascript"></script>
   <script src="../dist/assets/js/dashboard.js"></script>
+
+  <script>
+$(document).ready(function() {
+    // Store loan application dates in a data attribute when page loads
+    <?php
+    // Fetch all loan application dates for the user
+    $loanDatesQuery = "SELECT LoanID, application_date FROM loanapplication WHERE userID = ?";
+    $stmt = $conn->prepare($loanDatesQuery);
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $loanDatesResult = $stmt->get_result();
+    $loanDates = [];
+    while ($row = $loanDatesResult->fetch_assoc()) {
+        $loanDates[$row['LoanID']] = $row['application_date'];
+    }
+    ?>
+    
+    // Convert PHP array to JS object
+    var loanDates = <?php echo json_encode($loanDates); ?>;
+    
+    // Set loan ID for cancel modal and check cancellation eligibility
+    $('[data-bs-target="#cancelLoanModal"]').on('click', function() {
+        var loanID = $(this).data('loan-id');
+        $('#loanID').val(loanID);
+        
+        // Get application date from our stored data
+        var applicationDate = new Date(loanDates[loanID]);
+        var currentDate = new Date();
+        var timeDiff = currentDate - applicationDate;
+        var daysPassed = Math.floor(timeDiff / (1000 * 60 * 60 * 24));
+        
+        // Format date for display
+        var formattedDate = applicationDate.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        
+        // Update modal content
+        var detailsHtml = '<div class="mb-3">' +
+            '<strong>Application Date:</strong> ' + formattedDate + '<br>' +
+            '<strong>Days Since Application:</strong> ' + daysPassed + ' days' +
+            '</div>';
+        
+        $('#loanDetailsContainer').html(detailsHtml);
+        
+        // Disable button if more than 3 days have passed
+        if (daysPassed > 3) {
+            $('#cancelLoanBtn').prop('disabled', true)
+                .attr('title', 'Cancellation period (3 days) has expired');
+        } else {
+            $('#cancelLoanBtn').prop('disabled', false)
+                .removeAttr('title');
+        }
+    });
+    
+    // Reset modal when closed
+    $('#cancelLoanModal').on('hidden.bs.modal', function() {
+        $('#loanDetailsContainer').empty();
+        $('#cancelLoanBtn').prop('disabled', false).removeAttr('title');
+    });
+    
+    // Handle cancel loan form submission
+    $('#cancelLoanForm').on('submit', function(e) {
+        e.preventDefault();
+        var form = $(this);
+        
+        Swal.fire({
+            title: 'Confirm Cancellation',
+            text: "Are you sure you want to cancel this loan application? This action cannot be undone.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Yes, cancel it!'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: form.serialize(),
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            Swal.fire(
+                                'Cancelled!',
+                                'Your loan application has been cancelled.',
+                                'success'
+                            ).then(() => {
+                                location.reload();
+                            });
+                        } else {
+                            Swal.fire(
+                                'Error!',
+                                data.message,
+                                'error'
+                            );
+                        }
+                    },
+                    error: function() {
+                        Swal.fire(
+                            'Error!',
+                            'An error occurred while processing your request.',
+                            'error'
+                        );
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
 
   <script>
   $(document).ready(function() {
