@@ -514,27 +514,28 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <div class="form-container">
                         <h1 class="heading"><?php echo ucfirst($loan_type); ?> Loan Application - Reference Information</h1>
                             <form action="regular-form5.php" method="post" id="referenceForm">
+                            <div>
                                 <div class="row mb-4">
                                     <h6>Reference Information</h6>
                                     
                                     <!-- Reference 1 -->
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference1_name" class="form-label">Reference 1 Name</label>
+                                            <label for="reference1_name" class="form-label">Reference 1 Name<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference1_name" 
                                                 id="reference1_name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference1_address" class="form-label">Reference 1 Address</label>
+                                            <label for="reference1_address" class="form-label">Reference 1 Address<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference1_address" 
                                                 id="reference1_address" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference1_contact_no" class="form-label">Reference 1 Contact Number</label>
+                                            <label for="reference1_contact_no" class="form-label">Reference 1 Contact Number<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="reference1_contact_no" 
                                                 id="reference1_contact_no" required>
                                         </div>
@@ -542,21 +543,21 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <!-- Reference 1 -->
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference2_name" class="form-label">Reference 2 Name</label>
+                                            <label for="reference2_name" class="form-label">Reference 2 Name<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference2_name" 
                                                 id="reference2_name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference2_address" class="form-label">Reference 2 Address</label>
+                                            <label for="reference2_address" class="form-label">Reference 2 Address<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference2_address" 
                                                 id="reference2_address" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference2_contact_no" class="form-label">Reference 2 Contact Number</label>
+                                            <label for="reference2_contact_no" class="form-label">Reference 2 Contact Number<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="reference2_contact_no" 
                                                 id="reference2_contact_no" required>
                                         </div>
@@ -564,45 +565,46 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <!-- Reference 1 -->
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference3_name" class="form-label">Reference 3 Name</label>
+                                            <label for="reference3_name" class="form-label">Reference 3 Name<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference3_name" 
                                                 id="reference3_name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference3_address" class="form-label">Reference 3 Address</label>
+                                            <label for="reference3_address" class="form-label">Reference 3 Address<span style="color: red;">*</span></label>
                                             <input type="text" class="form-control" name="reference3_address" 
                                                 id="reference3_address" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="reference3_contact_no" class="form-label">Reference 3 Contact Number</label>
+                                            <label for="reference3_contact_no" class="form-label">Reference 3 Contact Number<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="reference3_contact_no" 
                                                 id="reference3_contact_no" required>
                                         </div>
+                                    </div>
                                     </div>
 
                                     <div class="row mb-4">
                                     <h6>Comaker Information</h6>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_name" class="form-label">Comaker Name</label>
+                                            <label for="comaker_name" class="form-label">Comaker Name<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_name"
                                                 id="comaker_name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_address" class="form-label">Comaker Address</label>
+                                            <label for="comaker_address" class="form-label">Comaker Address<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_address"
                                                 id="comaker_address" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_contact_no" class="form-label">Comaker Contact No.</label>
+                                            <label for="comaker_contact_no" class="form-label">Comaker Contact No.<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_contact_no"
                                                 id="comaker_contact_no" required>
                                         </div>

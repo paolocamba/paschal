@@ -476,7 +476,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                         }
                                         ?>
                                     </p>
-                                    <p><strong>Monthly Income:</strong> ₱<?php echo number_format($loan['monthly_income'], 2); ?></p>
+                    
                                 </div>
                                 <div class="col-md-4">
                                     <p><strong>Contact Person:</strong> <?php echo htmlspecialchars($loan['contact_person']); ?></p>
@@ -504,10 +504,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <h6>Income</h6>
                                     <table class="table table-bordered">
                                         <tr>
-                                            <td>Self Income (<?php echo htmlspecialchars($loan['self_income']); ?>)</td>
-                                            <td>₱<?php echo number_format($loan['self_income_amount'], 2); ?></td>
+                                            <td>Monthly Income (<?php echo htmlspecialchars($loan['present_position']); ?>)</td>
+                                            <td>₱<?php echo number_format($loan['monthly_income'], 2); ?></td>
                                         </tr>
-                                        <?php if (!empty($loan['other_income'])): ?>
+                                        <?php if (!empty($loan['self_other_income_amount'])): ?>
                                         <tr>
                                             <td>Other Income (<?php echo htmlspecialchars($loan['other_income']); ?>)</td>
                                             <td>₱<?php echo number_format($loan['self_other_income_amount'], 2); ?></td>
@@ -519,8 +519,29 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <td>₱<?php echo number_format($loan['spouse_income_amount'], 2); ?></td>
                                         </tr>
                                         <?php endif; ?>
+                                        <?php if (!empty($loan['spouse_other_income_amount'])): ?>
+                                        <tr>
+                                            <td>Spouse Other Income</td>
+                                            <td>₱<?php echo number_format($loan['spouse_other_income_amount'], 2); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+
+                                        <!-- Always Display Total Income -->
+                                        <tr class="table-primary">
+                                            <td><strong>Total Income</strong></td>
+                                            <td><strong>₱<?php 
+                                                $total_income = 
+                                                    (float) ($loan['monthly_income'] ?? 0) + 
+                                                    (float) ($loan['self_other_income_amount'] ?? 0) + 
+                                                    (float) ($loan['spouse_income_amount'] ?? 0) + 
+                                                    (float) ($loan['spouse_other_income_amount'] ?? 0);
+
+                                                echo number_format($total_income, 2); 
+                                            ?></strong></td>
+                                        </tr>
                                     </table>
                                 </div>
+
                                 <div class="col-md-6">
                                     <h6>Monthly Expenses</h6>
                                     <table class="table table-bordered">
@@ -551,6 +572,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </table>
                                 </div>
                             </div>
+
 
                             <!-- Bank Accounts -->
                             <div class="row mb-4">
@@ -725,6 +747,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 </div>
                             </div>
 
+                            <?php 
+                            $loan['total_income'] = 
+                                (float) ($loan['monthly_income'] ?? 0) + 
+                                (float) ($loan['self_other_income_amount'] ?? 0) + 
+                                (float) ($loan['spouse_income_amount'] ?? 0) + 
+                                (float) ($loan['spouse_other_income_amount'] ?? 0);
+                            ?>
+
                             <!-- Application Status Summary -->
                             <div class="row mb-4">
                                 <div class="col-12">
@@ -733,17 +763,20 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <h5 class="card-title">Application Summary</h5>
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    <p><strong>Total Monthly Income:</strong> ₱<?php echo number_format($loan['net_family_income'], 2); ?></p>
+                                                    <p><strong>Net Family Income:</strong> ₱<?php echo number_format($loan['net_family_income'], 2); ?></p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <p><strong>Total Monthly Income:</strong> ₱<?php echo number_format($loan['total_income'], 2); ?></p>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <p><strong>Total Monthly Expenses:</strong> ₱<?php echo number_format($loan['total_expenses'], 2); ?></p>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+
 
                             <!-- Action Buttons -->
                             <div class="row">
@@ -752,15 +785,54 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     class="btn btn-primary me-2" target="_blank">
                                         <i class="fas fa-print"></i> Print Application
                                     </a>
-                                    <a href="success_regular.php" class="btn btn-success">
-                                        Next
-                                    </a>
+                                    <a href="javascript:void(0);" class="btn btn-success" id="nextButton">Next</a>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+                <script>
+                $(document).ready(function() {
+                    document.getElementById("nextButton").addEventListener("click", function() {
+                        // Get the LoanID from PHP
+                        const loanID = <?php echo $loan['LoanID']; ?>;
+                        
+                        // Call run_prediction.php with LoanID as a parameter
+                        fetch(`run_prediction.php?LoanID=${loanID}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.text(); // First get the raw text
+                        })
+                        .then(text => {
+                            console.log("📌 Raw Response:", text);
+                            try {
+                                let data = JSON.parse(text);
+                                console.log("✅ Parsed Response:", data);
+                                
+                                // Check for success based on the actual response structure
+                                if (data.success === true) {
+                                    // Redirect to success page with loan ID and eligibility status
+                                    window.location.href = `success_regular.php?loanID=${data.LoanID}&status=${data.UpdatedEligibility}`;
+                                } else {
+                                    console.error("❌ API returned false success:", data);
+                                    alert("Application processing failed. Please try again.");
+                                }
+                            } catch (error) {
+                                console.error("❌ JSON Parse Error:", error, "Response text:", text);
+                                alert("Error processing application data. Please contact support.");
+                            }
+                        })
+                        .catch(error => {
+                            console.error("❌ Fetch Error:", error);
+                            alert("Network error occurred. Please check your connection and try again.");
+                        });
+                    });
+                });
+                </script>
                 <br><br><br><br><br><br><br> <br><br><br><br><br><br><br>
 
                 <!-- content-wrapper ends -->

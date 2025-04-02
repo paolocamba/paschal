@@ -1,7 +1,6 @@
 <?php
 session_start();
 
-
 // Check if the user is not logged in, redirect to login page
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../login.php");
@@ -28,7 +27,6 @@ if ($result && $result->num_rows > 0) {
     $barangay = $row["barangay"];
     $municipality = $row["municipality"];
     $province = $row["province"];
-
 } else {
     // Default values if user data is not found
     $username = "Guest";
@@ -41,13 +39,12 @@ if ($result && $result->num_rows > 0) {
     $barangay = "";
     $municipality = "";
     $province = "";
-
 }
 
 // Assign the value of $username and $image to $_SESSION variables
 $_SESSION['username'] = $name;
 $_SESSION['uploadID'] = $uploadID;
-$_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
+$_SESSION['is_logged_in'] = $row['is_logged_in'];
 ?>
 
 <!DOCTYPE html>
@@ -84,7 +81,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
 <body>
     <div class="container-scroller">
-
     </div>
     <!-- partial:partials/_navbar.html -->
     <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
@@ -100,20 +96,9 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             </button>
 
             <ul class="navbar-nav mr-lg-2">
-                <!--<li class="nav-item nav-search d-none d-lg-block">
-        <div class="input-group">
-          <div class="input-group-prepend hover-cursor" id="navbar-search-icon">
-            <span class="input-group-text" id="search">
-              <i class="icon-search"></i>
-            </span>
-          </div>
-          <input type="text" class="form-control" id="navbar-search-input" placeholder="Search now" aria-label="search" aria-describedby="search">
-        </div>
-      </li>-->
             </ul>
             <ul class="navbar-nav navbar-nav-right">
-
-            <li class="nav-item nav-profile dropdown">
+                <li class="nav-item nav-profile dropdown">
                     <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
                         <img src="../dist/assets/images/user/<?php echo $_SESSION['uploadID']; ?>" alt="profile" />
                     </a>
@@ -140,6 +125,22 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+            .table-responsive {
+                overflow-x: auto;
+                position: relative;
+            }
+
+            th:last-child, td:last-child { 
+                position: sticky;
+                right: 0;
+                background: white;
+                z-index: 2;
+            }
+
+            th:last-child {
+                z-index: 3;
+            }
+
             .nav-link i {
                 margin-right: 10px;
             }
@@ -158,6 +159,20 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
             .page-item.active .page-link {
                 background-color: #00563B !important;
+            }
+            
+            .sort-btn {
+                cursor: pointer;
+                transition: all 0.3s;
+            }
+            
+            .sort-btn:hover {
+                background-color: #f8f9fa;
+            }
+            
+            .sort-btn.active {
+                color: #00563B;
+                font-weight: bold;
             }
         </style>
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -246,7 +261,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Settings</span>
                     </a>
                 </li>
-
             </ul>
         </nav>
         <!-- partial -->
@@ -256,14 +270,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     <div class="col-md-12 grid-margin">
                         <div class="row">
                             <div class="col-12 col-xl-8 mb-4 mb-xl-0">
-                                <!-- <h3 class="font-weight-bold">Welcome</h3>
-                 <h6 class="font-weight-normal mb-0">All systems are running smoothly! You have <span class="text-primary">3 unread alerts!</span></h6> -->
                             </div>
                             <div class="col-12 col-xl-4">
                                 <div class="justify-content-end d-flex">
                                     <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
-
-
                                     </div>
                                 </div>
                             </div>
@@ -271,34 +281,39 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </div>
                 </div>
                 <?php
-
                 // Check if the "success" parameter is set in the URL
                 if (isset($_GET['success']) && $_GET['success'] == 1) {
-                    // Use SweetAlert to show a success message
                     echo '<script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Transactions Updated Successfully",
-                        showConfirmButton: false,
-                        timer: 1500 // Close after 1.5 seconds
-                    });
-                });
-            </script>';
-
+                        document.addEventListener("DOMContentLoaded", function() {
+                            Swal.fire({
+                                icon: "success",
+                                title: "Transactions Updated Successfully",
+                                showConfirmButton: false,
+                                timer: 1500
+                            });
+                        });
+                    </script>';
                 }
-
                 ?>
-
-
 
                 <?php
                 include '../connection/config.php';
 
                 $search = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : '';
+                $sort = isset($_GET['sort']) ? $_GET['sort'] : 'newest';
                 $page = isset($_GET['page']) && (int) $_GET['page'] > 0 ? (int) $_GET['page'] : 1;
                 $limit = 10;
                 $offset = ($page - 1) * $limit;
+
+                // Determine sort order
+                $order_by = "ORDER BY t.created_at DESC"; // Default: newest first
+                if ($sort === 'oldest') {
+                    $order_by = "ORDER BY t.created_at ASC";
+                } elseif ($sort === 'amount_high') {
+                    $order_by = "ORDER BY t.amount DESC";
+                } elseif ($sort === 'amount_low') {
+                    $order_by = "ORDER BY t.amount ASC";
+                }
 
                 // Add query to fetch services BEFORE using it in the modal
                 $services_query = "SELECT id, name FROM services";
@@ -325,7 +340,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             WHERE (u.first_name LIKE ?
                                 OR u.last_name LIKE ?
                                 OR u.email LIKE ?
-                                OR u.certificate_no LIKE?)
+                                OR u.certificate_no LIKE ?)
+                            $order_by
                             LIMIT ? OFFSET ?";
 
                     $stmt = $conn->prepare($sql);
@@ -344,7 +360,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     OR u.email LIKE ?
                                     OR u.certificate_no LIKE?)";
                     $count_stmt = $conn->prepare($count_sql);
-                    $count_stmt->bind_param("ssss", $search_param, $search_param, $search_param, $search_param,);
+                    $count_stmt->bind_param("ssss", $search_param, $search_param, $search_param, $search_param);
                     $count_stmt->execute();
                     $count_result = $count_stmt->get_result();
                     $total_rows = $count_result->fetch_assoc()['total'];
@@ -369,65 +385,104 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </div>
                                 </div>
 
-                                <div class="mb-3">
-                                    <form method="GET" action="" class="form-inline" id="searchForm">
-                                        <div class="input-group mb-2 mr-sm-2">
-                                            <input type="text" name="search" id="searchInput" class="form-control"
-                                                value="<?php echo htmlspecialchars($search); ?>"
-                                                placeholder="Search Transaction">
-                                            <div class="input-group-append">
-                                                <button type="button" class="btn btn-outline-secondary" id="clearButton"
-                                                    style="padding:10px;">&times;</button>
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <form method="GET" action="" class="form-inline" id="searchForm">
+                                            <div class="input-group mb-2 mr-sm-2">
+                                                <input type="text" name="search" id="searchInput" class="form-control"
+                                                    value="<?php echo htmlspecialchars($search); ?>"
+                                                    placeholder="Search Transaction">
+                                                <div class="input-group-append">
+                                                    <button type="button" class="btn btn-outline-secondary" id="clearButton"
+                                                        style="padding:10px;">&times;</button>
+                                                </div>
                                             </div>
-                                        </div>
-                                        <button type="submit" class="btn btn-primary mb-2 mr-3"
-                                            style="background:#03C03C;">
-                                            <i class="fa-solid fa-magnifying-glass"></i>
+                                            <button type="submit" class="btn btn-primary mb-2 mr-3"
+                                                style="background:#03C03C;">
+                                                <i class="fa-solid fa-magnifying-glass"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                    <div class="col-md-6 text-right">
+                                    <div class="btn-group" role="group">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-sort"></i> Sort By
                                         </button>
-                                    </form>
+                                        <div class="dropdown-menu dropdown-menu-right">
+                                            <a class="dropdown-item <?php echo $sort === 'newest' ? 'active' : ''; ?>" 
+                                            href="?search=<?php echo urlencode($search); ?>&sort=newest">
+                                                <i class="fas fa-sort-amount-down mr-2"></i> Newest
+                                            </a>
+                                            <a class="dropdown-item <?php echo $sort === 'oldest' ? 'active' : ''; ?>" 
+                                            href="?search=<?php echo urlencode($search); ?>&sort=oldest">
+                                                <i class="fas fa-sort-amount-up mr-2"></i> Oldest
+                                            </a>
+                                            <a class="dropdown-item <?php echo $sort === 'amount_high' ? 'active' : ''; ?>" 
+                                            href="?search=<?php echo urlencode($search); ?>&sort=amount_high">
+                                                <i class="fas fa-sort-numeric-down mr-2"></i> Amount (High to Low)
+                                            </a>
+                                            <a class="dropdown-item <?php echo $sort === 'amount_low' ? 'active' : ''; ?>" 
+                                            href="?search=<?php echo urlencode($search); ?>&sort=amount_low">
+                                                <i class="fas fa-sort-numeric-up mr-2"></i> Amount (Low to High)
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                                 </div>
 
                                 <div class="table-responsive">
-                                    <table class="table table-striped table-borderless">
-                                        <thead>
+                                <table class="table table-striped table-borderless">
+                                    <thead>
+                                        <tr>
+                                            <th>Created At</th>
+                                            <th>OR No.</th>
+                                            <th>Name</th>
+                                            <th>Service</th>
+                                            <th>Amount</th>
+                                            <th>Status</th>
+                                            <th>Certificate No.</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php while ($row = $result->fetch_assoc()): ?>
                                             <tr>
-                                                <th>Certificate No.</th>
-                                                <th>OR No.</th>
-                                                <th>First Name</th>
-                                                <th>Last Name</th>
-                                                <th>Email</th>
-                                                <th>Service</th>
-                                                <th>Amount</th>
-                                                <th>Created At</th>
-                                                <th>Payment Status</th>
-                                                <th>Actions</th>
+                                                <td>
+                                                    <?php 
+                                                    $date = new DateTime($row['created_at']);
+                                                    echo $date->format('M d, Y h:i A'); 
+                                                    ?>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($row['control_number'] ?? ''); ?></td>
+                                                <td>
+                                                    <?php echo htmlspecialchars($row['first_name'] ?? ''); ?> 
+                                                    <?php echo htmlspecialchars($row['last_name'] ?? ''); ?>
+                                                    <br>
+                                                    <small class="text-muted"><?php echo htmlspecialchars($row['email'] ?? ''); ?></small>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($row['services_name'] ?? ''); ?></td>
+                                                <td>₱<?php echo number_format((float)($row['amount'] ?? 0), 2); ?></td>
+                                                <td>
+                                                <span class="badge badge-pill 
+                                                    <?php echo $row['payment_status'] === 'Completed' ? 'badge-success text-white' : 
+                                                        ($row['payment_status'] === 'In Progress' ? 'badge-warning text-dark' : 'badge-secondary text-white'); ?>"
+                                                    style="font-size: 0.9rem; padding: 0.5em 0.75em; font-weight: 500; letter-spacing: 0.5px;">
+                                                    <?php echo htmlspecialchars($row['payment_status']); ?>
+                                                </span>
+                                                </td>
+                                                <td><?php echo htmlspecialchars($row['certificate_no'] ?? ''); ?></td>
+                                                <td>
+                                                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewApplicationModal<?php echo $row['transaction_id']; ?>">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                    <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editApplicationModal<?php echo $row['transaction_id']; ?>">
+                                                        <i class="fa-solid fa-pen-to-square"></i>
+                                                    </button>
+                                                    <a href="generate_transaction_pdf.php?transaction_id=<?php echo $row['transaction_id']; ?>" class="btn btn-success btn-sm">
+                                                        <i class="fa-solid fa-file-pdf"></i>
+                                                    </a>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php while ($row = $result->fetch_assoc()): ?>
-                                                <tr>
-                                                    <td><?php echo htmlspecialchars($row['certificate_no'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['control_number'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['first_name'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['last_name'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['email'] ?? ''); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['services_name'] ?? ''); ?></td>
-                                                    <td>₱<?php echo htmlspecialchars($row['amount'] ?? '0.00'); ?>
-                                                    </td>
-                                                    <td><?php echo date('F d, Y', strtotime($row['created_at'])); ?>
-                                                    <td><?php echo htmlspecialchars($row['payment_status']); ?></td>
-                                                    <td>
-                                                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewApplicationModal<?php echo $row['transaction_id']; ?>">
-                                                            <i class="fa-solid fa-eye"></i>
-                                                        </button>
-                                                        <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editApplicationModal<?php echo $row['transaction_id']; ?>">
-                                                            <i class="fa-solid fa-pen-to-square"></i>
-                                                        </button>
-                                                        <a href="generate_transaction_pdf.php?transaction_id=<?php echo $row['transaction_id']; ?>" class="btn btn-success btn-sm">
-                                                            <i class="fa-solid fa-file-pdf"></i>
-                                                        </a>
-                                                    </td>
-                                                </tr>
 
                                                 <!-- Edit Application Modal -->
                                                 <div class="modal fade" id="editApplicationModal<?php echo $row['transaction_id']; ?>" 
@@ -445,6 +500,20 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                 <form action="edit_transaction.php" method="POST">
                                                                     <input type="hidden" name="user_id" value="<?php echo $row['transaction_id']; ?>">
 
+                                                                        <!-- Add this hidden field for loan_id -->
+                                                                    <?php if (strpos($row['service_name'], 'Loan') !== false): ?>
+                                                                        <?php 
+                                                                        // Get loan_id from loan_payments if it exists
+                                                                        $loan_id_query = "SELECT LoanID FROM loan_payments WHERE transaction_id = ?";
+                                                                        $stmt = $conn->prepare($loan_id_query);
+                                                                        $stmt->bind_param("i", $row['transaction_id']);
+                                                                        $stmt->execute();
+                                                                        $loan_id_result = $stmt->get_result();
+                                                                        $loan_id = $loan_id_result->num_rows > 0 ? $loan_id_result->fetch_assoc()['LoanID'] : 0;
+                                                                        ?>
+                                                                        <input type="hidden" name="loan_id" value="<?php echo $loan_id; ?>">
+                                                                    <?php endif; ?>
+
                                                                     <div class="mb-3">
                                                                         <label for="service<?php echo $row['transaction_id']; ?>" class="form-label">Service</label>
                                                                         <select class="form-control" id="service<?php echo $row['transaction_id']; ?>" name="service" required>
@@ -461,16 +530,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                     </div>
 
                                                                     <div class="form-group">
-                                                                        <label for="amount">Payment
-                                                                            </label>
+                                                                        <label for="amount">Payment</label>
                                                                         <input type="number" class="form-control"
                                                                             name="amount"
                                                                                         value="<?php echo $row['amount']; ?>"
                                                                             required>
                                                                     </div>
                                                                     <div class="form-group">
-                                                                        <label for="amount">Control Number
-                                                                            </label>
+                                                                        <label for="amount">Control Number</label>
                                                                         <input type="number" class="form-control"
                                                                             name="control_number"
                                                                                         value="<?php echo $row['control_number']; ?>"
@@ -571,12 +638,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                         </div>
                                                     </div>
                                                 </div>
-
-
                                             <?php endwhile; ?>
                                             <?php if ($result->num_rows == 0): ?>
                                                 <tr>
-                                                    <td colspan="8">No transactions found</td>
+                                                    <td colspan="10">No transactions found</td>
                                                 </tr>
                                             <?php endif; ?>
                                         </tbody>
@@ -587,7 +652,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <ul class="pagination justify-content-center">
                                         <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
                                             <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page - 1; ?>"
+                                                href="?search=<?php echo htmlspecialchars($search); ?>&sort=<?php echo $sort; ?>&page=<?php echo $page - 1; ?>"
                                                 aria-label="Previous">
                                                 <span aria-hidden="true">&laquo; </span>
                                             </a>
@@ -595,13 +660,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
                                             <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
                                                 <a class="page-link"
-                                                    href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $i; ?>"
+                                                    href="?search=<?php echo htmlspecialchars($search); ?>&sort=<?php echo $sort; ?>&page=<?php echo $i; ?>"
                                                     style="background:color:#00563B !important;"><?php echo $i; ?></a>
                                             </li>
                                         <?php endfor; ?>
                                         <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
                                             <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page + 1; ?>"
+                                                href="?search=<?php echo htmlspecialchars($search); ?>&sort=<?php echo $sort; ?>&page=<?php echo $page + 1; ?>"
                                                 aria-label="Next">
                                                 <span aria-hidden="true"> &raquo;</span>
                                             </a>
@@ -612,7 +677,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         </div>
                     </div>
                 </div>
-
 
                 <br><br><br><br><br><br><br>
 
@@ -643,71 +707,71 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
             clearButton.addEventListener('click', function () {
                 searchInput.value = '';
-                searchForm.submit(); // Submit the form to reload all records
+                searchForm.submit();
             });
         });
 
         document.addEventListener('DOMContentLoaded', function() {
-    // Add event listeners to all edit buttons
-    document.querySelectorAll('[data-toggle="modal"]').forEach(button => {
-        button.addEventListener('click', function() {
-            const modalId = this.getAttribute('data-target');
+            // Add event listeners to all edit buttons
+            document.querySelectorAll('[data-toggle="modal"]').forEach(button => {
+                button.addEventListener('click', function() {
+                    const modalId = this.getAttribute('data-target');
+                    const modal = document.querySelector(modalId);
+                    if (modal) {
+                        const serviceSelect = modal.querySelector('#service');
+                        updateFeeInputs(serviceSelect, modalId);
+                    }
+                });
+            });
+
+            // Add change event listeners to all service selects
+            document.querySelectorAll('.modal select[name="service"]').forEach(select => {
+                select.addEventListener('change', function() {
+                    const modalId = '#' + this.closest('.modal').id;
+                    updateFeeInputs(this, modalId);
+                });
+            });
+        });
+
+        function updateFeeInputs(selectElement, modalId) {
             const modal = document.querySelector(modalId);
-            if (modal) {
-                const serviceSelect = modal.querySelector('#service');
-                updateFeeInputs(serviceSelect, modalId);
+            if (!modal) return;
+
+            // Hide all fee containers in this specific modal
+            const feeContainers = modal.querySelectorAll('[id$="-container"]');
+            feeContainers.forEach(container => {
+                container.style.display = 'none';
+            });
+
+            // Get the selected service name
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            if (!selectedOption) return;
+            
+            const serviceName = selectedOption.text;
+
+            // Show the appropriate fee input based on the selected service
+            const containerMap = {
+                'Membership Payment': 'membershipfee',
+                'Life Insurance': 'lifeinsurance-fee',
+                'Regular Loan': 'regular-fee',
+                'Collateral Loan': 'collateral-fee',
+                'Health Card': 'health-fee',
+                'Medical Consultation': 'medical-fee',
+                'Laboratory': 'lab-fee',
+                'Rice': 'rice-fee',
+                'Space Rent': 'space-fee',
+                'X-RAY': 'xray-fee',
+                'Hilot Healom': 'hilot-fee'
+            };
+
+            const containerId = containerMap[serviceName];
+            if (containerId) {
+                const container = modal.querySelector(`[id^="${containerId}"]`);
+                if (container) {
+                    container.style.display = 'block';
+                }
             }
-        });
-    });
-
-    // Add change event listeners to all service selects
-    document.querySelectorAll('.modal select[name="service"]').forEach(select => {
-        select.addEventListener('change', function() {
-            const modalId = '#' + this.closest('.modal').id;
-            updateFeeInputs(this, modalId);
-        });
-    });
-});
-
-function updateFeeInputs(selectElement, modalId) {
-    const modal = document.querySelector(modalId);
-    if (!modal) return;
-
-    // Hide all fee containers in this specific modal
-    const feeContainers = modal.querySelectorAll('[id$="-container"]');
-    feeContainers.forEach(container => {
-        container.style.display = 'none';
-    });
-
-    // Get the selected service name
-    const selectedOption = selectElement.options[selectElement.selectedIndex];
-    if (!selectedOption) return;
-    
-    const serviceName = selectedOption.text;
-
-    // Show the appropriate fee input based on the selected service
-    const containerMap = {
-        'Membership Payment': 'membershipfee',
-        'Life Insurance': 'lifeinsurance-fee',
-        'Regular Loan': 'regular-fee',
-        'Collateral Loan': 'collateral-fee',
-        'Health Card': 'health-fee',
-        'Medical Consultation': 'medical-fee',
-        'Laboratory': 'lab-fee',
-        'Rice': 'rice-fee',
-        'Space Rent': 'space-fee',
-        'X-RAY': 'xray-fee',
-        'Hilot Healom': 'hilot-fee'
-    };
-
-    const containerId = containerMap[serviceName];
-    if (containerId) {
-        const container = modal.querySelector(`[id^="${containerId}"]`);
-        if (container) {
-            container.style.display = 'block';
         }
-    }
-}
     </script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
@@ -729,8 +793,5 @@ function updateFeeInputs(selectElement, modalId) {
     <!-- Custom js for this page-->
     <script src="../dist/assets/js/jquery.cookie.js" type="text/javascript"></script>
     <script src="../dist/assets/js/dashboard.js"></script>
-    <!-- <script src="assets/js/Chart.roundedBarCharts.js"></script> -->
-    <!-- End custom js for this page-->
 </body>
-
 </html>

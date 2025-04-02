@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['appointment_id']) && 
         // Check if this is a loan payment appointment
         if ($appointment && ($appointment['description'] === 'Regular Loan Payment' || 
             $appointment['description'] === 'Collateral Loan Payment') && 
-            $status === 'approved') {
+            $status === 'Approved') {
             
             // Get the next control number
             $sql_control = "SELECT MAX(CAST(control_number AS UNSIGNED)) as max_control FROM transactions";

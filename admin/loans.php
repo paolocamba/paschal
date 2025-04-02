@@ -140,6 +140,23 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+            .table-responsive {
+                overflow-x: auto; /* Enables horizontal scrolling */
+                position: relative; /* Needed for sticky positioning */
+            }
+
+            th:last-child, td:last-child { 
+                position: sticky;
+                right: 0;
+                background: white; /* Keeps background color when scrolling */
+                z-index: 2; /* Ensures it stays above other columns */
+            }
+
+            th:last-child {
+                z-index: 3; /* Keeps header on top */
+            }
+
+
             .nav-link i {
                 margin-right: 10px;
             }
@@ -307,47 +324,137 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             $offset = ($page - 1) * $limit;
 
             $sql = "SELECT 
-                l.LoanID,
-                l.userID,
-                l.AmountRequested,
-                l.loanable_amount,
-                l.ModeOfPayment,
-                l.LoanTerm,
-                l.net_family_income,
-                l.LoanType,
-                l.DateOfLoan,
-                l.Status,
-                l.deed_of_sale1,
-                l.deed_of_sale2,
-                l.deed_of_sale3,
-                l.deed_of_sale4,
-                l.orcr_vehicle1,
-                l.orcr_vehicle2,
-                l.orcr_vehicle3,
-                l.orcr_vehicle4,
-                l.valid_id_path,
-                l.deed_of_sale_path,
-                l.vehicle_orcr_path,
-                l.proof_of_income_path,
-                l.tax_declaration_path,
-                l.tax_clearance_path,
-                l.original_transfer_certificate_of_title_path,
-                l.certified_true_copy_path,
-                l.vicinity_map_path,
-                l.barangay_clearance_path,
-                l.cedula_path,
-                l.post_dated_check_path,
-                l.promisory_note_path,
-                u.first_name,
-                u.last_name
-                FROM loanapplication l
-                JOIN users u ON l.userID = u.user_id
-                WHERE l.LoanID LIKE ? 
-                OR u.first_name LIKE ?
-                OR u.last_name LIKE ?
-                OR l.LoanType LIKE ?
-                OR l.Status LIKE ?
-                LIMIT ? OFFSET ?";
+            l.LoanID,
+            l.userID,
+            l.AmountRequested,
+            l.loanable_amount,
+            l.ModeOfPayment,
+            l.LoanTerm,
+            l.net_family_income,
+            l.LoanType,
+            l.DateOfLoan,
+            l.Eligibility,
+            l.Status,
+            l.deed_of_sale1,
+            l.deed_of_sale2,
+            l.deed_of_sale3,
+            l.deed_of_sale4,
+            l.orcr_vehicle1,
+            l.orcr_vehicle2,
+            l.orcr_vehicle3,
+            l.orcr_vehicle4,
+            l.valid_id_path,
+            l.deed_of_sale_path,
+            l.vehicle_orcr_path,
+            l.proof_of_income_path,
+            l.tax_declaration_path,
+            l.tax_clearance_path,
+            l.original_transfer_certificate_of_title_path,
+            l.certified_true_copy_path,
+            l.vicinity_map_path,
+            l.barangay_clearance_path,
+            l.cedula_path,
+            l.post_dated_check_path,
+            l.promisory_note_path,
+            l.years_stay_present_address,
+            l.own_house,
+            l.renting,
+            l.living_with_relative,
+            l.marital_status,
+            l.spouse_name,
+            l.number_of_dependents,
+            l.dependents_in_school,
+            l.dependent1_name,
+            l.dependent1_age,
+            l.dependent1_grade_level,
+            l.dependent2_name,
+            l.dependent2_age,
+            l.dependent2_grade_level,
+            l.dependent3_name,
+            l.dependent3_age,
+            l.dependent3_grade_level,
+            l.dependent4_name,
+            l.dependent4_age,
+            l.dependent4_grade_level,
+            l.employer_name,
+            l.employer_address,
+            l.present_position,
+            l.date_of_employment,
+            l.contact_person,
+            l.contact_telephone_no,
+            l.self_employed_business_type,
+            l.business_start_date,
+            l.monthly_income,
+            l.self_other_income_amount,
+            l.other_income,
+            l.spouse_income,
+            l.spouse_income_amount,
+            l.spouse_other_income_amount,
+            l.food_groceries_expense,
+            l.gas_oil_transportation_expense,
+            l.schooling_expense,
+            l.utilities_expense,
+            l.miscellaneous_expense,
+            l.total_expenses,
+            l.savings_account,
+            l.savings_bank,
+            l.savings_branch,
+            l.current_account,
+            l.current_bank,
+            l.current_branch,
+            l.assets1,
+            l.assets2,
+            l.assets3,
+            l.assets4,
+            l.creditor1_name,
+            l.creditor1_address,
+            l.creditor1_original_amount,
+            l.creditor1_present_balance,
+            l.creditor2_name,
+            l.creditor2_address,
+            l.creditor2_original_amount,
+            l.creditor2_present_balance,
+            l.creditor3_name,
+            l.creditor3_address,
+            l.creditor3_original_amount,
+            l.creditor3_present_balance,
+            l.creditor4_name,
+            l.creditor4_address,
+            l.creditor4_original_amount,
+            l.creditor4_present_balance,
+            l.property_foreclosed_repossessed,
+            l.co_maker_cosigner_guarantor,
+            l.reference1_name,
+            l.reference1_address,
+            l.reference1_contact_no,
+            l.reference2_name,
+            l.reference2_address,
+            l.reference2_contact_no,
+            l.reference3_name,
+            l.reference3_address,
+            l.reference3_contact_no,
+            c.land_title_path,
+            c.square_meters,
+            c.type_of_land,
+            c.location_name,
+            c.right_of_way,
+            c.has_hospital,
+            c.has_school,
+            c.has_clinic,
+            c.has_church,
+            c.has_market,
+            c.has_terminal,
+            u.first_name,
+            u.last_name
+        FROM loanapplication l
+        JOIN users u ON l.userID = u.user_id
+        LEFT JOIN land_appraisal c ON l.LoanID = c.LoanID
+        WHERE l.LoanID LIKE ? 
+        OR u.first_name LIKE ?
+        OR u.last_name LIKE ?
+        OR l.LoanType LIKE ?
+        OR l.Status LIKE ?
+        LIMIT ? OFFSET ?";
 
             $stmt = $conn->prepare($sql);
             $search_param = "%" . $search . "%";
@@ -441,139 +548,416 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                 
                                                 <!-- Edit Modal -->
                                                 <div class="modal fade" id="editModal<?php echo $row['LoanID']; ?>" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header">
-                                                                <h5 class="modal-title" id="editModalLabel">Edit Loan Details</h5>
-                                                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                    <span aria-hidden="true">&times;</span>
-                                                                </button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                                <div id="prediction_details_<?php echo $row['LoanID']; ?>" style="display:none;" class="alert alert-info">
-                                                                    <h6>Loan Analysis Results:</h6>
-                                                                    <div class="row">
-                                                                        <div class="col-md-6">
-                                                                            <p><strong>Loan Eligibility:</strong> <span id="loan_eligibility_<?php echo $row['LoanID']; ?>"></span></p>
-                                                                            <p><strong>Interest Rate:</strong> <span id="interest_rate_<?php echo $row['LoanID']; ?>"></span></p>
-                                                                            <?php if ($row['LoanType'] === 'Collateral'): ?>
-                                                                            <p><strong>Total Value:</strong> <span id="total_value_<?php echo $row['LoanID']; ?>"></span></p>
-                                                                            <?php endif; ?>
-                                                                        </div>
-                                                                        <div class="col-md-6">
-                                                                            <p><strong>Monthly Payment:</strong> <span id="periodic_payment_<?php echo $row['LoanID']; ?>"></span></p>
-                                                                            <p><strong>Total Payment:</strong> <span id="total_payment_<?php echo $row['LoanID']; ?>"></span></p>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                
-                                                                <form action="edit_loan.php" method="POST">
-                                                                    <input type="hidden" name="LoanID" value="<?php echo $row['LoanID']; ?>">
-                                                                    
-                                                                    <div class="mb-3">
-                                                                        <label for="loanable_amount_<?php echo $row['LoanID']; ?>" class="form-label">Loanable Amount</label>
-                                                                        <input type="number" class="form-control" id="loanable_amount_<?php echo $row['LoanID']; ?>" 
-                                                                            name="loanable_amount" value="<?php echo htmlspecialchars($row['loanable_amount']); ?>" readonly>
-                                                                    </div>
-
-                                                                    <div class="mb-3">
-                                                                        <label for="Status" class="form-label">Status</label>
-                                                                        <select class="form-control" id="Status" name="Status" required>
-                                                                            <option value="In Progress" <?php echo ($row['Status'] == 'In Progress') ? 'selected' : ''; ?>>In Progress</option>
-                                                                            <option value="Approved" <?php echo ($row['Status'] == 'Approved') ? 'selected' : ''; ?>>Approved</option>
-                                                                            <option value="Disapproved" <?php echo ($row['Status'] == 'Disapproved') ? 'selected' : ''; ?>>Disapproved</option>
-                                                                        </select>
-                                                                    </div>
-                                                                    
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-primary">Save Changes</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
-                                                        </div>
+                                            <div class="modal-dialog">
+                                                <div class="modal-content">
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title" id="editModalLabel">Edit Loan Details</h5>
+                                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
                                                     </div>
-                                                </div>
-
-                                                <!-- View Modal -->
-                                                
-                                                <div class="modal fade" id="viewModal<?php echo $row['LoanID']; ?>" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
-                                                    <div class="modal-dialog modal-lg">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-primary text-white">
-                                                                <h5 class="modal-title" id="viewModalLabel">Loan Application Details</h5>
-                                                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                                                    <span aria-hidden="true">&times;</span>
-                                                                </button>
+                                                    <div class="modal-body">
+                                                        <form action="edit_loan.php" method="POST">
+                                                            <input type="hidden" name="LoanID" value="<?php echo $row['LoanID']; ?>">
+                                                            
+                                                            <!-- Loan Type -->
+                                                            <div class="mb-3">
+                                                                <label for="LoanType" class="form-label">Loan Type</label>
+                                                                <input type="text" class="form-control" id="LoanType" name="LoanType" 
+                                                                    value="<?php echo htmlspecialchars($row['LoanType']); ?>" readonly>
                                                             </div>
-                                                            <div class="modal-body">
-                                                                <div class="row mb-4">
-                                                                    <div class="col-md-6">
-                                                                        <div class="card h-100">
-                                                                            <div class="card-header bg-light">
-                                                                                <h6 class="mb-0">Basic Information</h6>
-                                                                            </div>
-                                                                            <div class="card-body">
-                                                                                <p><strong>Loan ID:</strong> <?php echo htmlspecialchars($row['LoanID']); ?></p>
-                                                                                <p><strong>Applicant Name:</strong> <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></p>
-                                                                                <p><strong>Amount Requested:</strong> ₱<?php echo htmlspecialchars($row['AmountRequested']); ?></p>
-                                                                                <p><strong>Loan Type:</strong> <?php echo htmlspecialchars($row['LoanType']); ?></p>
-                                                                                <p><strong>Date of Loan:</strong> <?php echo date('F d, Y', strtotime($row['DateOfLoan'])); ?></p>
-                                                                                <p><strong>Status:</strong> <span class="badge badge-<?php echo getStatusBadgeClass($row['Status']); ?>"><?php echo htmlspecialchars($row['Status']); ?></span></p>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="col-md-6">
-                                                                        <div class="card h-100">
-                                                                            <div class="card-header bg-light">
-                                                                                <h6 class="mb-0">Documents</h6>
-                                                                            </div>
-                                                                            <div class="card-body">
-                                                                                <div class="document-section">
-                                                                                    <h6 class="text-primary">Valid IDs & Personal Documents</h6>
-                                                                                    <?php displayDocument($row['valid_id_path'], 'Valid ID'); ?>
-                                                                                    <?php displayDocument($row['cedula_path'], 'Cedula'); ?>
-                                                                                </div>
-                                                                                
-                                                                                <div class="document-section mt-3">
-                                                                                    <h6 class="text-primary">Property Documents</h6>
-                                                                                    <?php displayDocument($row['deed_of_sale_path'], 'Deed of Sale'); ?>
-                                                                                    <?php displayDocument($row['tax_declaration_path'], 'Tax Declaration'); ?>
-                                                                                    <?php displayDocument($row['tax_clearance_path'], 'Tax Clearance'); ?>
-                                                                                    <?php displayDocument($row['original_transfer_certificate_of_title_path'], 'Original Transfer Certificate'); ?>
-                                                                                </div>
-                                                                                
-                                                                                <div class="document-section mt-3">
-                                                                                    <h6 class="text-primary">Vehicle Documents</h6>
-                                                                                    <?php displayDocument($row['vehicle_orcr_path'], 'Vehicle ORCR'); ?>
-                                                                                    <?php 
-                                                                                    for($i = 1; $i <= 4; $i++) {
-                                                                                        displayDocument($row["orcr_vehicle$i"], "ORCR Vehicle $i");
-                                                                                        displayDocument($row["deed_of_sale$i"], "Deed of Sale $i");
-                                                                                    }
-                                                                                    ?>
-                                                                                </div>
-                                                                                
-                                                                                <div class="document-section mt-3">
-                                                                                    <h6 class="text-primary">Additional Documents</h6>
-                                                                                    <?php displayDocument($row['proof_of_income_path'], 'Proof of Income'); ?>
-                                                                                    <?php displayDocument($row['certified_true_copy_path'], 'Certified True Copy'); ?>
-                                                                                    <?php displayDocument($row['vicinity_map_path'], 'Vicinity Map'); ?>
-                                                                                    <?php displayDocument($row['barangay_clearance_path'], 'Barangay Clearance'); ?>
-                                                                                    <?php displayDocument($row['post_dated_check_path'], 'Post Dated Check'); ?>
-                                                                                    <?php displayDocument($row['promisory_note_path'], 'Promissory Note'); ?>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+                                                            
+                                                            <!-- Interest Rate (Annual) -->
+                                                            <div class="mb-3">
+                                                                <label for="InterestRate" class="form-label">Interest Rate (Annual)</label>
+                                                                <input type="text" class="form-control" id="InterestRate" name="InterestRate" 
+                                                                    value="<?php echo ($row['LoanType'] === 'Collateral') ? '14%' : '12%'; ?>" readonly>
                                                             </div>
+                                                            
+                                                            <!-- Amount Requested -->
+                                                            <div class="mb-3">
+                                                                <label for="AmountRequested" class="form-label">Amount Requested</label>
+                                                                <input type="text" class="form-control" id="AmountRequested" name="AmountRequested" 
+                                                                    value="₱<?php echo number_format($row['AmountRequested'], 2); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Loan Term -->
+                                                            <div class="mb-3">
+                                                                <label for="LoanTerm" class="form-label">Loan Term (Months)</label>
+                                                                <input type="number" class="form-control" id="LoanTerm" name="LoanTerm" 
+                                                                    value="<?php echo htmlspecialchars($row['LoanTerm']); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Total Amount Payable -->
+                                                            <div class="mb-3">
+                                                                <label for="TotalAmountPayable" class="form-label">Total Amount Payable</label>
+                                                                <?php 
+                                                                    $interestRate = ($row['LoanType'] === 'Collateral') ? 0.14 : 0.12;
+                                                                    $loanTermMonths = $row['LoanTerm'];
+                                                                    $monthlyInterestRate = $interestRate / 12;
+                                                                    $interestForTerm = $row['AmountRequested'] * $monthlyInterestRate * $loanTermMonths;
+                                                                    $totalPayable = $row['AmountRequested'] + $interestForTerm;
+                                                                ?>
+                                                                <input type="text" class="form-control" id="TotalAmountPayable" name="TotalAmountPayable" 
+                                                                    value="₱<?php echo number_format($totalPayable, 2); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Mode of Payment and Amount Payable -->
+                                                            <div class="mb-3">
+                                                                <label for="ModeOfPayment" class="form-label">Payment Mode</label>
+                                                                <input type="text" class="form-control" id="ModeOfPayment" name="ModeOfPayment" 
+                                                                    value="<?php echo htmlspecialchars($row['ModeOfPayment']); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <div class="mb-3">
+                                                                <label for="AmountPayable" class="form-label">Amount Payable per Payment</label>
+                                                                <?php 
+                                                                    $paymentFrequency = [
+                                                                        'Weekly' => 4.33, // Approximating weeks in a month
+                                                                        'Bi-Monthly' => 2,
+                                                                        'Monthly' => 1,
+                                                                        'Quarterly' => 1 / 4,
+                                                                        'Semi Annual' => 1 / 6
+                                                                    ];
+                                                                    $numPayments = $loanTermMonths * (isset($paymentFrequency[$row['ModeOfPayment']]) ? $paymentFrequency[$row['ModeOfPayment']] : 1);
+                                                                    $amountPerPayment = $totalPayable / $numPayments;
+                                                                ?>
+                                                                <input type="text" class="form-control" id="AmountPayable" name="AmountPayable" 
+                                                                    value="₱<?php echo number_format($amountPerPayment, 2); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Loanable Amount -->
+                                                            <div class="mb-3">
+                                                                <label for="LoanableAmount" class="form-label">Loanable Amount</label>
+                                                                <input type="text" class="form-control" id="LoanableAmount" name="LoanableAmount" 
+                                                                    value="₱<?php echo number_format($row['loanable_amount'], 2); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Eligibility -->
+                                                            <div class="mb-3">
+                                                                <label for="Eligibility" class="form-label">Eligibility</label>
+                                                                <input type="text" class="form-control" id="Eligibility" name="Eligibility" 
+                                                                    value="<?php echo htmlspecialchars($row['Eligibility']); ?>" readonly>
+                                                            </div>
+                                                            
+                                                            <!-- Status -->
+                                                            <div class="mb-3">
+                                                                <label for="Status" class="form-label">Status</label>
+                                                                <select class="form-control" id="Status" name="Status" required>
+                                                                    <option value="In Progress" <?php echo ($row['Status'] == 'In Progress') ? 'selected' : ''; ?>>In Progress</option>
+                                                                    <option value="Cancelled" <?php echo ($row['Status'] == 'Cancelled') ? 'selected' : ''; ?>>Cancelled</option>
+                                                                    <option value="Approved" <?php echo ($row['Status'] == 'Approved') ? 'selected' : ''; ?>>Approved</option>
+                                                                    <option value="Disapproved" <?php echo ($row['Status'] == 'Disapproved') ? 'selected' : ''; ?>>Disapproved</option>
+                                                                </select>
+                                                            </div>
+                                                            
                                                             <div class="modal-footer">
                                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                            </div>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+
+                                        <!-- View Modal -->
+                                        <div class="modal fade" id="viewModal<?php echo $row['LoanID']; ?>" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+                                            <div class="modal-dialog modal-lg">
+                                                <div class="modal-content">
+                                                    <div class="modal-header bg-primary text-white">
+                                                        <h5 class="modal-title" id="viewModalLabel">Loan Application Details</h5>
+                                                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                                                            <span aria-hidden="true">&times;</span>
+                                                        </button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div class="row mb-4">
+                                                            <!-- Basic Information -->
+                                                            <div class="col-md-6">
+                                                                <div class="card h-100">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Basic Information</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <p><strong>Loan ID:</strong> <?php echo htmlspecialchars($row['LoanID']); ?></p>
+                                                                        <p><strong>Applicant Name:</strong> <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></p>
+                                                                        <p><strong>Amount Requested:</strong> ₱<?php echo !empty($row['AmountRequested']) ? number_format((float)$row['AmountRequested'], 2) : '0.00'; ?></p>
+                                                                        <p><strong>Loanable Amount:</strong> ₱<?php echo !empty($row['loanable_amount']) ? number_format((float)$row['loanable_amount'], 2) : '0.00'; ?></p>
+                                                                        <p><strong>Mode of Payment:</strong> <?php echo htmlspecialchars($row['ModeOfPayment']); ?></p>
+                                                                        <p><strong>Loan Term:</strong> <?php echo htmlspecialchars($row['LoanTerm']); ?></p>
+                                                                        <p><strong>Net Family Income:</strong> ₱<?php echo !empty($row['net_family_income']) ? number_format((float)$row['net_family_income'], 2) : '0.00'; ?></p>
+                                                                        <p><strong>Loan Type:</strong> <?php echo htmlspecialchars($row['LoanType']); ?></p>
+                                                                        <p><strong>Date of Loan:</strong> <?php echo date('F d, Y', strtotime($row['DateOfLoan'])); ?></p>
+                                                                        <p><strong>Eligibility:</strong> <?php echo htmlspecialchars($row['Eligibility']); ?></p>
+                                                                        <p><strong>Status:</strong> <span class="badge badge-<?php echo getStatusBadgeClass($row['Status']); ?>"><?php echo htmlspecialchars($row['Status']); ?></span></p>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Documents -->
+                                                            <div class="col-md-6">
+                                                                <div class="card h-100">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Documents</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="document-section">
+                                                                            <h6 class="text-primary">Valid IDs & Personal Documents</h6>
+                                                                            <?php displayDocument($row['valid_id_path'], 'Valid ID'); ?>
+                                                                            <?php displayDocument($row['cedula_path'], 'Cedula'); ?>
+                                                                        </div>
+                                                                        
+                                                                        <div class="document-section mt-3">
+                                                                            <h6 class="text-primary">Property Documents</h6>
+                                                                            <?php displayDocument($row['deed_of_sale_path'], 'Deed of Sale'); ?>
+                                                                            <?php displayDocument($row['tax_declaration_path'], 'Tax Declaration'); ?>
+                                                                            <?php displayDocument($row['tax_clearance_path'], 'Tax Clearance'); ?>
+                                                                            <?php displayDocument($row['original_transfer_certificate_of_title_path'], 'Original Transfer Certificate'); ?>
+                                                                        </div>
+                                                                        
+                                                                        <div class="document-section mt-3">
+                                                                            <h6 class="text-primary">Vehicle Documents</h6>
+                                                                            <?php displayDocument($row['vehicle_orcr_path'], 'Vehicle ORCR'); ?>
+                                                                            <?php 
+                                                                            for($i = 1; $i <= 4; $i++) {
+                                                                                displayDocument($row["orcr_vehicle$i"], "ORCR Vehicle $i");
+                                                                                displayDocument($row["deed_of_sale$i"], "Deed of Sale $i");
+                                                                            }
+                                                                            ?>
+                                                                        </div>
+                                                                        
+                                                                        <div class="document-section mt-3">
+                                                                            <h6 class="text-primary">Additional Documents</h6>
+                                                                            <?php displayDocument($row['proof_of_income_path'], 'Proof of Income'); ?>
+                                                                            <?php displayDocument($row['certified_true_copy_path'], 'Certified True Copy'); ?>
+                                                                            <?php displayDocument($row['vicinity_map_path'], 'Vicinity Map'); ?>
+                                                                            <?php displayDocument($row['barangay_clearance_path'], 'Barangay Clearance'); ?>
+                                                                            <?php displayDocument($row['post_dated_check_path'], 'Post Dated Check'); ?>
+                                                                            <?php displayDocument($row['promisory_note_path'], 'Promissory Note'); ?>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Personal Information -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-12">
+                                                                <div class="card">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Personal Information</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-md-6">
+                                                                                <p><strong>Years Stay at Present Address:</strong> <?php echo htmlspecialchars($row['years_stay_present_address']); ?></p>
+                                                                                <p><strong>Own House:</strong> <?php echo htmlspecialchars($row['own_house']); ?></p>
+                                                                                <p><strong>Renting:</strong> <?php echo htmlspecialchars($row['renting']); ?></p>
+                                                                                <p><strong>Living with Relative:</strong> <?php echo htmlspecialchars($row['living_with_relative']); ?></p>
+                                                                                <p><strong>Marital Status:</strong> <?php echo htmlspecialchars($row['marital_status']); ?></p>
+                                                                                <?php if ($row['marital_status'] === 'Married' && !empty($row['spouse_name'])): ?>
+                                                                                <p><strong>Spouse Name:</strong> <?php echo htmlspecialchars($row['spouse_name']); ?></p>
+                                                                                 <?php endif; ?>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <p><strong>Number of Dependents:</strong> <?php echo htmlspecialchars($row['number_of_dependents']); ?></p>
+                                                                                <p><strong>Dependents in School:</strong> <?php echo htmlspecialchars($row['dependents_in_school']); ?></p>
+                                                                                <p><strong>Dependent 1 Name:</strong> <?php echo htmlspecialchars($row['dependent1_name']); ?></p>
+                                                                                <p><strong>Dependent 1 Age:</strong> <?php echo htmlspecialchars($row['dependent1_age']); ?></p>
+                                                                                <p><strong>Dependent 1 Grade Level:</strong> <?php echo htmlspecialchars($row['dependent1_grade_level']); ?></p>
+                                                                                <p><strong>Dependent 2 Name:</strong> <?php echo htmlspecialchars($row['dependent2_name']); ?></p>
+                                                                                <p><strong>Dependent 2 Age:</strong> <?php echo htmlspecialchars($row['dependent2_age']); ?></p>
+                                                                                <p><strong>Dependent 2 Grade Level:</strong> <?php echo htmlspecialchars($row['dependent2_grade_level']); ?></p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Employment Information -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-12">
+                                                                <div class="card">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Employment Information</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-md-6">
+                                                                                <p><strong>Employer Name:</strong> <?php echo htmlspecialchars($row['employer_name']); ?></p>
+                                                                                <p><strong>Employer Address:</strong> <?php echo htmlspecialchars($row['employer_address']); ?></p>
+                                                                                <p><strong>Present Position:</strong> <?php echo htmlspecialchars($row['present_position']); ?></p>
+                                                                                <p><strong>Date of Employment:</strong> <?php echo date('F d, Y', strtotime($row['date_of_employment'])); ?></p>
+                                                                                <p><strong>Monthly Income:</strong> ₱<?php echo !empty($row['monthly_income']) ? number_format((float)$row['monthly_income'], 2) : '0.00'; ?></p>
+                                                                                <p><strong>Contact Person:</strong> <?php echo htmlspecialchars($row['contact_person']); ?></p>
+                                                                                <p><strong>Contact Telephone No:</strong> <?php echo htmlspecialchars($row['contact_telephone_no']); ?></p>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <p><strong>Self Employed Business Type:</strong> <?php echo htmlspecialchars($row['self_employed_business_type']); ?></p>
+                                                                                <p><strong>Business Start Date:</strong> <?php echo !empty($row['business_start_date']) ? date('F d, Y', strtotime($row['business_start_date'])) : 'N/A'; ?></p>
+                                                                                <p><strong>Other Income:</strong> <?php echo !empty($row['other_income']) ? htmlspecialchars($row['other_income']) : 'N/A'; ?></p>
+                                                                                <p><strong>Self Other Income Amount:</strong> ₱<?php echo !empty($row['self_other_income_amount']) ? number_format((float)$row['self_other_income_amount'], 2) : '0.00'; ?></p>
+                                                                                <?php if ($row['marital_status'] === 'Married'): ?>
+                                                                                <?php if (!empty($row['spouse_name'])): ?>
+                                                                                    <p><strong>Spouse Name:</strong> <?php echo htmlspecialchars($row['spouse_name']); ?></p>
+                                                                                <?php endif; ?>
+                                                                                <?php if (!empty($row['spouse_income'])): ?>
+                                                                                    <p><strong>Spouse Income:</strong> <?php echo htmlspecialchars($row['spouse_income']); ?></p>
+                                                                                <?php endif; ?>
+                                                                                <?php if (!empty($row['spouse_income_amount'])): ?>
+                                                                                    <p><strong>Spouse Income Amount:</strong> ₱<?php echo number_format((float)$row['spouse_income_amount'], 2); ?></p>
+                                                                                <?php endif; ?>
+                                                                                <?php if (!empty($row['spouse_other_income'])): ?>
+                                                                                    <p><strong>Spouse Other Income:</strong> <?php echo htmlspecialchars($row['spouse_other_income']); ?></p>
+                                                                                <?php endif; ?>
+                                                                                <?php if (!empty($row['spouse_other_income_amount'])): ?>
+                                                                                    <p><strong>Spouse Other Income Amount:</strong> ₱<?php echo number_format((float)$row['spouse_other_income_amount'], 2); ?></p>
+                                                                                <?php endif; ?>
+                                                                            <?php endif; ?>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Financial Information -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-12">
+                                                                <div class="card">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Financial Information</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <div class="col-md-6">
+                                                                            <p><strong>Food & Groceries Expense:</strong> ₱<?php echo !empty($row['food_groceries_expense']) ? number_format((float)$row['food_groceries_expense'], 2) : '0.00'; ?></p>
+                                                                            <p><strong>Gas & Oil Transportation Expense:</strong> ₱<?php echo !empty($row['gas_oil_transportation_expense']) ? number_format((float)$row['gas_oil_transportation_expense'], 2) : '0.00'; ?></p>
+                                                                            <p><strong>Schooling Expense:</strong> ₱<?php echo !empty($row['schooling_expense']) ? number_format((float)$row['schooling_expense'], 2) : '0.00'; ?></p>
+                                                                            <p><strong>Utilities Expense:</strong> ₱<?php echo !empty($row['utilities_expense']) ? number_format((float)$row['utilities_expense'], 2) : '0.00'; ?></p>
+                                                                            <p><strong>Miscellaneous Expense:</strong> ₱<?php echo !empty($row['miscellaneous_expense']) ? number_format((float)$row['miscellaneous_expense'], 2) : '0.00'; ?></p>
+                                                                            <p><strong>Total Expenses:</strong> ₱<?php echo !empty($row['total_expenses']) ? number_format((float)$row['total_expenses'], 2) : '0.00'; ?></p>
+                                                                            </div>
+                                                                            <div class="col-md-6">
+                                                                                <p><strong>Savings Account:</strong> <?php echo htmlspecialchars($row['savings_account']); ?></p>
+                                                                                <p><strong>Savings Bank:</strong> <?php echo htmlspecialchars($row['savings_bank']); ?></p>
+                                                                                <p><strong>Savings Branch:</strong> <?php echo htmlspecialchars($row['savings_branch']); ?></p>
+                                                                                <p><strong>Current Account:</strong> <?php echo htmlspecialchars($row['current_account']); ?></p>
+                                                                                <p><strong>Current Bank:</strong> <?php echo htmlspecialchars($row['current_bank']); ?></p>
+                                                                                <p><strong>Current Branch:</strong> <?php echo htmlspecialchars($row['current_branch']); ?></p>
+                                                                                <p><strong>Assets:</strong> 
+                                                                                    <?php 
+                                                                                    for($i = 1; $i <= 4; $i++) {
+                                                                                        if (!empty($row["assets$i"])) {
+                                                                                            echo htmlspecialchars($row["assets$i"]) . "<br>";
+                                                                                        }
+                                                                                    }
+                                                                                    ?>
+                                                                                </p>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- Collateral Information (Only show if LoanType is Collateral) -->
+                                                            <?php if ($row['LoanType'] === 'Collateral' && !empty($row['LoanID'])): ?>
+                                                            <div class="row mb-4">
+                                                                <div class="col-md-12">
+                                                                    <div class="card">
+                                                                        <div class="card-header bg-light">
+                                                                            <h6 class="mb-0">Collateral Information</h6>
+                                                                        </div>
+                                                                        <div class="card-body">
+                                                                            <div class="row">
+                                                                                <div class="col-md-6">
+                                                                                    <?php displayDocument($row['land_title_path'], 'Land Title'); ?>
+                                                                                    <p><strong>Square Meters:</strong> <?php echo htmlspecialchars($row['square_meters']); ?></p>
+                                                                                    <p><strong>Type of Land:</strong> <?php echo htmlspecialchars($row['type_of_land']); ?></p>
+                                                                                    <p><strong>Location Name:</strong> <?php echo htmlspecialchars($row['location_name']); ?></p>
+                                                                                    <p><strong>Right of Way:</strong> <?php echo htmlspecialchars($row['right_of_way']); ?></p>
+                                                                                </div>
+                                                                                <div class="col-md-6">
+                                                                                    <h6 class="text-primary">Nearby Amenities</h6>
+                                                                                    <p><i class="fas fa-hospital text-primary mr-2"></i> Hospital: <?php echo htmlspecialchars($row['has_hospital']); ?></p>
+                                                                                    <p><i class="fas fa-school text-primary mr-2"></i> School: <?php echo htmlspecialchars($row['has_school']); ?></p>
+                                                                                    <p><i class="fas fa-clinic-medical text-primary mr-2"></i> Clinic: <?php echo htmlspecialchars($row['has_clinic']); ?></p>
+                                                                                    <p><i class="fas fa-church text-primary mr-2"></i> Church: <?php echo htmlspecialchars($row['has_church']); ?></p>
+                                                                                    <p><i class="fas fa-shopping-cart text-primary mr-2"></i> Market: <?php echo htmlspecialchars($row['has_market']); ?></p>
+                                                                                    <p><i class="fas fa-bus text-primary mr-2"></i> Terminal: <?php echo htmlspecialchars($row['has_terminal']); ?></p>
+                                                                                </div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <?php endif; ?>
+
+                                                        <!-- Creditors -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-12">
+                                                                <div class="card">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">Creditors</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <?php for($i = 1; $i <= 4; $i++): ?>
+                                                                                <?php if (!empty($row["creditor{$i}_name"])): ?>
+                                                                                    <div class="col-md-6">
+                                                                                        <p><strong>Creditor <?php echo $i; ?> Name:</strong> <?php echo htmlspecialchars($row["creditor{$i}_name"]); ?></p>
+                                                                                        <p><strong>Creditor <?php echo $i; ?> Address:</strong> <?php echo htmlspecialchars($row["creditor{$i}_address"]); ?></p>
+                                                                                        <p><strong>Creditor <?php echo $i; ?> Original Amount:</strong> ₱<?php echo !empty($row["creditor{$i}_original_amount"]) ? number_format((float)$row["creditor{$i}_original_amount"], 2) : '0.00'; ?></p>
+                                                                                        <p><strong>Creditor <?php echo $i; ?> Present Balance:</strong> ₱<?php echo !empty($row["creditor{$i}_present_balance"]) ? number_format((float)$row["creditor{$i}_present_balance"], 2) : '0.00'; ?></p>
+                                                                                        <?php if (!is_null($row['property_foreclosed_repossessed'])): ?>
+                                                                                        <p><strong>Property Foreclosed/Repossessed:</strong> <?php echo ucfirst($row['property_foreclosed_repossessed']); ?></p>
+                                                                                        <?php endif; ?>
+                                                                                        <?php if (!is_null($row['co_maker_cosigner_guarantor'])): ?>
+                                                                                            <p><strong>Co-Maker/Cosigner/Guarantor:</strong> <?php echo ucfirst($row['co_maker_cosigner_guarantor']); ?></p>
+                                                                                        <?php endif; ?>
+                                                                                    </div>
+                                                                                <?php endif; ?>
+                                                                            <?php endfor; ?>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <!-- References -->
+                                                        <div class="row mb-4">
+                                                            <div class="col-md-12">
+                                                                <div class="card">
+                                                                    <div class="card-header bg-light">
+                                                                        <h6 class="mb-0">References</h6>
+                                                                    </div>
+                                                                    <div class="card-body">
+                                                                        <div class="row">
+                                                                            <?php for($i = 1; $i <= 3; $i++): ?>
+                                                                                <?php if (!empty($row["reference{$i}_name"])): ?>
+                                                                                    <div class="col-md-4">
+                                                                                        <p><strong>Reference <?php echo $i; ?> Name:</strong> <?php echo htmlspecialchars($row["reference{$i}_name"]); ?></p>
+                                                                                        <p><strong>Reference <?php echo $i; ?> Address:</strong> <?php echo htmlspecialchars($row["reference{$i}_address"]); ?></p>
+                                                                                        <p><strong>Reference <?php echo $i; ?> Contact No:</strong> <?php echo htmlspecialchars($row["reference{$i}_contact_no"]); ?></p>
+                                                                                    </div>
+                                                                                <?php endif; ?>
+                                                                            <?php endfor; ?>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                    </div>
                                                 </div>
+                                            </div>
+                                        </div>
                                             <?php endwhile; ?>
                                         <?php else: ?>
                                             <tr>
@@ -740,16 +1124,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                     <td><?php echo htmlspecialchars($row['LoanEligibility']); ?></td>
                                                     <td>
                                                        
-                                                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal<?php echo $row['LoanID']; ?>">
+                                                        <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal2<?php echo $row['LoanID']; ?>">
                                                             <i class="fa-solid fa-eye"></i>
                                                         </button>
+                                                        
                                                     </td>
                                                 </tr>
                                                 
                                                 
 
                                                 <!-- View Modal -->
-                                                <div class="modal fade" id="viewModal<?php echo $row['LoanID']; ?>" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
+                                                <div class="modal fade" id="viewModal2<?php echo $row['LoanID']; ?>" tabindex="-1" aria-labelledby="viewModalLabel" aria-hidden="true">
                                                     <div class="modal-dialog">
                                                         <div class="modal-content">
                                                             <div class="modal-header">
@@ -763,7 +1148,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                     <div class="col-md-6">
                                                                         <p><strong>Loan ID:</strong> <?php echo htmlspecialchars($row['LoanID']); ?></p>
                                                                         <p><strong>Applicant Name:</strong> <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></p>
-                                                                        <p><strong>Amount Requested:</strong> <?php echo htmlspecialchars($row['AmountRequested']); ?></p>
+                                                                        <p><strong>Amount Requested:</strong> ₱<?php echo !empty($row['AmountRequested']) ? number_format((float)$row['AmountRequested'], 2) : '0.00'; ?></p>
                                                                     </div>
                                                                     <div class="col-md-6">
                                                                         <p><strong>Loan Type:</strong> <?php echo htmlspecialchars($row['LoanType']); ?></p>

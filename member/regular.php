@@ -217,7 +217,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 // Function to calculate maximum loan amount (90% of share capital and savings)
                 function getMaxLoanAmount($conn, $member_id) {
                     $query = "SELECT savings, share_capital FROM users WHERE user_id = ?";
-    
+
                     $stmt = $conn->prepare($query);
                     if (!$stmt) {
                         die("Query preparation failed: " . $conn->error);
@@ -234,30 +234,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     $stmt->close();
                     
                     // Calculate max loan amount (90% of total)
-                    $max_loan_amount = ($savings + $share_capital) * 0.90;
-                    
-                    // Update loanable_amount in users table
-                    $update_query = "UPDATE loanapplication SET loanable_amount = ? WHERE userID = ?";
-                    
-                    $update_stmt = $conn->prepare($update_query);
-                    if (!$update_stmt) {
-                        die("Update query preparation failed: " . $conn->error);
-                    }
-                    
-                    $update_stmt->bind_param("ds", $max_loan_amount, $member_id);
-                    $update_stmt->execute();
-                    $update_stmt->close();
-                    
-                    return $max_loan_amount;
+                    return ($savings + $share_capital) * 0.90;
                 }
 
                 // Handle form submission
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $dateOfLoan = $_POST['dateLoan'];
-                    $amountRequested = (float) $_POST['amountRequested'];
+                    $amountRequested = (float) str_replace(',', '', $_POST['amountRequested']);
                     $purpose = $_POST['purpose'];
                     $loanTerm = $_POST['loanterm'];
                     $modePayment = $_POST['modePayment'];
+                
 
                     // Validate amount against maximum allowed
                     $maxAmount = getMaxLoanAmount($conn, $user_id);
@@ -290,10 +277,24 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         $modePayment
                     );
 
+                    // Execute statement and check for errors
                     if ($stmt->execute()) {
-                        // Store loan ID in session for next step
+                        // ✅ Store loan ID before closing the statement
                         $_SESSION['current_loan_id'] = $stmt->insert_id;
-                        $stmt->close();
+                        $stmt->close(); // Now it's safe to close
+
+                        // ✅ Update loanable_amount AFTER successful insert
+                        $update_query = "UPDATE loanapplication SET loanable_amount = ? WHERE userID = ?";
+                        $update_stmt = $conn->prepare($update_query);
+                        if (!$update_stmt) {
+                            die("Update query preparation failed: " . $conn->error);
+                        }
+
+                        $update_stmt->bind_param("ds", $maxAmount, $user_id);
+                        $update_stmt->execute();
+                        $update_stmt->close();
+
+                        // ✅ Redirect after successful application
                         header("Location: regular-form2.php?loanType=" . urlencode($loan_type));
                         exit();
                     } else {
@@ -304,6 +305,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         $stmt->close();
                     }
                 }
+
 
                 // Get maximum loan amount for JavaScript validation
                 $maxLoanAmount = getMaxLoanAmount($conn, $user_id);
@@ -480,19 +482,44 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="dateLoan" class="form-label">Date of Loan</label>
+                                        <label for="dateLoan" class="form-label">Date of Loan <span style="color: red;">*</span></label>
                                         <input type="date" class="form-control" name="dateLoan" id="dateLoan" placeholder="mm/dd/yyyy" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="amountRequested" class="form-label">Amount Requested</label>
-                                        <input type="number" class="form-control" name="amountRequested" id="amountRequested" required>
+                                <div class="form-group">
+                                        <label for="amountRequested" class="form-label">
+                                            Amount Requested <span style="color: red;">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" name="amountRequested" id="amountRequested" required oninput="formatAmount(this)">
                                     </div>
+
+
+                                    <script>
+                                    function formatAmount(input) {
+                                    // Remove all non-numeric characters
+                                    let value = input.value.replace(/\D/g, '');
+                                    
+                                    // Store the raw numeric value in a data attribute
+                                    input.dataset.rawValue = value;
+                                    
+                                    // Format with commas for display
+                                    input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    }
+
+                                    // Remove commas before form submission
+                                    document.querySelector('form').addEventListener('submit', function() {
+                                        const amountInput = document.getElementById('amountRequested');
+                                        // Use the raw value we stored in the data attribute
+                                        amountInput.value = amountInput.dataset.rawValue || amountInput.value.replace(/,/g, '');
+                                    });
+                                    </script>
+
+
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="purpose" class="form-label">Purpose</label>
+                                        <label for="purpose" class="form-label">Purpose <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="purpose" id="purpose" required>
                                     </div>
                                 </div>
@@ -501,7 +528,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="loanTerm" class="form-label">Loan Term</label>
+                                        <label for="loanTerm" class="form-label">Loan Term <span style="color: red;">*</span></label>
                                         <select class="form-select" name="loanterm" id="loanTerm" required>
                                             <option selected>Select Term</option>
                                             <option value="3">3 Months</option>
@@ -517,7 +544,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="modePayment" class="form-label">Mode of Payment</label>
+                                        <label for="modePayment" class="form-label">Mode of Payment <span style="color: red;">*</span></label>
                                         <select class="form-select" name="modePayment" id="modePayment" required>
                                             <option selected>Select Mode</option>
                                             <option value="Weekly">Weekly</option>
@@ -559,6 +586,39 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- plugins:js -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const loanTermSelect = document.getElementById("loanTerm");
+    const modePaymentSelect = document.getElementById("modePayment");
+
+    function updatePaymentModes() {
+        const selectedTerm = parseInt(loanTermSelect.value);
+
+        // Enable all options first
+        Array.from(modePaymentSelect.options).forEach(option => {
+            option.disabled = false;
+        });
+
+        // Disable invalid options based on loan term
+        if (selectedTerm <= 3) {
+            modePaymentSelect.querySelector('option[value="Quarterly"]').disabled = true;
+            modePaymentSelect.querySelector('option[value="Semi_Annual"]').disabled = true;
+        } else if (selectedTerm <= 6) {
+            modePaymentSelect.querySelector('option[value="Semi_Annual"]').disabled = true;
+        }
+
+        // If current selection is invalid, reset to default
+        if (modePaymentSelect.options[modePaymentSelect.selectedIndex].disabled) {
+            modePaymentSelect.selectedIndex = 0;
+        }
+    }
+
+    loanTermSelect.addEventListener("change", updatePaymentModes);
+    updatePaymentModes(); // Run on page load to apply initial state
+});
+</script>
+
+
     <script>
         $(document).ready(function () {
             // Disable past dates
@@ -677,22 +737,24 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
             // Show maximum amount when info icon is clicked
             $('#showMaxAmount').click(function() {
-                Swal.fire({
-                    title: 'Maximum Loan Amount',
-                    html: `The maximum amount you can request is:<br>
-                        <h3 class="text-success">PHP ${formatNumber(maxAmount.toFixed(2))}</h3>
-                        <small>Based on 90% of your share capital and savings</small>`,
-                    icon: 'info',
-                    confirmButtonText: 'Use This Amount',
-                    showCancelButton: true,
-                    cancelButtonText: 'Cancel'
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        $('#amountRequested').val(maxAmount);
-                        showValidation('#amountRequested', true);
-                    }
-                });
+            Swal.fire({
+                title: 'Maximum Loan Amount',
+                html: `The maximum amount you can request is:<br>
+                    <h3 class="text-success">PHP ${formatNumber(maxAmount.toFixed(2))}</h3>
+                    <small>Based on 90% of your share capital and savings</small>`,
+                icon: 'info',
+                confirmButtonText: 'Use This Amount',
+                showCancelButton: true,
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const amountInput = $('#amountRequested')[0];
+                    amountInput.value = formatNumber(maxAmount.toFixed(2));
+                    amountInput.dataset.rawValue = maxAmount;
+                    showValidation('#amountRequested', true);
+                }
             });
+        });
 
             // Form submission validation
             $('form').on('submit', function(e) {

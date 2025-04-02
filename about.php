@@ -267,7 +267,7 @@
                         <a class="nav-link" href="signup.php">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link apply-loan" href="apply-loan.php">Apply for Loan</a>
+                        <a class="nav-link apply-loan" href="member-login.php">Apply for Loan</a>
                     </li>
                 </ul>
             </div>

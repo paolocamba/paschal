@@ -196,166 +196,167 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
-
+            
                 <style>
                     :root {
-                        --primary-color: #00FFAF;
-                        --secondary-color: #0F4332;
-                        --accent-color: #ffffff;
-                        --text-color: #2c3e50;
-                        --light-bg: #f3f4f9;
+                    --primary-color: #00FFAF;
+                    --secondary-color: #0F4332;
+                    --accent-color: #ffffff;
+                    --text-color: #2c3e50;
+                    --light-bg: #f3f4f9;
                     }
 
 
                     .container {
-                        max-width: 1200px;
-                        margin: 0 auto;
-                        background: transparent;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: transparent;
                     }
 
                     .heading {
-                        background: var(--secondary-color);
-                        color: white;
-                        margin: 0 0 20px 0;
-                        padding: 1rem 2rem;
-                        font-size: 1.5rem;
-                        font-weight: 500;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: var(--secondary-color);
+                    color: white;
+                    margin: 0 0 20px 0;
+                    padding: 1rem 2rem;
+                    font-size: 1.5rem;
+                    font-weight: 500;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-container {
-                        background: white;
-                        border-radius: 8px;
-                        padding: 2rem;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: white;
+                    border-radius: 8px;
+                    padding: 2rem;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-group {
-                        margin-bottom: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     .form-label {
-                        font-weight: 500;
-                        color: var(--secondary-color);
-                        margin-bottom: 0.5rem;
-                        display: block;
-                        font-size: 0.95rem;
+                    font-weight: 500;
+                    color: var(--secondary-color);
+                    margin-bottom: 0.5rem;
+                    display: block;
+                    font-size: 0.95rem;
                     }
 
                     .form-control {
-                        border: 1px solid #e1e5ea;
-                        border-radius: 4px;
-                        padding: 0.8rem 1rem;
-                        transition: all 0.3s ease;
-                        font-size: 1rem;
-                        width: 100%;
-                        box-sizing: border-box;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 4px;
+                    padding: 0.8rem 1rem;
+                    transition: all 0.3s ease;
+                    font-size: 1rem;
+                    width: 100%;
+                    box-sizing: border-box;
                     }
 
                     .form-control:focus {
-                        border-color: var(--primary-color);
-                        box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
-                        outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
+                    outline: none;
                     }
 
                     .checkbox-wrapper {
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
                     }
 
                     input[type="checkbox"] {
-                        width: 18px;
-                        height: 18px;
-                        border: 2px solid var(--primary-color);
-                        border-radius: 4px;
-                        cursor: pointer;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid var(--primary-color);
+                    border-radius: 4px;
+                    cursor: pointer;
                     }
 
                     .btn {
-                        padding: 0.8rem 2rem;
-                        border-radius: 4px;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        border: none;
-                        cursor: pointer;
+                    padding: 0.8rem 2rem;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    border: none;
+                    cursor: pointer;
                     }
 
                     .btn-primary {
-                        background: var(--primary-color);
-                        color: white;
-                        font-weight: 600;
+                    background: var(--primary-color);
+                    color: white;
+                    font-weight: 600;
                     }
 
                     .btn-primary:hover {
-                        background: #00e69d;
-                        transform: translateY(-1px);
+                    background: #00e69d;
+                    transform: translateY(-1px);
                     }
 
                     .row {
-                        background: white;
-                        border: 1px solid #e1e5ea;
-                        border-radius: 8px;
-                        padding: 1.5rem;
-                        margin-bottom: 1.5rem;
+                    background: white;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     h6 {
-                        color: var(--secondary-color);
-                        font-size: 1.1rem;
-                        margin-top: 0;
-                        margin-bottom: 1.5rem;
-                        font-weight: 600;
+                    color: var(--secondary-color);
+                    font-size: 1.1rem;
+                    margin-top: 0;
+                    margin-bottom: 1.5rem;
+                    font-weight: 600;
                     }
 
                     .document-upload-1 {
-                        border-left: 3px solid var(--primary-color);
-                        padding-left: 1.5rem;
+                    border-left: 3px solid var(--primary-color);
+                    padding-left: 1.5rem;
                     }
 
                     .add-assets {
-                        background: transparent;
-                        color: white;
-                        border: 2px solid var(--primary-color);
-                        padding: 0.6rem 1.5rem;
+                    background: transparent;
+                    color: white;
+                    border: 2px solid var(--primary-color);
+                    padding: 0.6rem 1.5rem;
                     }
 
                     .add-assets:hover {
-                        background: var(--primary-color);
-                        color: white;
+                    background: var(--primary-color);
+                    color: white;
                     }
 
                     .items-count {
-                        background: var(--primary-color);
-                        color: var(--secondary-color);
-                        padding: 0.25rem 0.75rem;
-                        border-radius: 4px;
-                        font-size: 0.875rem;
-                        font-weight: 500;
-                        float: right;
+                    background: var(--primary-color);
+                    color: var(--secondary-color);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 4px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    float: right;
                     }
 
                     @media (max-width: 768px) {
-                        .form-container {
-                            padding: 1rem;
-                        }
-
-                        .row {
-                            padding: 1rem;
-                        }
-
-                        .document-upload-1 {
-                            padding-left: 1rem;
-                            margin-top: 1rem;
-                        }
+                    .form-container {
+                        padding: 1rem;
                     }
-
+                    
+                    .row {
+                        padding: 1rem;
+                    }
+                    
+                    .document-upload-1 {
+                        padding-left: 1rem;
+                        margin-top: 1rem;
+                    }
+                    }
                     .content-wrapper {
 
                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
 
                     }
+
+                   
                 </style>
                 <?php
                 include '../connection/config.php';
@@ -374,17 +375,15 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 // Verify loan application ID
                 if (!isset($_SESSION['loan_application_id'])) {
-                    // Try to find the most recent loan application for this user
                     $query = "SELECT LoanID FROM loanapplication WHERE userID = ? ORDER BY LoanID DESC LIMIT 1";
                     $stmt = $conn->prepare($query);
                     $stmt->bind_param("i", $user_id);
                     $stmt->execute();
                     $result = $stmt->get_result();
-                    
+
                     if ($row = $result->fetch_assoc()) {
                         $_SESSION['loan_application_id'] = $row['LoanID'];
                     } else {
-                        // No loan application found
                         echo "<script>
                                 alert('No active loan application found. Please start a new application.');
                                 window.location.href = 'index.php';
@@ -398,7 +397,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 // Handle form submission
                 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                    // Existing sanitization for previous fields
+                    // Ensure all required fields are properly sanitized and validated
                     $yearStay = filter_input(INPUT_POST, 'yearStay', FILTER_VALIDATE_INT);
                     $ownHouse = filter_input(INPUT_POST, 'ownHouse', FILTER_SANITIZE_STRING);
                     $renting = filter_input(INPUT_POST, 'renting', FILTER_SANITIZE_STRING);
@@ -407,223 +406,140 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     $spouseName = filter_input(INPUT_POST, 'spouseName', FILTER_SANITIZE_STRING);
                     $dependentCount = filter_input(INPUT_POST, 'dependentCount', FILTER_VALIDATE_INT);
                     $dependentInSchool = filter_input(INPUT_POST, 'dependentInSchool', FILTER_VALIDATE_INT);
-                
-                    // New fields to sanitize
+
+                    // Employment details
                     $employerName = filter_input(INPUT_POST, 'employer_name', FILTER_SANITIZE_STRING);
                     $employerAddress = filter_input(INPUT_POST, 'employer_address', FILTER_SANITIZE_STRING);
                     $presentPosition = filter_input(INPUT_POST, 'present_position', FILTER_SANITIZE_STRING);
                     $dateOfEmployment = filter_input(INPUT_POST, 'date_of_employment', FILTER_SANITIZE_STRING);
-                    $monthlyIncome = filter_input(INPUT_POST, 'monthly_income', FILTER_VALIDATE_FLOAT);
+                    $monthlyIncome = filter_input(INPUT_POST, 'monthly_income', FILTER_VALIDATE_FLOAT) ?: 0;
                     $contactPerson = filter_input(INPUT_POST, 'contact_person', FILTER_SANITIZE_STRING);
                     $contactTelephoneNo = filter_input(INPUT_POST, 'contact_telephone_no', FILTER_SANITIZE_STRING);
                     $selfEmployedBusinessType = filter_input(INPUT_POST, 'self_employed_business_type', FILTER_SANITIZE_STRING);
                     $businessStartDate = filter_input(INPUT_POST, 'business_start_date', FILTER_SANITIZE_STRING);
-                
-                    // Income Information
-                    $familyMemberCount = filter_input(INPUT_POST, 'family_member_count', FILTER_VALIDATE_INT);
-                    $selfIncome = filter_input(INPUT_POST, 'self_income', FILTER_SANITIZE_STRING);
-                    
-                    $otherIncome = filter_input(INPUT_POST, 'other_income', FILTER_SANITIZE_STRING);
-                    
-                
-                    // Spouse Income Information
-                    $spouseIncome = filter_input(INPUT_POST, 'spouse_income', FILTER_SANITIZE_STRING);
-                    
-                    $spouseOtherIncome = filter_input(INPUT_POST, 'spouse_other_income', FILTER_SANITIZE_STRING);
-                 
-                
-                  // Calculate net family income (server-side validation)
-                    $selfIncomeAmount = filter_input(INPUT_POST, 'self_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $selfOtherIncomeAmount = filter_input(INPUT_POST, 'self_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $spouseIncomeAmount = filter_input(INPUT_POST, 'spouse_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $spouseOtherIncomeAmount = filter_input(INPUT_POST, 'spouse_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
 
+                    // Family and income details
+                    $familyMemberCount = filter_input(INPUT_POST, 'family_member_count', FILTER_VALIDATE_INT);
+                    $spouseIncome = filter_input(INPUT_POST, 'spouse_income', FILTER_SANITIZE_STRING);
+                    $spouseIncomeAmount = filter_input(INPUT_POST, 'spouse_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+                    $spouseOtherIncome = filter_input(INPUT_POST, 'spouse_other_income', FILTER_SANITIZE_STRING);
+                    $spouseOtherIncomeAmount = filter_input(INPUT_POST, 'spouse_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+                    $selfOtherIncomeAmount = filter_input(INPUT_POST, 'self_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+
+                    // Expense details
                     $foodGroceriesExpense = filter_input(INPUT_POST, 'food_groceries_expense', FILTER_VALIDATE_FLOAT) ?: 0;
                     $gasOilTransportationExpense = filter_input(INPUT_POST, 'gas_oil_transportation_expense', FILTER_VALIDATE_FLOAT) ?: 0;
                     $schoolingExpense = filter_input(INPUT_POST, 'schooling_expense', FILTER_VALIDATE_FLOAT) ?: 0;
                     $utilitiesExpense = filter_input(INPUT_POST, 'utilities_expense', FILTER_VALIDATE_FLOAT) ?: 0;
                     $miscellaneousExpense = filter_input(INPUT_POST, 'miscellaneous_expense', FILTER_VALIDATE_FLOAT) ?: 0;
 
-                    // Server-side calculations
-                    $netFamilyIncome = $selfIncomeAmount + 
-                                    $selfOtherIncomeAmount + 
-                                    $spouseIncomeAmount + 
-                                    $spouseOtherIncomeAmount;
+                    // Calculate net family income and total expenses
+                    $totalIncome = $monthlyIncome + $selfOtherIncomeAmount + $spouseIncomeAmount + $spouseOtherIncomeAmount;
+                    $totalExpenses = $foodGroceriesExpense + $gasOilTransportationExpense + $schoolingExpense + $utilitiesExpense + $miscellaneousExpense;
+                    $netFamilyIncome = $totalIncome - $totalExpenses;
+                    
 
-                    $totalExpenses = $foodGroceriesExpense + 
-                                    $gasOilTransportationExpense + 
-                                    $schoolingExpense + 
-                                    $utilitiesExpense + 
-                                    $miscellaneousExpense;
-
-                    // Server-side income validation
+                    // Minimum income validation
                     $MIN_INCOME_THRESHOLD = 15000;
                     $INCOME_TO_EXPENSE_RATIO = 3;
-                    if ($netFamilyIncome < $MIN_INCOME_THRESHOLD || 
-                    $netFamilyIncome < ($totalExpenses * $INCOME_TO_EXPENSE_RATIO)) {
-                    echo "<script>
-                            alert('Your income does not meet the minimum requirements for this loan.');
-                            window.location.href = 'collateral-form2.php?loanType=" . urlencode($loan_type) . "';
-                          </script>";
-                    exit();
-                }
-            
-                // Rest of the existing update query remains the same, but update these values
-                $netFamilyIncome = round($netFamilyIncome, 2);
-                $totalExpenses = round($totalExpenses, 2);
-
-                
-                    // Dependent information (existing code remains the same)
-                    $dependents = [];
-                    for ($i = 1; $i <= 4; $i++) {
-                        $dependentName = filter_input(INPUT_POST, "dependent{$i}Name", FILTER_SANITIZE_STRING);
-                        $dependentAge = filter_input(INPUT_POST, "dependent{$i}Age", FILTER_VALIDATE_INT);
-                        $dependentGrade = filter_input(INPUT_POST, "dependent{$i}Grade", FILTER_SANITIZE_STRING);
-                
-                        if (!empty($dependentName)) {
-                            $dependents[] = [
-                                'name' => $dependentName,
-                                'age' => $dependentAge,
-                                'grade' => $dependentGrade
-                            ];
-                        }
-                    }
-                
-                    // Update query with new fields
-                    $query = "UPDATE loanapplication 
-                    SET 
-                        userID = ?, 
-                        years_stay_present_address = ?, 
-                        own_house = ?, 
-                        renting = ?, 
-                        living_with_relative = ?, 
-                        marital_status = ?, 
-                        spouse_name = ?, 
-                        number_of_dependents = ?, 
-                        dependents_in_school = ?, 
-                        dependent1_name = ?, 
-                        dependent1_age = ?, 
-                        dependent1_grade_level = ?, 
-                        dependent2_name = ?, 
-                        dependent2_age = ?, 
-                        dependent2_grade_level = ?, 
-                        dependent3_name = ?, 
-                        dependent3_age = ?, 
-                        dependent3_grade_level = ?, 
-                        dependent4_name = ?, 
-                        dependent4_age = ?, 
-                        dependent4_grade_level = ?,
-                        employer_name = ?,
-                        employer_address = ?,
-                        present_position = ?,
-                        date_of_employment = ?,
-                        monthly_income = ?,
-                        contact_person = ?,
-                        contact_telephone_no = ?,
-                        self_employed_business_type = ?,
-                        business_start_date = ?,
-                        family_member_count = ?,
-                        self_income = ?,
-                        self_income_amount = ?,
-                        other_income = ?,
-                        self_other_income_amount = ?,
-                        spouse_income = ?,
-                        spouse_income_amount = ?,
-                        spouse_other_income = ?,
-                        spouse_other_income_amount = ?,
-                        food_groceries_expense = ?,
-                        gas_oil_transportation_expense = ?,
-                        schooling_expense = ?,
-                        utilities_expense = ?,
-                        miscellaneous_expense = ?,
-                        total_expenses = ?,
-                        net_family_income = ?
-                    WHERE LoanID = ?";
-                
-                    try {
-                        $stmt = $conn->prepare($query);
-                        
-                        // Prepare parameters including new fields
-                        $params = [
-                            $user_id, 
-                            $yearStay, 
-                            $ownHouse, 
-                            $renting, 
-                            $livingWithRelative, 
-                            $maritalStatus, 
-                            $spouseName, 
-                            $dependentCount, 
-                            $dependentInSchool
-                        ];
-                
-                        // Add dependent information
-                        for ($i = 0; $i < 4; $i++) {
-                            if (isset($dependents[$i])) {
-                                $params[] = $dependents[$i]['name'];
-                                $params[] = $dependents[$i]['age'];
-                                $params[] = $dependents[$i]['grade'];
-                            } else {
-                                $params[] = NULL;
-                                $params[] = NULL;
-                                $params[] = NULL;
-                            }
-                        }
-                
-                        // Add new fields
-                        $params = array_merge($params, [
-                            $employerName,
-                            $employerAddress,
-                            $presentPosition,
-                            $dateOfEmployment,
-                            $monthlyIncome,
-                            $contactPerson,
-                            $contactTelephoneNo,
-                            $selfEmployedBusinessType,
-                            $businessStartDate,
-                            $familyMemberCount,
-                            $selfIncome,
-                            $selfIncomeAmount,
-                            $otherIncome,
-                            $selfOtherIncomeAmount,
-                            $spouseIncome,
-                            $spouseIncomeAmount,
-                            $spouseOtherIncome,
-                            $spouseOtherIncomeAmount,
-                            $foodGroceriesExpense,
-                            $gasOilTransportationExpense,
-                            $schoolingExpense,
-                            $utilitiesExpense,
-                            $miscellaneousExpense,
-                            $totalExpenses,
-                            $netFamilyIncome,
-                            $loan_id
-                        ]);
-                
-                        // Correct type string to match the number of parameters
-                        $typeString = str_repeat('s', count($params));
-                        
-                        $stmt->bind_param($typeString, ...$params);
-                
-                        if ($stmt->execute()) {
-                            $stmt->close();
-                            // Ensure the redirect uses the correct loan type
-                            header("Location: collateral-form3.php?loanType=" . urlencode($loan_type));
-                            exit();
-                        } else {
-                            throw new Exception("Database update failed: " . $stmt->error);
-                        }
-                    } catch (Exception $e) {
-                        error_log($e->getMessage());
+                    if ($netFamilyIncome < $MIN_INCOME_THRESHOLD || $netFamilyIncome < ($totalExpenses * $INCOME_TO_EXPENSE_RATIO)) {
                         echo "<script>
-                                alert('Error updating loan application. Please try again.');
-                                history.back();
+                                alert('Your income does not meet the minimum requirements for this loan.');
+                                window.location.href = 'collateral-form2.php?loanType=" . urlencode($loan_type) . "';
                             </script>";
                         exit();
+                    }
+
+                    $query = "SELECT LoanID FROM loanapplication WHERE userID = ? ORDER BY LoanID DESC LIMIT 1";
+                    $stmt = $conn->prepare($query);
+                    $stmt->bind_param("i", $user_id);
+                    $stmt->execute();
+                    $result = $stmt->get_result();
+
+                    if ($row = $result->fetch_assoc()) {
+                        $_SESSION['loan_application_id'] = $row['LoanID']; // Force update session
+                        $loan_id = $row['LoanID']; // Set correct LoanID
+                    } else {
+                        die("Error: No loan application found for this user.");
+                    }
+
+                    $stmt->close();
+                    
+                    echo "Debug: LoanID being updated is " . htmlspecialchars($loan_id);
+
+
+                    // Update query
+                    $query = "UPDATE loanapplication 
+                            SET years_stay_present_address=?, own_house=?, renting=?, living_with_relative=?, 
+                                marital_status=?, spouse_name=?, number_of_dependents=?, dependents_in_school=?, 
+                                employer_name=?, employer_address=?, present_position=?, date_of_employment=?, 
+                                monthly_income=?, contact_person=?, contact_telephone_no=?, 
+                                self_employed_business_type=?, business_start_date=?, family_member_count=?, 
+                                self_other_income_amount=?, spouse_income=?, spouse_income_amount=?, 
+                                spouse_other_income=?, spouse_other_income_amount=?, 
+                                food_groceries_expense=?, gas_oil_transportation_expense=?, 
+                                schooling_expense=?, utilities_expense=?, miscellaneous_expense=?, 
+                                total_expenses=?, net_family_income=? 
+                            WHERE LoanID=?";
+
+                    $stmt = $conn->prepare($query);
+                    if (!$stmt) {
+                        die("SQL preparation error: " . $conn->error);
+                    }
+
+                // Bind parameters (correct number of placeholders & valid type specifiers)
+                $stmt->bind_param("isssssisissdsssissddssddddddddi", 
+                $yearStay,                  // i (Integer)
+                $ownHouse,                  // s (String)
+                $renting,                   // s
+                $livingWithRelative,        // s
+                $maritalStatus,             // s
+                $spouseName,                // s
+                $dependentCount,            // i (Integer)
+                $dependentInSchool,         // i (Integer)
+                $employerName,              // s
+                $employerAddress,           // s
+                $presentPosition,           // s
+                $dateOfEmployment,          // s
+                $monthlyIncome,             // d (Double/Float)
+                $contactPerson,             // s
+                $contactTelephoneNo,        // s
+                $selfEmployedBusinessType,  // s
+                $businessStartDate,         // s
+                $familyMemberCount,         // i (Integer)
+                $selfOtherIncomeAmount,     // d (Double/Float)
+                $spouseIncome,              // s
+                $spouseIncomeAmount,        // d (Double/Float)
+                $spouseOtherIncome,         // s
+                $spouseOtherIncomeAmount,   // d (Double/Float)
+                $foodGroceriesExpense,      // d (Double/Float)
+                $gasOilTransportationExpense, // d (Double/Float)
+                $schoolingExpense,          // d (Double/Float)
+                $utilitiesExpense,          // d (Double/Float)
+                $miscellaneousExpense,      // d (Double/Float)
+                $totalExpenses,             // d (Double/Float)
+                $netFamilyIncome,           // d (Double/Float)
+                $loan_id                    // i (Primary Key, Integer)
+                );
+
+
+                    // Execute and check success
+                    if ($stmt->execute()) {
+                        if ($stmt->affected_rows === 0) {
+                            echo "No rows were updated. Check if LoanID exists.";
+                            exit();
+                        }
+                        $stmt->close();
+                        header("Location: collateral-form3.php?loanType=" . urlencode($loan_type));
+                        exit();
+                    } else {
+                        die("Database update failed: " . $stmt->error);
                     }
                 }
 
                 ob_end_flush();
                 ?>
+
                 <div class="container">
                     <div class="form-container">
                     <h1 class="heading"><?php echo ucfirst($loan_type); ?> Loan Application - Step 2</h1>
@@ -631,7 +547,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="yearStay" class="form-label">Year Of Stay At Present Address</label>
+                                        <label for="yearStay" class="form-label">Year Of Stay At Present Address<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="yearStay" id="yearStay"
                                             placeholder="Year Stay At Present Address" required>
                                     </div>
@@ -642,7 +558,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="ownHouse" class="form-label">Own House</label>
+                                            <label for="ownHouse" class="form-label">Own House<span style="color: red;">*</span></label>
                                             <select class="form-select" name="ownHouse" id="ownHouse" required>
                                                 <option selected>Select</option>
                                                 <option value="Yes">Yes</option>
@@ -652,7 +568,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="renting" class="form-label">Renting</label>
+                                            <label for="renting" class="form-label">Renting<span style="color: red;">*</span></label>
                                             <select class="form-select" name="renting" id="renting" required>
                                                 <option selected>Select</option>
                                                 <option value="Yes">Yes</option>
@@ -662,7 +578,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </div>
                                     <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="livingWithRelative" class="form-label">Living with Relative</label>
+                                        <label for="livingWithRelative" class="form-label">Living with Relative<span style="color: red;">*</span></label>
                                         <select class="form-select" name="livingWithRelative" id="livingWithRelative"
                                             required>
                                             <option selected>Select</option>
@@ -675,174 +591,203 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
 
                             <div class="row mb-4">
-                                <div class="col-md-6">
-                                    <div class="form-group">
-                                        <label for="maritalStatus" class="form-label">Marital Status</label>
-                                        <select class="form-select" name="maritalStatus" id="maritalStatus" required>
-                                            <option selected>Select Status</option>
-                                            <option value="Single">Single</option>
-                                            <option value="Married">Married</option>
-                                            <option value="Separated">Separated</option>
-                                            <option value="Divorced">Divorced</option>
-                                            <option value="Widowed">Widowed</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="col-md-6 spouse-input">
-                                    <div class="form-group">
-                                        <label for="spouseName" class="form-label">Spouse Name</label>
-                                        <input type="text" class="form-control" name="spouseName" id="spouseName">
-                                    </div>
+                            <!-- Marital Status -->
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="maritalStatus" class="form-label">Marital Status<span style="color: red;">*</span></label>
+                                    <select class="form-select same-size-input" name="maritalStatus" id="maritalStatus" required>
+                                        <option value="" selected>Select Status</option>
+                                        <option value="Single">Single</option>
+                                        <option value="Married">Married</option>
+                                        <option value="Separated">Separated</option>
+                                        <option value="Divorced">Divorced</option>
+                                        <option value="Widowed">Widowed</option>
+                                    </select>
                                 </div>
                             </div>
+
+                            <!-- Spouse Name (Initially Hidden) -->
+                            <div class="col-md-6" id="spouseNameContainer" style="display: none;">
+                                <div class="form-group">
+                                    <label for="spouseName" class="form-label">Spouse Name<span style="color: red;">*</span></label>
+                                    <input type="text" class="form-control same-size-input" name="spouseName" id="spouseName">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- JavaScript to Show/Hide Spouse Name -->
+                        <script>
+                            document.getElementById('maritalStatus').addEventListener('change', function () {
+                            const status = this.value;
+                            const spouseFields = document.getElementById('spouseFields');
+                            const spouseNameContainer = document.getElementById('spouseNameContainer');
+
+                            if (status === 'Married') {
+                                spouseFields.style.display = 'block'; // Show spouse fields
+                                spouseNameContainer.style.display = 'block'; // Show spouse name field
+                            } else {
+                                spouseFields.style.display = 'none'; // Hide spouse fields
+                                spouseNameContainer.style.display = 'none'; // Hide spouse name field
+                            }
+                        });
+                        </script>
+
+                        <!-- CSS to Ensure Equal Widths -->
+                        <style>
+                            .same-size-input {
+                                width: 100%; /* Ensures both have the same full width */
+                            }
+                        </style>
+
+
 
                             <div class="row mb-4">
                                 <h6>Dependents Information</h6>
-                                <div class="col-md-4">
+                                <div class="row mb-4">
+                                    <h6>Dependents Information</h6>
+                                    <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="dependentCount" class="form-label">Number of Dependents</label>
-                                        <input type="number" class="form-control" name="dependentCount"
-                                            id="dependentCount" required>
+                                        <label for="family_member_count" class="form-label">Family Member Count<span style="color: red;">*</span></label>
+                                        <input type="number" class="form-control" name="family_member_count"
+                                            id="family_member_count" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="dependentInSchool" class="form-label">Dependents in School</label>
-                                        <input type="number" class="form-control" name="dependentInSchool"
-                                            id="dependentInSchool" required>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="dependentCount" class="form-label">Number of Dependents <span style="color: red;">*</span></label>
+                                            <input type="number" class="form-control" name="dependentCount" id="dependentCount" min="0" max="4" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="dependentInSchool" class="form-label">Dependents in School <span style="color: red;">*</span></label>
+                                            <input type="number" class="form-control" name="dependentInSchool" id="dependentInSchool" required>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row mb-4">
 
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="dependent1Name" class="form-label">Dependent 1 Name</label>
-                                        <input type="text" class="form-control" name="dependent1Name"
-                                            id="dependent1Name" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="dependent1Age" class="form-label">Dependent 1 Age</label>
-                                        <input type="number" class="form-control" name="dependent1Age"
-                                            id="dependent1Age" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="dependent1Grade" class="form-label">Dependent 1 Grade Level</label>
-                                        <input type="text" class="form-control" name="dependent1Grade"
-                                            id="dependent1Grade" required>
-                                    </div>
-                                </div>
-                            </div>
+                                <!-- Container for dynamic dependent fields -->
+                                <div id="dependentFields"></div>
 
-                            <div id="additional-dependents"></div>
+                                <script>
+                                    // Function to create dependent fields dynamically
+                                    function generateDependentFields(count) {
+                                        const container = document.getElementById('dependentFields');
+                                        container.innerHTML = ''; // Clear previous fields
+                                        
+                                        for (let i = 1; i <= count; i++) {
+                                            const dependentHtml = `
+                                                <div class="row mb-4 dependent-row">
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="dependent${i}Name" class="form-label">Dependent ${i} Name <span style="color: red;">*</span></label>
+                                                            <input type="text" class="form-control" name="dependent${i}Name" id="dependent${i}Name" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="dependent${i}Age" class="form-label">Dependent ${i} Age <span style="color: red;">*</span></label>
+                                                            <input type="number" class="form-control" name="dependent${i}Age" id="dependent${i}Age" required>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="form-group">
+                                                            <label for="dependent${i}Grade" class="form-label">Dependent ${i} Grade Level <span style="color: red;">*</span></label>
+                                                            <input type="text" class="form-control" name="dependent${i}Grade" id="dependent${i}Grade" required>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            `;
+                                            container.insertAdjacentHTML('beforeend', dependentHtml);
+                                        }
+                                    }
 
-                            <div class="row mb-4">
-                                <div class="col-md-12 text-end">
-                                    <button type="button" class="btn btn-primary add-dependent">Add More
-                                        Dependent</button>
-                                </div>
-                            </div>
+                                    // Listen to input changes on dependentCount
+                                    document.getElementById('dependentCount').addEventListener('input', function () {
+                                        const count = parseInt(this.value) || 0;
+                                        
+                                        // Ensure count is between 0 and 4
+                                        if (count >= 0 && count <= 4) {
+                                            generateDependentFields(count);
+                                        }
+                                    });
+                                </script>
+
 
                             <div class="row mb-4">
                                 <h6>Employment Information</h6>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="employer_name" class="form-label">Employer Name</label>
+                                        <label for="employer_name" class="form-label">Employer Name<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="employer_name"
                                             id="employer_name" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="employer_address" class="form-label">Employer Address</label>
+                                        <label for="employer_address" class="form-label">Employer Address<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="employer_address"
                                             id="employer_address" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="present_position" class="form-label">Present Position</label>
+                                        <label for="present_position" class="form-label">Present Position<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="present_position"
                                             id="present_position" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="date_of_employment" class="form-label">Date of Employment</label>
+                                        <label for="date_of_employment" class="form-label">Date of Employment<span style="color: red;">*</span></label>
                                         <input type="date" class="form-control" name="date_of_employment" id="date_of_employment" placeholder="mm/dd/yyyy" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="monthly_income" class="form-label">Monthly Income</label>
+                                        <label for="monthly_income" class="form-label">Monthly Income<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="monthly_income"
                                             id="monthly_income" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="contact_person" class="form-label">Contact Person</label>
+                                        <label for="contact_person" class="form-label">Contact Person<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="contact_person"
                                             id="contact_person" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="contact_telephone_no" class="form-label">Contact No.</label>
+                                        <label for="contact_telephone_no" class="form-label">Contact No.<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="contact_telephone_no"
                                             id="contact_telephone_no" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                            <div class="row mb-4">
+                                <h6>Income Information</h6>
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="self_employed_business_type" class="form-label">Type Of Business</label>
                                         <input type="text" class="form-control" name="self_employed_business_type"
                                             id="self_employed_business_type" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="business_start_date" class="form-label">Start Of Business</label>
                                         <input type="date" class="form-control" name="business_start_date"
                                             id="business_start_date" required>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="row mb-4">
-                                <h6>Income Information</h6>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="family_member_count" class="form-label">Family Member Count</label>
-                                        <input type="number" class="form-control" name="family_member_count"
-                                            id="family_member_count" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="self_income" class="form-label">Self Income Description</label>
-                                        <input type="text" class="form-control" name="self_income"
-                                            id="self_income" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="self_income_amount" class="form-label">Self Income(Amount in Peso)</label>
-                                        <input type="number" class="form-control" name="self_income_amount"
-                                            id="self_income_amount" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="other_income" class="form-label">Other Self Income</label>
                                         <input type="text" class="form-control" name="other_income"
                                             id="other_income" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="self_other_income_amount" class="form-label">Self Other Income(Amount in Peso)</label>
                                         <input type="number" class="form-control" name="self_other_income_amount"
@@ -851,81 +796,114 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 </div>
                             </div>
 
-                            <div class="row mb-4">
-                                <div class="col-md-4">
+                            <!-- Spouse Information -->
+                            <div id="spouseFields" style="display: none;">
+                                <!-- First row for first two fields -->
+                                <div class="row mb-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="spouse_income" class="form-label">Spouse Income Description</label>
-                                        <input type="text" class="form-control" name="spouse_income"
-                                            id="spouse_income" required>
+                                        <input type="text" class="form-control" name="spouse_income" id="spouse_income">
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="spouse_income_amount" class="form-label">Spouse Income (Amounta in Peso)</label>
-                                        <input type="number" class="form-control" name="spouse_income_amount"
-                                            id="spouse_income_amount" required>
+                                        <label for="spouse_income_amount" class="form-label">Spouse Income (Amount in Peso)</label>
+                                        <input type="number" class="form-control" name="spouse_income_amount" id="spouse_income_amount">
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="spouse_other_income" class="form-label">Spouse Other Income</label>
-                                        <input type="text" class="form-control" name="spouse_other_income"
-                                            id="spouse_other_income">
+                                        <label for="spouse_other_income" class="form-label">Spouse Other Income Description</label>
+                                        <input type="text" class="form-control" name="spouse_other_income" id="spouse_other_income">
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="spouse_other_income_amount" class="form-label">Spouse Other Income(Amount in Peso)</label>
-                                        <input type="number" class="form-control" name="spouse_other_income_amount"
-                                            id="spouse_other_income_amount">
+                                        <label for="spouse_other_income_amount" class="form-label">Spouse Other Income (Amount in Peso)</label>
+                                        <input type="number" class="form-control" name="spouse_other_income_amount" id="spouse_other_income_amount">
                                     </div>
+                                </div>
+
                                 </div>
                             </div>
+
+
+
+                            <script>
+                            document.getElementById('maritalStatus').addEventListener('change', function () {
+                                const status = this.value;
+                                const spouseFields = document.getElementById('spouseFields');
+
+                                if (status === 'Married') {
+                                    spouseFields.style.display = 'block';
+
+                                    document.getElementById('spouse_income').removeAttribute('disabled');
+                                    document.getElementById('spouse_income_amount').removeAttribute('disabled');
+                                    document.getElementById('spouse_other_income').removeAttribute('disabled');
+                                    document.getElementById('spouse_other_income_amount').removeAttribute('disabled');
+                                } else {
+                                    spouseFields.style.display = 'none';
+
+                                    document.getElementById('spouse_income').setAttribute('disabled', 'true');
+                                    document.getElementById('spouse_income_amount').setAttribute('disabled', 'true');
+                                    document.getElementById('spouse_other_income').setAttribute('disabled', 'true');
+                                    document.getElementById('spouse_other_income_amount').setAttribute('disabled', 'true');
+                                    
+                                    // Optional: Clear input values when hiding the spouse fields
+                                    document.getElementById('spouse_income').value = "";
+                                    document.getElementById('spouse_income_amount').value = "";
+                                    document.getElementById('spouse_other_income').value = "";
+                                    document.getElementById('spouse_other_income_amount').value = "";
+                                }
+                            });
+
+                            </script>
                             <div class="row mb-4">
                                 <h6>Expenses Information</h6>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="food_groceries_expense" class="form-label">Food and Groceries Expense</label>
+                                        <label for="food_groceries_expense" class="form-label">Food and Groceries Expense<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="food_groceries_expense"
                                             id="food_groceries_expense" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="gas_oil_transportation_expense" class="form-label">Gas, Oil, and Transportation Expense</label>
+                                        <label for="gas_oil_transportation_expense" class="form-label">Gas, Oil, and Transportation Expense<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="gas_oil_transportation_expense"
                                             id="gas_oil_transportation_expense" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="schooling_expense" class="form-label">Schooling Expense</label>
+                                        <label for="schooling_expense" class="form-label">Schooling Expense<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="schooling_expense"
                                             id="schooling_expense" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="utilities_expense" class="form-label">Utilities Expense (Lights, Water, and Telephone)</label>
+                                        <label for="utilities_expense" class="form-label">Utilities Expense (Lights, Water, and Telephone)<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="utilities_expense"
                                             id="utilities_expense" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="miscellaneous_expense" class="form-label">Miscellaneous Expense</label>
+                                        <label for="miscellaneous_expense" class="form-label">Miscellaneous Expense<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="miscellaneous_expense"
                                             id="miscellaneous_expense" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="total_expenses" class="form-label">Total Expenses</label>
                                         <input type="number" class="form-control" name="total_expenses"
                                             id="total_expenses" required>
                                     </div>
                                 </div>
-                                <div class="col-md-4">
+                                <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="net_family_income" class="form-label">Net Family Income</label>
                                         <input type="number" class="form-control" name="net_family_income"
@@ -1000,7 +978,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 textField: (value) => value && value.trim() !== '',
 
                 // Numeric fields (positive numbers)
-                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) > 0,
+                nonNegativeNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) >= 0,
 
                 // Select fields (must have a selected value)
                 selectField: (value) => value && value !== '',
@@ -1024,8 +1002,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 { selector: '#ownHouse', validate: validationRules.selectField, message: 'Please enter a valid house value' },
                 { selector: '#renting', validate: validationRules.selectField, message: 'Please select a renting option' },
                 { selector: '#livingWithRelative', validate: validationRules.selectField, message: 'Please select living arrangement' },
-                { selector: '#dependentCount', validate: validationRules.positiveNumber, message: 'Please enter a valid number of dependents' },
-                { selector: '#dependentInSchool', validate: validationRules.positiveNumber, message: 'Please enter a valid number of dependents in school' },
+                { selector: '#dependentCount', validate: validationRules.nonNegativeNumber, message: 'Please enter a valid number of dependents' },
+                { selector: '#dependentInSchool', validate: validationRules.nonNegativeNumber, message: 'Please enter a valid number of dependents in school' },
                 { selector: '#maritalStatus', validate: validationRules.selectField, message: 'Please select your marital status' },
                 { selector: '#dateLoan', validate: validationRules.dateField, message: 'Please select a valid future date' },
                 { selector: '#employer_name', validate: validationRules.textField, message: 'Please enter a valid employer name' },
@@ -1038,14 +1016,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 { selector: '#self_employed_business_type', validate: validationRules.textField, message: 'Business type is required' },
                 { selector: '#business_start_date', validate: validationRules.dateField, message: 'Valid business start date is required' },
                 { selector: '#family_member_count', validate: validationRules.positiveNumber, message: 'Valid family member count is required' },
-                { selector: '#self_income', validate: validationRules.textField, message: 'Self income description is required' },
-                { selector: '#self_income_amount', validate: validationRules.positiveNumber, message: 'Valid self income amount is required' },
                 { selector: '#other_income', validate: validationRules.textField, message: 'Other income description is required' },
                 { selector: '#self_other_income_amount', validate: validationRules.positiveNumber, message: 'Valid other income amount is required' },
                 // Spouse Income Information (will be conditionally validated)
                 { selector: '#spouse_income', validate: validationRules.textField, message: 'Spouse income description is required' },
                 { selector: '#spouse_income_amount', validate: validationRules.positiveNumber, message: 'Valid spouse income amount is required' },
-               
                 { selector: '#food_groceries_expense', validate: validationRules.positiveNumber, message: 'Valid food and groceries expense is required' },
                 { selector: '#gas_oil_transportation_expense', validate: validationRules.positiveNumber, message: 'Valid transportation expense is required' },
                 { selector: '#schooling_expense', validate: validationRules.positiveNumber, message: 'Valid schooling expense is required' },
@@ -1065,93 +1040,21 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 }
             ];
 
-            // Apply validation to dependent fields dynamically
-            function setupDependentValidation(dependentCount) {
-                for (let i = 1; i <= dependentCount; i++) {
-                    validateInput(`#dependent${i}Name`, validationRules.textField, `Dependent ${i} name is required`);
-                    validateInput(`#dependent${i}Age`, validationRules.positiveNumber, `Dependent ${i} age is required and must be a valid number`);
-                    validateInput(`#dependent${i}Grade`, validationRules.positiveNumber, `Dependent ${i} grade level is required`);
-                }
-            }
-
-            // Initial setup for first dependent
-            setupDependentValidation(1);
-
-            // Apply validation to fields
-            fieldsToValidate.forEach(field => {
-                validateInput(field.selector, field.validate, field.message);
-            });
-
-            // Add more dependents
-            let dependentCount = 1;
-            $('.add-dependent').click(function () {
-                dependentCount++;
-                const newDependentHtml = `
-        <div class="row mb-4 dependent-row">
-          <div class="col-md-3">
-            <div class="form-group">
-              <label for="dependent${dependentCount}Name" class="form-label">Dependent ${dependentCount} Name</label>
-              <input type="text" class="form-control" name="dependent${dependentCount}Name" id="dependent${dependentCount}Name" required>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-group">
-              <label for="dependent${dependentCount}Age" class="form-label">Dependent ${dependentCount} Age</label>
-              <input type="number" class="form-control" name="dependent${dependentCount}Age" id="dependent${dependentCount}Age" required>
-            </div>
-          </div>
-          <div class="col-md-3">
-            <div class="form-group">
-              <label for="dependent${dependentCount}Grade" class="form-label">Dependent ${dependentCount} Grade Level</label>
-              <input type="text" class="form-control" name="dependent${dependentCount}Grade" id="dependent${dependentCount}Grade" required>
-            </div>
-          </div>
-          <div class="col-md-1">
-            <button type="button" class="btn btn-danger remove-dependent">Remove</button>
-          </div>
-        </div>
-      `;
-                $('#additional-dependents').append(newDependentHtml);
-
-                // Add validation for new dependent
-                setupDependentValidation(dependentCount);
-
-                // Remove dependent
-                $(document).on('click', '.remove-dependent', function () {
-                    $(this).closest('.dependent-row').remove();
-                    dependentCount--;
+                $('#maritalStatus').on('change', function () {
+                    const maritalStatus = $(this).val();
+                    const singleStatuses = ['Single', 'Widowed', 'Separated', 'Divorced'];
+                    
+                    if (singleStatuses.includes(maritalStatus)) {
+                        // Hide spouse-related inputs
+                        $('#spouse_income, #spouse_income_amount, #spouse_other_income, #spouse_other_income_amount')
+                            .val('')
+                            .prop('disabled', true); // Disable inputs to prevent form submission
+                    } else {
+                        // Show spouse-related inputs
+                        $('#spouse_income, #spouse_income_amount, #spouse_other_income, #spouse_other_income_amount')
+                            .prop('disabled', false);
+                    }
                 });
-            });
-
-            $('#maritalStatus').on('change', function () {
-                const maritalStatus = $(this).val();
-                const singleStatuses = ['Single', 'Widowed', 'Separated', 'Divorced'];
-                
-                if (singleStatuses.includes(maritalStatus)) {
-                    // Hide all spouse-related inputs
-                    $('.spouse-input').hide();
-                    $('#spouseName').val(''); // Clear spouse name
-                    
-                    // Hide and clear additional spouse inputs
-                    $('#spouse_income').closest('.row').hide();
-                    
-                    // Clear all spouse-related input values
-                    $('#spouse_income').val('');
-                    $('#spouse_income_amount').val('');
-                    $('#spouse_other_income').val('');
-                    $('#spouse_other_income_amount').val('');
-                    
-                    // Remove required attribute when hidden
-                    $('#spouse_income, #spouse_income_amount, #spouse_other_income, #spouse_other_income_amount').prop(false);
-                } else {
-                    // Show all spouse-related inputs
-                    $('.spouse-input').show();
-                    $('#spouse_income').closest('.row').show();
-                    
-                    // Restore required attribute
-                    $('#spouse_income, #spouse_income_amount, #spouse_other_income, #spouse_other_income_amount').prop(true);
-                }
-            });
 
               // Function to parse float with fallback to 0
                 function safeParseFloat(value) {
@@ -1161,43 +1064,45 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 // Function to calculate net family income and total expenses
                 function calculateFinancials() {
-                    const selfIncomeAmount = safeParseFloat($('#self_income_amount').val());
-                    const selfOtherIncomeAmount = safeParseFloat($('#self_other_income_amount').val());
-                    const spouseIncomeAmount = safeParseFloat($('#spouse_income_amount').val());
-                    const spouseOtherIncomeAmount = safeParseFloat($('#spouse_other_income_amount').val());
+                const monthly_income = safeParseFloat($('#monthly_income').val());
+                const selfOtherIncomeAmount = safeParseFloat($('#self_other_income_amount').val());
+                const maritalStatus = $('#maritalStatus').val();
+                
+                let spouseIncomeAmount = 0;
+                let spouseOtherIncomeAmount = 0;
 
-                    const foodGroceriesExpense = safeParseFloat($('#food_groceries_expense').val());
-                    const gasOilTransportationExpense = safeParseFloat($('#gas_oil_transportation_expense').val());
-                    const schoolingExpense = safeParseFloat($('#schooling_expense').val());
-                    const utilitiesExpense = safeParseFloat($('#utilities_expense').val());
-                    const miscellaneousExpense = safeParseFloat($('#miscellaneous_expense').val());
-
-                    // Calculate net family income
-                    const netFamilyIncome = selfIncomeAmount + 
-                                            selfOtherIncomeAmount + 
-                                            spouseIncomeAmount + 
-                                            spouseOtherIncomeAmount;
-                    
-                    // Calculate total expenses
-                    const totalExpenses = foodGroceriesExpense + 
-                                        gasOilTransportationExpense + 
-                                        schoolingExpense + 
-                                        utilitiesExpense + 
-                                        miscellaneousExpense;
-
-                    // Update fields
-                    $('#net_family_income').val(netFamilyIncome.toFixed(2));
-                    $('#total_expenses').val(totalExpenses.toFixed(2));
-
-                    return {
-                        netFamilyIncome: netFamilyIncome,
-                        totalExpenses: totalExpenses
-                    };
+                if (maritalStatus === 'Married') {
+                    spouseIncomeAmount = safeParseFloat($('#spouse_income_amount').val()) || 0;
+                    spouseOtherIncomeAmount = safeParseFloat($('#spouse_other_income_amount').val()) || 0;
                 }
+
+                console.log("Spouse Income:", spouseIncomeAmount);  
+                console.log("Spouse Other Income:", spouseOtherIncomeAmount);  
+
+                const foodGroceriesExpense = safeParseFloat($('#food_groceries_expense').val());
+                const gasOilTransportationExpense = safeParseFloat($('#gas_oil_transportation_expense').val());
+                const schoolingExpense = safeParseFloat($('#schooling_expense').val());
+                const utilitiesExpense = safeParseFloat($('#utilities_expense').val());
+                const miscellaneousExpense = safeParseFloat($('#miscellaneous_expense').val());
+
+                const totalIncome = monthly_income + selfOtherIncomeAmount + spouseIncomeAmount + spouseOtherIncomeAmount;
+                const totalExpenses = foodGroceriesExpense + gasOilTransportationExpense + schoolingExpense + utilitiesExpense + miscellaneousExpense;
+                const netFamilyIncome = totalIncome - totalExpenses;
+
+                console.log("Total Income After Calculation:", totalIncome);
+                console.log("Net Family Income After Calculation:", netFamilyIncome);
+
+                $('#net_family_income').val(netFamilyIncome.toFixed(2));
+                $('#total_expenses').val(totalExpenses.toFixed(2));
+
+                return { netFamilyIncome, totalExpenses };
+            }
+
+
 
                 // Add calculation event listeners to relevant fields
                 [
-                    '#self_income_amount', 
+                    '#monthly_income', 
                     '#self_other_income_amount', 
                     '#spouse_income_amount', 
                     '#spouse_other_income_amount',
@@ -1217,10 +1122,25 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             $(field.selector).trigger('change');
         });
 
-        // Validate dependents
+    // Get dependent count
+    const dependentCount = parseInt($('#dependentCount').val(), 10) || 0;
+    const dependentInSchool = parseInt($('#dependentInSchool').val(), 10) || 0;
+
+    // If dependents exist, validate them; otherwise, remove validation
+    if (dependentCount > 0) {
         for (let i = 1; i <= dependentCount; i++) {
-            $(`#dependent${i}Name, #dependent${i}Age, #dependent${i}Grade`).trigger('input');
+            $(`#dependent${i}Name, #dependent${i}Age`).trigger('input');
+
+            // Only validate grade level if dependent is in school
+            if (dependentInSchool > 0) {
+                $(`#dependent${i}Grade`).trigger('input');
+            }
         }
+    } else {
+        // Remove validation for all dependent fields
+        $('[id^=dependent]').removeClass('is-invalid is-valid');
+        $('.validation-message').remove();
+    }
 
         // Check financials
         const financials = calculateFinancials();

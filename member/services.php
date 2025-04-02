@@ -258,7 +258,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 $hasExistingLoan = false;
                 $existingLoanType = '';
                 if ($user_id) {
-                    $loanQuery = "SELECT LoanType FROM loanapplication WHERE userID = ?";
+                    $loanQuery = "SELECT LoanType FROM loanapplication WHERE userID = ? AND Status = 'In Progress'";
                     $stmt = mysqli_prepare($conn, $loanQuery);
                     mysqli_stmt_bind_param($stmt, "i", $user_id);
                     mysqli_stmt_execute($stmt);

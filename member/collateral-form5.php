@@ -196,166 +196,167 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
-
+                
                 <style>
                     :root {
-                        --primary-color: #00FFAF;
-                        --secondary-color: #0F4332;
-                        --accent-color: #ffffff;
-                        --text-color: #2c3e50;
-                        --light-bg: #f3f4f9;
+                    --primary-color: #00FFAF;
+                    --secondary-color: #0F4332;
+                    --accent-color: #ffffff;
+                    --text-color: #2c3e50;
+                    --light-bg: #f3f4f9;
                     }
 
 
                     .container {
-                        max-width: 1200px;
-                        margin: 0 auto;
-                        background: transparent;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: transparent;
                     }
 
                     .heading {
-                        background: var(--secondary-color);
-                        color: white;
-                        margin: 0 0 20px 0;
-                        padding: 1rem 2rem;
-                        font-size: 1.5rem;
-                        font-weight: 500;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: var(--secondary-color);
+                    color: white;
+                    margin: 0 0 20px 0;
+                    padding: 1rem 2rem;
+                    font-size: 1.5rem;
+                    font-weight: 500;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-container {
-                        background: white;
-                        border-radius: 8px;
-                        padding: 2rem;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: white;
+                    border-radius: 8px;
+                    padding: 2rem;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-group {
-                        margin-bottom: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     .form-label {
-                        font-weight: 500;
-                        color: var(--secondary-color);
-                        margin-bottom: 0.5rem;
-                        display: block;
-                        font-size: 0.95rem;
+                    font-weight: 500;
+                    color: var(--secondary-color);
+                    margin-bottom: 0.5rem;
+                    display: block;
+                    font-size: 0.95rem;
                     }
 
                     .form-control {
-                        border: 1px solid #e1e5ea;
-                        border-radius: 4px;
-                        padding: 0.8rem 1rem;
-                        transition: all 0.3s ease;
-                        font-size: 1rem;
-                        width: 100%;
-                        box-sizing: border-box;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 4px;
+                    padding: 0.8rem 1rem;
+                    transition: all 0.3s ease;
+                    font-size: 1rem;
+                    width: 100%;
+                    box-sizing: border-box;
                     }
 
                     .form-control:focus {
-                        border-color: var(--primary-color);
-                        box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
-                        outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
+                    outline: none;
                     }
 
                     .checkbox-wrapper {
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
                     }
 
                     input[type="checkbox"] {
-                        width: 18px;
-                        height: 18px;
-                        border: 2px solid var(--primary-color);
-                        border-radius: 4px;
-                        cursor: pointer;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid var(--primary-color);
+                    border-radius: 4px;
+                    cursor: pointer;
                     }
 
                     .btn {
-                        padding: 0.8rem 2rem;
-                        border-radius: 4px;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        border: none;
-                        cursor: pointer;
+                    padding: 0.8rem 2rem;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    border: none;
+                    cursor: pointer;
                     }
 
                     .btn-primary {
-                        background: var(--primary-color);
-                        color: white;
-                        font-weight: 600;
+                    background: var(--primary-color);
+                    color: white;
+                    font-weight: 600;
                     }
 
                     .btn-primary:hover {
-                        background: #00e69d;
-                        transform: translateY(-1px);
+                    background: #00e69d;
+                    transform: translateY(-1px);
                     }
 
                     .row {
-                        background: white;
-                        border: 1px solid #e1e5ea;
-                        border-radius: 8px;
-                        padding: 1.5rem;
-                        margin-bottom: 1.5rem;
+                    background: white;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     h6 {
-                        color: var(--secondary-color);
-                        font-size: 1.1rem;
-                        margin-top: 0;
-                        margin-bottom: 1.5rem;
-                        font-weight: 600;
+                    color: var(--secondary-color);
+                    font-size: 1.1rem;
+                    margin-top: 0;
+                    margin-bottom: 1.5rem;
+                    font-weight: 600;
                     }
 
                     .document-upload-1 {
-                        border-left: 3px solid var(--primary-color);
-                        padding-left: 1.5rem;
+                    border-left: 3px solid var(--primary-color);
+                    padding-left: 1.5rem;
                     }
 
                     .add-assets {
-                        background: transparent;
-                        color: white;
-                        border: 2px solid var(--primary-color);
-                        padding: 0.6rem 1.5rem;
+                    background: transparent;
+                    color: white;
+                    border: 2px solid var(--primary-color);
+                    padding: 0.6rem 1.5rem;
                     }
 
                     .add-assets:hover {
-                        background: var(--primary-color);
-                        color: white;
+                    background: var(--primary-color);
+                    color: white;
                     }
 
                     .items-count {
-                        background: var(--primary-color);
-                        color: var(--secondary-color);
-                        padding: 0.25rem 0.75rem;
-                        border-radius: 4px;
-                        font-size: 0.875rem;
-                        font-weight: 500;
-                        float: right;
+                    background: var(--primary-color);
+                    color: var(--secondary-color);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 4px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    float: right;
                     }
 
                     @media (max-width: 768px) {
-                        .form-container {
-                            padding: 1rem;
-                        }
-
-                        .row {
-                            padding: 1rem;
-                        }
-
-                        .document-upload-1 {
-                            padding-left: 1rem;
-                            margin-top: 1rem;
-                        }
+                    .form-container {
+                        padding: 1rem;
                     }
-
+                    
+                    .row {
+                        padding: 1rem;
+                    }
+                    
+                    .document-upload-1 {
+                        padding-left: 1rem;
+                        margin-top: 1rem;
+                    }
+                    }
                     .content-wrapper {
 
                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
 
                     }
+
+                   
                 </style>
                 <?php
                     include '../connection/config.php';
@@ -509,118 +510,114 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     }
                     ob_flush();
                     ?>
-                <div class="container">
-                    <div class="form-container">
-                        <h1 class="heading"><?php echo ucfirst($loan_type); ?> Loan Application - Reference Information
-                        </h1>
-                        <form action="collateral-form5.php" method="post" id="referenceForm">
-                            <div class="row mb-4">
-                                <h6>Reference Information</h6>
-
-                                <!-- Reference 1 -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference1_name" class="form-label">Reference 1 Name</label>
-                                        <input type="text" class="form-control" name="reference1_name"
-                                            id="reference1_name" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference1_address" class="form-label">Reference 1 Address</label>
-                                        <input type="text" class="form-control" name="reference1_address"
-                                            id="reference1_address" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference1_contact_no" class="form-label">Reference 1 Contact
-                                            Number</label>
-                                        <input type="tel" class="form-control" name="reference1_contact_no"
-                                            id="reference1_contact_no" required>
-                                    </div>
-                                </div>
-                                <!-- Reference 1 -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference2_name" class="form-label">Reference 2 Name</label>
-                                        <input type="text" class="form-control" name="reference2_name"
-                                            id="reference2_name" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference2_address" class="form-label">Reference 2 Address</label>
-                                        <input type="text" class="form-control" name="reference2_address"
-                                            id="reference2_address" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference2_contact_no" class="form-label">Reference 2 Contact
-                                            Number</label>
-                                        <input type="tel" class="form-control" name="reference2_contact_no"
-                                            id="reference2_contact_no" required>
-                                    </div>
-                                </div>
-                                <!-- Reference 1 -->
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference3_name" class="form-label">Reference 3 Name</label>
-                                        <input type="text" class="form-control" name="reference3_name"
-                                            id="reference3_name" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference3_address" class="form-label">Reference 3 Address</label>
-                                        <input type="text" class="form-control" name="reference3_address"
-                                            id="reference3_address" required>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="reference3_contact_no" class="form-label">Reference 3 Contact
-                                            Number</label>
-                                        <input type="tel" class="form-control" name="reference3_contact_no"
-                                            id="reference3_contact_no" required>
-                                    </div>
-                                </div>
-
+                    <div class="container">
+                        <div class="form-container">
+                        <h1 class="heading"><?php echo ucfirst($loan_type); ?> Loan Application - Reference Information</h1>
+                            <form action="collateral-form5.php" method="post" id="referenceForm">
+                            <div>
                                 <div class="row mb-4">
+                                    <h6>Reference Information</h6>
+                                    
+                                    <!-- Reference 1 -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference1_name" class="form-label">Reference 1 Name<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference1_name" 
+                                                id="reference1_name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference1_address" class="form-label">Reference 1 Address<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference1_address" 
+                                                id="reference1_address" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference1_contact_no" class="form-label">Reference 1 Contact Number<span style="color: red;">*</span></label>
+                                            <input type="tel" class="form-control" name="reference1_contact_no" 
+                                                id="reference1_contact_no" required>
+                                        </div>
+                                    </div>
+                                    <!-- Reference 1 -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference2_name" class="form-label">Reference 2 Name<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference2_name" 
+                                                id="reference2_name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference2_address" class="form-label">Reference 2 Address<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference2_address" 
+                                                id="reference2_address" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference2_contact_no" class="form-label">Reference 2 Contact Number<span style="color: red;">*</span></label>
+                                            <input type="tel" class="form-control" name="reference2_contact_no" 
+                                                id="reference2_contact_no" required>
+                                        </div>
+                                    </div>
+                                    <!-- Reference 1 -->
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference3_name" class="form-label">Reference 3 Name<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference3_name" 
+                                                id="reference3_name" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference3_address" class="form-label">Reference 3 Address<span style="color: red;">*</span></label>
+                                            <input type="text" class="form-control" name="reference3_address" 
+                                                id="reference3_address" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label for="reference3_contact_no" class="form-label">Reference 3 Contact Number<span style="color: red;">*</span></label>
+                                            <input type="tel" class="form-control" name="reference3_contact_no" 
+                                                id="reference3_contact_no" required>
+                                        </div>
+                                    </div>
+                                    </div>
+
+                                    <div class="row mb-4">
                                     <h6>Comaker Information</h6>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_name" class="form-label">Comaker Name</label>
+                                            <label for="comaker_name" class="form-label">Comaker Name<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_name"
                                                 id="comaker_name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_address" class="form-label">Comaker Address</label>
+                                            <label for="comaker_address" class="form-label">Comaker Address<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_address"
                                                 id="comaker_address" required>
                                         </div>
                                     </div>
                                     <div class="col-md-4">
                                         <div class="form-group">
-                                            <label for="comaker_contact_no" class="form-label">Comaker Contact No.</label>
+                                            <label for="comaker_contact_no" class="form-label">Comaker Contact No.<span style="color: red;">*</span></label>
                                             <input type="tel" class="form-control" name="comaker_contact_no"
                                                 id="comaker_contact_no" required>
                                         </div>
                                     </div>
                                 </div>
-                                    
+                                </div>
 
-                            </div>
-
-                            <div class="text-end">
-                                <button type="submit" class="btn btn-primary next-btn px-4">Next</button>
-                            </div>
-                        </form>
+                                <div class="text-end">
+                                    <button type="submit" class="btn btn-primary next-btn px-4">Next</button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
-                </div>
 
                 <br><br><br><br><br><br><br> <br><br><br><br><br><br><br>
 
@@ -644,246 +641,246 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function() {
-            // Validation rules
-            const validationRules = {
-                nameField: (value) => /^[a-zA-Z\s\-\']+$/.test(value.trim()),
-                addressField: (value) => value.trim().length > 5,
-                phoneField: (value) => /^[+]?[\s\d\-()]{8,20}$/.test(value.trim())
-            };
+     $(document).ready(function() {
+        // Validation rules
+        const validationRules = {
+            nameField: (value) => /^[a-zA-Z\s\-\']+$/.test(value.trim()),
+            addressField: (value) => value.trim().length > 5,
+            phoneField: (value) => /^[+]?[\s\d\-()]{8,20}$/.test(value.trim())
+        };
 
-            // Function to show validation message
-            function showValidation(element, isValid, message) {
-                const formGroup = $(element).closest('.form-group');
-                formGroup.find('.validation-message').remove(); // Remove existing message
+        // Function to show validation message
+        function showValidation(element, isValid, message) {
+            const formGroup = $(element).closest('.form-group');
+            formGroup.find('.validation-message').remove(); // Remove existing message
 
-                if (!isValid) {
-                    $(element).addClass('is-invalid').removeClass('is-valid');
-                    formGroup.append(`<div class="validation-message text-danger small mt-1">${message}</div>`);
-                } else {
-                    $(element).addClass('is-valid').removeClass('is-invalid');
-                }
+            if (!isValid) {
+                $(element).addClass('is-invalid').removeClass('is-valid');
+                formGroup.append(`<div class="validation-message text-danger small mt-1">${message}</div>`);
+            } else {
+                $(element).addClass('is-valid').removeClass('is-invalid');
             }
+        }
 
-            // General input validation function
-            function validateInput(selector, validateFn, errorMessage) {
-                $(selector).off('input change').on('input change', function() {
-                    const value = $(this).val();
-                    const isValid = validateFn(value);
-                    showValidation(this, isValid, errorMessage);
-                });
-            }
-
-            // Validate reference fields
-            function validateReferenceFields(referenceCount) {
-                const fieldTypes = [
-                    {
-                        type: 'name',
-                        validate: validationRules.nameField,
-                        message: 'name must contain only letters'
-                    },
-                    {
-                        type: 'address',
-                        validate: validationRules.addressField,
-                        message: 'address must be at least 5 characters'
-                    },
-                    {
-                        type: 'contact_no',
-                        validate: validationRules.phoneField,
-                        message: 'contact number must be in valid format'
-                    }
-                ];
-
-                fieldTypes.forEach(field => {
-                    const selector = `#reference${referenceCount}_${field.type}`;
-                    validateInput(
-                        selector,
-                        field.validate,
-                        `Reference ${referenceCount} ${field.message}`
-                    );
-
-                    // Trigger initial validation if field has a value
-                    const element = $(selector);
-                    if (element.val()) {
-                        element.trigger('change');
-                    }
-                });
-            }
-
-            // Validate comaker fields
-            function validateComakerFields() {
-                const fieldTypes = [
-                    {
-                        type: 'name',
-                        validate: validationRules.nameField,
-                        message: 'name must contain only letters'
-                    },
-                    {
-                        type: 'address',
-                        validate: validationRules.addressField,
-                        message: 'address must be at least 5 characters'
-                    },
-                    {
-                        type: 'contact_no',
-                        validate: validationRules.phoneField,
-                        message: 'contact number must be in valid format'
-                    }
-                ];
-
-                fieldTypes.forEach(field => {
-                    const selector = `#comaker_${field.type}`;
-                    validateInput(
-                        selector,
-                        field.validate,
-                        `Comaker ${field.message}`
-                    );
-
-                    const element = $(selector);
-                    if (element.val()) {
-                        element.trigger('change');
-                    }
-                });
-            }
-
-            // Initial validation for existing references
-            $('.form-control[id^="reference"]').each(function() {
-                const refNumber = this.id.match(/reference(\d+)_/)[1];
-                validateReferenceFields(refNumber);
+        // General input validation function
+        function validateInput(selector, validateFn, errorMessage) {
+            $(selector).off('input change').on('input change', function() {
+                const value = $(this).val();
+                const isValid = validateFn(value);
+                showValidation(this, isValid, errorMessage);
             });
+        }
 
-            // Initial validation for comaker fields
-            validateComakerFields();
-
-            // Add more references functionality
-            let referenceCount = $('.reference-row').length || 1;
-            $('.add-reference').click(function() {
-                if (referenceCount >= 4) {
-                    Swal.fire({
-                        title: 'Limit Reached',
-                        text: 'You can add up to 3 additional references.',
-                        icon: 'warning',
-                        confirmButtonText: 'OK'
-                    });
-                    return;
+        // Validate reference fields
+        function validateReferenceFields(referenceCount) {
+            const fieldTypes = [
+                {
+                    type: 'name',
+                    validate: validationRules.nameField,
+                    message: 'name must contain only letters'
+                },
+                {
+                    type: 'address',
+                    validate: validationRules.addressField,
+                    message: 'address must be at least 5 characters'
+                },
+                {
+                    type: 'contact_no',
+                    validate: validationRules.phoneField,
+                    message: 'contact number must be in valid format'
                 }
+            ];
 
-                referenceCount++;
-                const newReferenceHtml = `
-                    <div class="row mb-4 reference-row">
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="reference${referenceCount}_name" class="form-label">Reference ${referenceCount} Name</label>
-                                <input type="text" class="form-control" name="reference${referenceCount}_name" 
-                                    id="reference${referenceCount}_name" required>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group">
-                                <label for="reference${referenceCount}_address" class="form-label">Reference ${referenceCount} Address</label>
-                                <input type="text" class="form-control" name="reference${referenceCount}_address" 
-                                    id="reference${referenceCount}_address" required>
-                            </div>
-                        </div>
-                        <div class="col-md-3">
-                            <div class="form-group">
-                                <label for="reference${referenceCount}_contact_no" class="form-label">Reference ${referenceCount} Contact Number</label>
-                                <input type="tel" class="form-control" name="reference${referenceCount}_contact_no" 
-                                    id="reference${referenceCount}_contact_no" required>
-                            </div>
-                        </div>
-                        <div class="col-md-1">
-                            <button type="button" class="btn btn-danger remove-reference mt-4">Remove</button>
+            fieldTypes.forEach(field => {
+                const selector = `#reference${referenceCount}_${field.type}`;
+                validateInput(
+                    selector,
+                    field.validate,
+                    `Reference ${referenceCount} ${field.message}`
+                );
+
+                // Trigger initial validation if field has a value
+                const element = $(selector);
+                if (element.val()) {
+                    element.trigger('change');
+                }
+            });
+        }
+
+        // Validate comaker fields
+        function validateComakerFields() {
+            const fieldTypes = [
+                {
+                    type: 'name',
+                    validate: validationRules.nameField,
+                    message: 'name must contain only letters'
+                },
+                {
+                    type: 'address',
+                    validate: validationRules.addressField,
+                    message: 'address must be at least 5 characters'
+                },
+                {
+                    type: 'contact_no',
+                    validate: validationRules.phoneField,
+                    message: 'contact number must be in valid format'
+                }
+            ];
+
+            fieldTypes.forEach(field => {
+                const selector = `#comaker_${field.type}`;
+                validateInput(
+                    selector,
+                    field.validate,
+                    `Comaker ${field.message}`
+                );
+
+                const element = $(selector);
+                if (element.val()) {
+                    element.trigger('change');
+                }
+            });
+        }
+
+        // Initial validation for existing references
+        $('.form-control[id^="reference"]').each(function() {
+            const refNumber = this.id.match(/reference(\d+)_/)[1];
+            validateReferenceFields(refNumber);
+        });
+
+        // Initial validation for comaker fields
+        validateComakerFields();
+
+        // Add more references functionality
+        let referenceCount = $('.reference-row').length || 1;
+        $('.add-reference').click(function() {
+            if (referenceCount >= 4) {
+                Swal.fire({
+                    title: 'Limit Reached',
+                    text: 'You can add up to 3 additional references.',
+                    icon: 'warning',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+
+            referenceCount++;
+            const newReferenceHtml = `
+                <div class="row mb-4 reference-row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="reference${referenceCount}_name" class="form-label">Reference ${referenceCount} Name</label>
+                            <input type="text" class="form-control" name="reference${referenceCount}_name" 
+                                id="reference${referenceCount}_name" required>
                         </div>
                     </div>
-                `;
-                $('#additional-references').append(newReferenceHtml);
-                validateReferenceFields(referenceCount);
-            });
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="reference${referenceCount}_address" class="form-label">Reference ${referenceCount} Address</label>
+                            <input type="text" class="form-control" name="reference${referenceCount}_address" 
+                                id="reference${referenceCount}_address" required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label for="reference${referenceCount}_contact_no" class="form-label">Reference ${referenceCount} Contact Number</label>
+                            <input type="tel" class="form-control" name="reference${referenceCount}_contact_no" 
+                                id="reference${referenceCount}_contact_no" required>
+                        </div>
+                    </div>
+                    <div class="col-md-1">
+                        <button type="button" class="btn btn-danger remove-reference mt-4">Remove</button>
+                    </div>
+                </div>
+            `;
+            $('#additional-references').append(newReferenceHtml);
+            validateReferenceFields(referenceCount);
+        });
 
-            // Remove reference
-            $(document).on('click', '.remove-reference', function() {
-                $(this).closest('.reference-row').remove();
-                referenceCount--;
-            });
+        // Remove reference
+        $(document).on('click', '.remove-reference', function() {
+            $(this).closest('.reference-row').remove();
+            referenceCount--;
+        });
 
-            // Form submission validation
-            $('#referenceForm').on('submit', function(e) {
-                let isValid = true;
+        // Form submission validation
+        $('#referenceForm').on('submit', function(e) {
+            let isValid = true;
 
-                // Validate all visible reference fields
-                $('.form-control[id^="reference"]').each(function() {
-                    const field = $(this);
-                    const [, refNumber, fieldType] = field.attr('id').match(/reference(\d+)_(\w+)/);
+            // Validate all visible reference fields
+            $('.form-control[id^="reference"]').each(function() {
+                const field = $(this);
+                const [, refNumber, fieldType] = field.attr('id').match(/reference(\d+)_(\w+)/);
 
-                    let validationFn;
-                    let message;
+                let validationFn;
+                let message;
 
-                    switch (fieldType) {
-                        case 'name':
-                            validationFn = validationRules.nameField;
-                            message = `Reference ${refNumber} name must contain only letters`;
-                            break;
-                        case 'address':
-                            validationFn = validationRules.addressField;
-                            message = `Reference ${refNumber} address must be at least 5 characters`;
-                            break;
-                        case 'contact_no':
-                            validationFn = validationRules.phoneField;
-                            message = `Reference ${refNumber} contact number must be in valid format`;
-                            break;
-                    }
+                switch (fieldType) {
+                    case 'name':
+                        validationFn = validationRules.nameField;
+                        message = `Reference ${refNumber} name must contain only letters`;
+                        break;
+                    case 'address':
+                        validationFn = validationRules.addressField;
+                        message = `Reference ${refNumber} address must be at least 5 characters`;
+                        break;
+                    case 'contact_no':
+                        validationFn = validationRules.phoneField;
+                        message = `Reference ${refNumber} contact number must be in valid format`;
+                        break;
+                }
 
-                    const fieldValid = validationFn(field.val());
-                    showValidation(field, fieldValid, message);
+                const fieldValid = validationFn(field.val());
+                showValidation(field, fieldValid, message);
 
-                    if (!fieldValid) {
-                        isValid = false;
-                    }
-                });
-
-                // Validate comaker fields
-                $('.form-control[id^="comaker_"]').each(function() {
-                    const field = $(this);
-                    const fieldType = field.attr('id').replace('comaker_', '');
-
-                    let validationFn;
-                    let message;
-
-                    switch (fieldType) {
-                        case 'name':
-                            validationFn = validationRules.nameField;
-                            message = 'Comaker name must contain only letters';
-                            break;
-                        case 'address':
-                            validationFn = validationRules.addressField;
-                            message = 'Comaker address must be at least 5 characters';
-                            break;
-                        case 'contact_no':
-                            validationFn = validationRules.phoneField;
-                            message = 'Comaker contact number must be in valid format';
-                            break;
-                    }
-
-                    const fieldValid = validationFn(field.val());
-                    showValidation(field, fieldValid, message);
-
-                    if (!fieldValid) {
-                        isValid = false;
-                    }
-                });
-
-                if (!isValid) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Form Validation',
-                        text: 'Please check all fields and correct the errors.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
+                if (!fieldValid) {
+                    isValid = false;
                 }
             });
+
+            // Validate comaker fields
+            $('.form-control[id^="comaker_"]').each(function() {
+                const field = $(this);
+                const fieldType = field.attr('id').replace('comaker_', '');
+
+                let validationFn;
+                let message;
+
+                switch (fieldType) {
+                    case 'name':
+                        validationFn = validationRules.nameField;
+                        message = 'Comaker name must contain only letters';
+                        break;
+                    case 'address':
+                        validationFn = validationRules.addressField;
+                        message = 'Comaker address must be at least 5 characters';
+                        break;
+                    case 'contact_no':
+                        validationFn = validationRules.phoneField;
+                        message = 'Comaker contact number must be in valid format';
+                        break;
+                }
+
+                const fieldValid = validationFn(field.val());
+                showValidation(field, fieldValid, message);
+
+                if (!fieldValid) {
+                    isValid = false;
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Form Validation',
+                    text: 'Please check all fields and correct the errors.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            }
         });
-    </script>
+    });
+        </script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <!-- Add SweetAlert script -->

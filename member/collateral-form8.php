@@ -377,7 +377,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 $loan = $result->fetch_assoc();
                 ?>
 
-                <div class="container py-5">
+<div class="container py-5">
                     <div class="card shadow-sm">
                         <div class="card-header bg-primary text-white">
                             <h3 class="mb-0" style="text-align:center; background-color:var(--secondary-color;)">Loan Application Review - <?php echo htmlspecialchars($loan['LoanType']); ?> Loan</h3>
@@ -476,7 +476,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                         }
                                         ?>
                                     </p>
-                                    <p><strong>Monthly Income:</strong> ₱<?php echo number_format($loan['monthly_income'], 2); ?></p>
+                    
                                 </div>
                                 <div class="col-md-4">
                                     <p><strong>Contact Person:</strong> <?php echo htmlspecialchars($loan['contact_person']); ?></p>
@@ -504,10 +504,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <h6>Income</h6>
                                     <table class="table table-bordered">
                                         <tr>
-                                            <td>Self Income (<?php echo htmlspecialchars($loan['self_income']); ?>)</td>
-                                            <td>₱<?php echo number_format($loan['self_income_amount'], 2); ?></td>
+                                            <td>Monthly Income (<?php echo htmlspecialchars($loan['present_position']); ?>)</td>
+                                            <td>₱<?php echo number_format($loan['monthly_income'], 2); ?></td>
                                         </tr>
-                                        <?php if (!empty($loan['other_income'])): ?>
+                                        <?php if (!empty($loan['self_other_income_amount'])): ?>
                                         <tr>
                                             <td>Other Income (<?php echo htmlspecialchars($loan['other_income']); ?>)</td>
                                             <td>₱<?php echo number_format($loan['self_other_income_amount'], 2); ?></td>
@@ -519,8 +519,28 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <td>₱<?php echo number_format($loan['spouse_income_amount'], 2); ?></td>
                                         </tr>
                                         <?php endif; ?>
+                                        <?php if (!empty($loan['spouse_other_income_amount'])): ?>
+                                        <tr>
+                                            <td>Spouse Other Income</td>
+                                            <td>₱<?php echo number_format($loan['spouse_other_income_amount'], 2); ?></td>
+                                        </tr>
+                                        <?php endif; ?>
+
+                                        <tr class="table-primary">
+                                            <td><strong>Total Income</strong></td>
+                                            <td><strong>₱<?php 
+                                                $total_income = 
+                                                    (float) ($loan['monthly_income'] ?? 0) + 
+                                                    (float) ($loan['self_other_income_amount'] ?? 0) + 
+                                                    (float) ($loan['spouse_income_amount'] ?? 0) + 
+                                                    (float) ($loan['spouse_other_income_amount'] ?? 0);
+
+                                                echo number_format($total_income, 2); 
+                                            ?></strong></td>
+                                        </tr>
                                     </table>
                                 </div>
+
                                 <div class="col-md-6">
                                     <h6>Monthly Expenses</h6>
                                     <table class="table table-bordered">
@@ -551,6 +571,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </table>
                                 </div>
                             </div>
+
 
                             <!-- Bank Accounts -->
                             <div class="row mb-4">
@@ -663,6 +684,55 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Collateral Information -->
+                            <?php
+                            // Get collateral information
+                            $collateralQuery = "SELECT * FROM land_appraisal WHERE LoanID = ?";
+                            $collateralStmt = $conn->prepare($collateralQuery);
+                            $collateralStmt->bind_param("i", $loan['LoanID']);
+                            $collateralStmt->execute();
+                            $collateralResult = $collateralStmt->get_result();
+                            $collateral = $collateralResult->fetch_assoc();
+                            ?>
+
+                            <?php if ($collateral): ?>
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <h5 class="border-bottom pb-2">Collateral Information</h5>
+                                </div>
+                                <div class="col-md-6">
+                                    <p><strong>Square Meters:</strong> <?php echo htmlspecialchars($collateral['square_meters']); ?></p>
+                                    <p><strong>Type of Land:</strong> <?php echo htmlspecialchars($collateral['type_of_land']); ?></p>
+                                    <p><strong>Location Name:</strong> <?php echo htmlspecialchars($collateral['location_name']); ?></p>
+                                    <p><strong>Right of Way:</strong> <?php echo htmlspecialchars($collateral['right_of_way']); ?></p>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6>Nearby Facilities</h6>
+                                    <ul class="list-unstyled">
+                                        <li><i class="fas fa-<?php echo $collateral['has_hospital'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> Hospital</li>
+                                        <li><i class="fas fa-<?php echo $collateral['has_school'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> School</li>
+                                        <li><i class="fas fa-<?php echo $collateral['has_clinic'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> Clinic</li>
+                                        <li><i class="fas fa-<?php echo $collateral['has_church'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> Church</li>
+                                        <li><i class="fas fa-<?php echo $collateral['has_market'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> Market</li>
+                                        <li><i class="fas fa-<?php echo $collateral['has_terminal'] === 'Yes' ? 'check text-success' : 'times text-danger'; ?>"></i> Terminal</li>
+                                    </ul>
+                                </div>
+                                
+                                <?php if (!empty($collateral['land_title_path'])): ?>
+                                <div class="col-12 mt-3">
+                                    <div class="card">
+                                        <div class="card-body">
+                                            <h6 class="card-title">Land Title Document</h6>
+                                            <p class="card-text">Filename: <?php echo htmlspecialchars($collateral['land_title_path']); ?></p>
+                                            <a href="../dist/assets/images/proofs/<?php echo htmlspecialchars($collateral['land_title_path']); ?>" 
+                                            class="btn btn-primary btn-sm" target="_blank">View Document</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                             <!-- Submitted Documents -->
                             <div class="row mb-4">
                                 <div class="col-12">
@@ -919,6 +989,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 </div>
                             </div>
 
+                            <?php 
+                            $loan['total_income'] = 
+                                (float) ($loan['monthly_income'] ?? 0) + 
+                                (float) ($loan['self_other_income_amount'] ?? 0) + 
+                                (float) ($loan['spouse_income_amount'] ?? 0) + 
+                                (float) ($loan['spouse_other_income_amount'] ?? 0);
+                            ?>
+
                             <!-- Application Status Summary -->
                             <div class="row mb-4">
                                 <div class="col-12">
@@ -927,12 +1005,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <h5 class="card-title">Application Summary</h5>
                                             <div class="row">
                                                 <div class="col-md-4">
-                                                    <p><strong>Total Monthly Income:</strong> ₱<?php echo number_format($loan['net_family_income'], 2); ?></p>
+                                                    <p><strong>Net Family Income:</strong> ₱<?php echo number_format($loan['net_family_income'], 2); ?></p>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <p><strong>Total Monthly Income:</strong> ₱<?php echo number_format($loan['total_income'], 2); ?></p>
                                                 </div>
                                                 <div class="col-md-4">
                                                     <p><strong>Total Monthly Expenses:</strong> ₱<?php echo number_format($loan['total_expenses'], 2); ?></p>
                                                 </div>
-                                                
                                             </div>
                                         </div>
                                     </div>

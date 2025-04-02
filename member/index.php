@@ -226,7 +226,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         </style>
         <div class="row">
           <div class="col-md-6 grid-margin stretch-card">
-            <div class="card" style="background: #03C03C;">
+            <div class="card" style="background:rgb(1, 120, 36);">
               <div class="card mt-auto">
                 <img src="../dist/assets/images/paschal.png" alt="people" class="people">
                 <div class="weather-info">
@@ -263,7 +263,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             <div class="col-md-6 grid-margin transparent">
                 <div class="row">
                     <div class="col-md-6 mb-4 stretch-card transparent">
-                        <div class="card" style="background: #03C03C;">
+                        <div class="card" style="background: rgb(1, 120, 36);">
                             <div class="card-body">
                                 <p class="mb-4 text-white">Total Number of Active Loans</p>
                                 <p class="fs-30 mb-2 text-white"><?php echo $row['active_loans_count']; ?></p>
@@ -271,7 +271,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         </div>
                     </div>
                     <div class="col-md-6 mb-4 stretch-card transparent">
-                        <div class="card" style="background: #03C03C;">
+                        <div class="card" style="background: rgb(1, 120, 36)">
                             <div class="card-body">
                                 <p class="mb-4 text-white">Total Number of Loan Applications</p>
                                 <p class="fs-30 mb-2 text-white"><?php echo $row['total_loan_applications_count']; ?></p>

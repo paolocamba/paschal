@@ -22,11 +22,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Update loan status and amount from form submission
         $status = $_POST['Status'];
-        $loanable_amount = floatval($_POST['loanable_amount']);
+        $loanable_amount = floatval($loan['loanable_amount']);
         
-        $update_sql = "UPDATE loanapplication SET Status = ?, loanable_amount = ? WHERE LoanID = ?";
+        $update_sql = "UPDATE loanapplication SET Status = ? WHERE LoanID = ?";
         $update_stmt = $conn->prepare($update_sql);
-        $update_stmt->bind_param("sds", $status, $loanable_amount, $_POST['LoanID']);
+        $update_stmt->bind_param("ss", $status, $_POST['LoanID']);
         $update_stmt->execute();
 
         if ($status === 'Approved' || $status === 'Disapproved') {

@@ -516,7 +516,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 <!-- Document Inputs -->
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="validID" class="form-label">Valid ID with Signature</label>
+                                        <label for="validID" class="form-label">Valid ID with Signature<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="validID" 
                                             id="validID" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
@@ -524,70 +524,70 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="proof_of_income" class="form-label">Proof Of Income</label>
+                                        <label for="proof_of_income" class="form-label">Proof Of Income<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="proof_of_income" 
                                             id="proof_of_income" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="tax_declaration" class="form-label">Latest Tax Declarion</label>
+                                        <label for="tax_declaration" class="form-label">Latest Tax Declarion<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="tax_declaration" 
                                             id="tax_declaration" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="tax_clearance" class="form-label">Latest Tax Clearance</label>
+                                        <label for="tax_clearance" class="form-label">Latest Tax Clearance<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="tax_clearance" 
                                             id="tax_clearance" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="original_transfer_certificate_of_title" class="form-label">Orig Transfer Certificate Of Title(TCT)</label>
+                                        <label for="original_transfer_certificate_of_title" class="form-label">Orig Transfer Certificate Of Title(TCT)<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="original_transfer_certificate_of_title" 
                                             id="original_transfer_certificate_of_title" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="certified_true_copy" class="form-label">Certified True Copy (TCT)</label>
+                                        <label for="certified_true_copy" class="form-label">Certified True Copy (TCT)<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="certified_true_copy" 
                                             id="certified_true_copy" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="vicinity_map" class="form-label">Orig Loc. Plan & Vicinity Map</label>
+                                        <label for="vicinity_map" class="form-label">Orig Loc. Plan & Vicinity Map<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="vicinity_map" 
                                             id="vicinity_map" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="barangay_clearance" class="form-label">Barangay Clearance</label>
+                                        <label for="barangay_clearance" class="form-label">Barangay Clearance<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="barangay_clearance" 
                                             id="barangay_clearance" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="cedula" class="form-label">Cedula</label>
+                                        <label for="cedula" class="form-label">Cedula<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="cedula" 
                                             id="cedula" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="post_dated_check" class="form-label">Post Dated Check (PDC)</label>
+                                        <label for="post_dated_check" class="form-label">Post Dated Check (PDC)<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="post_dated_check" 
                                             id="post_dated_check" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="promisory_note" class="form-label">Promisory Note</label>
+                                        <label for="promisory_note" class="form-label">Promisory Note<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="promisory_note" 
                                             id="promisory_note" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>

@@ -235,6 +235,8 @@
             margin-right: .5rem;
             vertical-align: middle;
           }
+
+          
           @media (max-width: 991px) {
             position: static;
             .navbar-dropdown {
@@ -244,6 +246,12 @@
               width: calc(100% - 40px);
             }
           }
+          .navbar {
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1030; /* Bootstrap default z-index for fixed nav */
+        }
           .count-indicator {
             position: relative;
             padding: 0;

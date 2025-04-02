@@ -368,6 +368,22 @@
             font-size: 0.9rem;
         }
 
+        .table-responsive {
+                overflow-x: auto;
+                position: relative;
+            }
+
+            th:last-child, td:last-child { 
+                position: sticky;
+                right: 0;
+                background: white;
+                z-index: 2;
+            }
+
+            th:last-child {
+                z-index: 3;
+            }
+
         @media (max-width: 768px) {
             .nav-link {
                 margin: 5px 0;
@@ -439,7 +455,7 @@
                         <a class="nav-link" href="signup.php">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link apply-loan" href="apply-loan.php">Apply for Loan</a>
+                        <a class="nav-link apply-loan" href="member-login.php">Apply for Loan</a>
                     </li>
                 </ul>
             </div>

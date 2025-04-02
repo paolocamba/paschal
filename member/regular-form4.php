@@ -419,10 +419,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     // Handle form submission
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         try {
-                            // Prepare columns to update
                             $columns_to_update = [];
                             $params = [];
                             $types = '';
+                            $creditor_balance_total = 0; // Initialize total balance
 
                             // Validate and sanitize creditor information (up to 4 creditors)
                             for ($i = 1; $i <= 4; $i++) {
@@ -431,29 +431,38 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 $original_amount_key = "creditor{$i}_original_amount";
                                 $present_balance_key = "creditor{$i}_present_balance";
 
-                                // Check if creditor name is set and not empty
-                                if (isset($_POST[$name_key]) && $_POST[$name_key] !== '') {
-                                    // Sanitize and add creditor name
-                                    $columns_to_update[] = "{$name_key} = ?";
-                                    $params[] = trim($_POST[$name_key]);
-                                    $types .= 's';
+                                if (!empty($_POST[$name_key]) || !empty($_POST[$address_key]) || !empty($_POST[$original_amount_key]) || !empty($_POST[$present_balance_key])) {
+                                    if (!empty($_POST[$name_key])) {
+                                        $columns_to_update[] = "{$name_key} = ?";
+                                        $params[] = trim($_POST[$name_key]);
+                                        $types .= 's';
+                                    }
+                                    if (!empty($_POST[$address_key])) {
+                                        $columns_to_update[] = "{$address_key} = ?";
+                                        $params[] = trim($_POST[$address_key]);
+                                        $types .= 's';
+                                    }
+                                    if (!empty($_POST[$original_amount_key])) {
+                                        $columns_to_update[] = "{$original_amount_key} = ?";
+                                        $params[] = floatval($_POST[$original_amount_key]);
+                                        $types .= 'd';
+                                    }
+                                    if (!empty($_POST[$present_balance_key])) {
+                                        $balance = floatval($_POST[$present_balance_key]);
+                                        $columns_to_update[] = "{$present_balance_key} = ?";
+                                        $params[] = $balance;
+                                        $types .= 'd';
 
-                                    // Sanitize and add creditor address
-                                    $columns_to_update[] = "{$address_key} = ?";
-                                    $params[] = trim($_POST[$address_key]);
-                                    $types .= 's';
-
-                                    // Add original amount
-                                    $columns_to_update[] = "{$original_amount_key} = ?";
-                                    $params[] = isset($_POST[$original_amount_key]) ? floatval($_POST[$original_amount_key]) : null;
-                                    $types .= 'd';
-
-                                    // Add present balance
-                                    $columns_to_update[] = "{$present_balance_key} = ?";
-                                    $params[] = isset($_POST[$present_balance_key]) ? floatval($_POST[$present_balance_key]) : null;
-                                    $types .= 'd';
+                                        // Accumulate total present balance
+                                        $creditor_balance_total += $balance;
+                                    }
                                 }
                             }
+
+                            // Save total creditor balance
+                            $columns_to_update[] = "creditor_balance_total = ?";
+                            $params[] = $creditor_balance_total;
+                            $types .= 'd';
 
                             // Add property foreclosure status
                             if (isset($_POST['property_foreclosed_repossessed'])) {
@@ -469,7 +478,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 $types .= 's';
                             }
 
-                            // If no columns to update, throw an error
                             if (empty($columns_to_update)) {
                                 throw new Exception("No valid data to update");
                             }
@@ -485,23 +493,18 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                             // Prepare and execute statement
                             $stmt = $conn->prepare($query);
-                            
-                            // Dynamically bind parameters
                             $bind_params = array_merge(array($stmt, $types), $params);
                             call_user_func_array('mysqli_stmt_bind_param', $bind_params);
 
                             if ($stmt->execute()) {
                                 $stmt->close();
-                                // Redirect to next form step
                                 header("Location: regular-form5.php?loanType=" . urlencode($loan_type));
                                 exit();
                             } else {
                                 throw new Exception("Database update failed: " . $stmt->error);
                             }
                         } catch (Exception $e) {
-                            // Log the full error for debugging
                             error_log("Loan Application Update Error: " . $e->getMessage());
-                            
                             echo "<script>
                                     alert('Error updating loan application. " . addslashes($e->getMessage()) . "');
                                     history.back();
@@ -509,6 +512,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             exit();
                         }
                     }
+
 
                     ob_end_flush();
                     ?>
@@ -518,32 +522,32 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <form action="regular-form4.php" method="post">
                                 <div class="row mb-4">
                                     <h6>Debt and Liability Information</h6>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_name" class="form-label">Creditor 1 Name</label>
                                             <input type="text" class="form-control" name="creditor1_name"
-                                                id="creditor1_name" required>
+                                                id="creditor1_name">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_address" class="form-label">Creditor 1 Address</label>
                                             <input type="text" class="form-control" name="creditor1_address"
-                                                id="creditor1_address" required>
+                                                id="creditor1_address">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_original_amount" class="form-label">Creditor 1 Original Amount</label>
                                             <input type="number" class="form-control" name="creditor1_original_amount"
-                                                id="creditor1_original_amount" required>
+                                                id="creditor1_original_amount">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_present_balance" class="form-label">Creditor 1 Present Balance</label>
                                             <input type="number" class="form-control" name="creditor1_present_balance"
-                                                id="creditor1_present_balance" required>
+                                                id="creditor1_present_balance">
                                         </div>
                                     </div>
                                     <div id="additional-creditor"></div>
@@ -639,13 +643,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 });
             }
 
-            // Validation functions
             const validationRules = {
                 // Text fields (letters, spaces, and special characters)
                 textField: (value) => /^[a-zA-Z\s\p{P}]+$/u.test(value.trim()),
 
-                // Positive number fields
-                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) > 0,
+                // Positive number fields (Modified to allow zero)
+                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) >= 0,  // Now allows 0
 
                 // Address fields (allowing more flexibility)
                 addressField: (value) => value.trim().length > 0,
@@ -654,18 +657,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 radioField: (value) => ['yes', 'no'].includes(value)
             };
 
+
             // Creditor validation function
             function validateCreditorFields(creditorCount) {
                 const creditorFieldsToValidate = [
                     { 
                         selector: `#creditor${creditorCount}_name`, 
                         validate: validationRules.textField, 
-                        message: `Creditor ${creditorCount} name is required` 
+                        message: `Creditor ${creditorCount} name is invalid` 
                     },
                     { 
                         selector: `#creditor${creditorCount}_address`, 
                         validate: validationRules.addressField, 
-                        message: `Creditor ${creditorCount} address is required` 
+                        message: `Creditor ${creditorCount} address is invalid` 
                     },
                     { 
                         selector: `#creditor${creditorCount}_original_amount`, 
@@ -679,11 +683,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     }
                 ];
 
-                // Apply validation to creditor fields
+                // Apply validation only if the field has data
                 creditorFieldsToValidate.forEach(field => {
-                    validateInput(field.selector, field.validate, field.message);
+                    $(field.selector).on('input change', function () {
+                        if ($(this).val().trim() === '') {
+                            $(this).removeClass('is-invalid is-valid'); // Reset validation state
+                        } else {
+                            const isValid = field.validate($(this).val());
+                            showValidation(this, isValid, field.message);
+                        }
+                    });
                 });
             }
+
 
             // Radio button validation function
             function validateRadioFields() {
@@ -723,32 +735,32 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 creditorCount++;
                 const newCreditorHtml = `
                 <div class="row mb-4 creditor-row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_name" class="form-label">Creditor ${creditorCount} Name</label>
                             <input type="text" class="form-control" name="creditor${creditorCount}_name" 
-                                id="creditor${creditorCount}_name" required>
+                                id="creditor${creditorCount}_name">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_address" class="form-label">Creditor ${creditorCount} Address</label>
                             <input type="text" class="form-control" name="creditor${creditorCount}_address" 
-                                id="creditor${creditorCount}_address" required>
+                                id="creditor${creditorCount}_address">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_original_amount" class="form-label">Creditor ${creditorCount} Original Amount</label>
                             <input type="number" class="form-control" name="creditor${creditorCount}_original_amount" 
-                                id="creditor${creditorCount}_original_amount" required>
+                                id="creditor${creditorCount}_original_amount">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_present_balance" class="form-label">Creditor ${creditorCount} Present Balance</label>
                             <input type="number" class="form-control" name="creditor${creditorCount}_present_balance" 
-                                id="creditor${creditorCount}_present_balance" required>
+                                id="creditor${creditorCount}_present_balance">
                         </div>
                     </div>
                     <div class="col-md-2">

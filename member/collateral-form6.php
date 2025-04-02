@@ -397,7 +397,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 $loan_id = $_SESSION['loan_application_id'];
                 
                 $existing_data = null;
-                $check_query = "SELECT * FROM collateral_info WHERE LoanID = ? AND userID = ?";
+                $check_query = "SELECT * FROM land_appraisal WHERE LoanID = ? AND userID = ?";
                 $check_stmt = $conn->prepare($check_query);
                 $check_stmt->bind_param("ii", $loan_id, $user_id);
                 $check_stmt->execute();
@@ -424,7 +424,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         }
                 
                         if ($existing_data) {
-                            $query = "UPDATE collateral_info SET ";
+                            $query = "UPDATE land_appraisal SET ";
                             $updateParts = [];
                             $bind_params = [];
                             $types = '';
@@ -471,7 +471,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             $stmt->execute();
                             $stmt->close();
                         } else {
-                            $query = "INSERT INTO collateral_info (
+                            $query = "INSERT INTO land_appraisal (
                                 LoanID,
                                 userID,
                                 land_title_path,
@@ -548,7 +548,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-12">
                                     <div class="form-group">
-                                        <label for="land_title" class="form-label">Land Title Image</label>
+                                        <label for="land_title" class="form-label">Land Title Image<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="land_title" id="land_title" accept="image/*" required>
                                         <div id="land_title_preview" class="mt-2"></div>
                                     </div>
@@ -561,7 +561,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="square_meters" class="form-label">Square Meters</label>
+                                        <label for="square_meters" class="form-label">Square Meters<span style="color: red;">*</span></label>
                                         <input type="number" class="form-control" name="square_meters" 
                                             id="square_meters" required min="1">
                                     </div>
@@ -569,7 +569,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="type_of_land" class="form-label">Type of Land</label>
+                                        <label for="type_of_land" class="form-label">Type of Land<span style="color: red;">*</span></label>
                                         <select class="form-control" name="type_of_land" id="type_of_land" required>
                                             <option value="">Select Type</option>
                                             <option value="Industrial">Industrial</option>
@@ -582,7 +582,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="location_name" class="form-label">Location</label>
+                                        <label for="location_name" class="form-label">Location<span style="color: red;">*</span></label>
                                         <select class="form-control" name="location_name" id="location_name" required>
                                             <option value="">Select Location</option>
                                             <?php foreach ($locations as $location): ?>
@@ -596,7 +596,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="right_of_way" class="form-label">Right of Way</label>
+                                        <label for="right_of_way" class="form-label">Right of Way<span style="color: red;">*</span></label>
                                         <select class="form-control" name="right_of_way" id="right_of_way" required>
                                             <option value="">Select Option</option>
                                             <option value="Yes">Yes</option>
@@ -608,7 +608,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                             <!-- Commodities Section -->
                             <div class="row mb-4">
-                                <h6>Commodities within the Vicinity</h6>
+                                <h6>Commodities within the Vicinity<span style="color: red;">*</span></h6>
                                 <div class="col-12">
                                     <div class="form-check">
                                         <input type="checkbox" class="form-check-input" name="has_hospital" id="has_hospital">

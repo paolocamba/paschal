@@ -374,7 +374,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     // Handle form submission
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         $dateOfLoan = $_POST['dateLoan'];
-                        $amountRequested = (float) $_POST['amountRequested'];
+                        $amountRequested = (float) str_replace(',', '', $_POST['amountRequested']);
                         $purpose = $_POST['purpose'];
                         $loanTerm = $_POST['loanterm'];
                         $modePayment = $_POST['modePayment'];
@@ -420,21 +420,40 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="dateLoan" class="form-label">Date of Loan</label>
+                                        <label for="dateLoan" class="form-label">Date of Loan <span style="color: red;">*</span></label>
                                         <input type="date" class="form-control" name="dateLoan" id="dateLoan" placeholder="mm/dd/yyyy" required>
                                     </div>
                                 </div>
                                 <div class="col-md-4">
-                                    <div class="form-group">
-                                        <label for="amountRequested" class="form-label">Amount Requested</label>
-                                        <input type="number" class="form-control" name="amountRequested" id="amountRequested" required><br>
+                                <div class="form-group">
+                                    <label for="amountRequested" class="form-label">Amount Requested <span style="color: red;">*</span></label>
+                                    <input type="text" class="form-control" name="amountRequested" id="amountRequested" required oninput="formatAmount(this)">
+                                    <p class="amount" style="color:rgb(49, 167, 129);">The amount you can request depends on 50% of your collateral value</p>
+                                </div>
+                                <script>
+                                    function formatAmount(input) {
+                                    // Remove all non-numeric characters
+                                    let value = input.value.replace(/\D/g, '');
+                                    
+                                    // Store the raw numeric value in a data attribute
+                                    input.dataset.rawValue = value;
+                                    
+                                    // Format with commas for display
+                                    input.value = value.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    }
 
-                                        <p class="amount" style="color:rgb(49, 167, 129);">The amount you can request depends in the 50% Of your collateral value</p>
-                                    </div>
+                                    // Remove commas before form submission
+                                    document.querySelector('form').addEventListener('submit', function() {
+                                        const amountInput = document.getElementById('amountRequested');
+                                        // Use the raw value we stored in the data attribute
+                                        amountInput.value = amountInput.dataset.rawValue || amountInput.value.replace(/,/g, '');
+                                    });
+                                    </script>
+                                    
                                 </div>
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="purpose" class="form-label">Purpose</label>
+                                        <label for="purpose" class="form-label">Purpose <span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="purpose" id="purpose" required>
                                     </div>
                                 </div>
@@ -443,7 +462,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="loanTerm" class="form-label">Loan Term</label>
+                                        <label for="loanTerm" class="form-label">Loan Term <span style="color: red;">*</span></label>
                                         <select class="form-select" name="loanterm" id="loanTerm" required>
                                             <option selected>Select Term</option>
                                             <option value="3">3 Months</option>
@@ -459,7 +478,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
-                                        <label for="modePayment" class="form-label">Mode of Payment</label>
+                                        <label for="modePayment" class="form-label">Mode of Payment <span style="color: red;">*</span></label>
                                         <select class="form-select" name="modePayment" id="modePayment" required>
                                             <option selected>Select Mode</option>
                                             <option value="Weekly">Weekly</option>
@@ -501,6 +520,38 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- plugins:js -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const loanTermSelect = document.getElementById("loanTerm");
+    const modePaymentSelect = document.getElementById("modePayment");
+
+    function updatePaymentModes() {
+        const selectedTerm = parseInt(loanTermSelect.value);
+
+        // Enable all options first
+        Array.from(modePaymentSelect.options).forEach(option => {
+            option.disabled = false;
+        });
+
+        // Disable invalid options based on loan term
+        if (selectedTerm <= 3) {
+            modePaymentSelect.querySelector('option[value="Quarterly"]').disabled = true;
+            modePaymentSelect.querySelector('option[value="Semi_Annual"]').disabled = true;
+        } else if (selectedTerm <= 6) {
+            modePaymentSelect.querySelector('option[value="Semi_Annual"]').disabled = true;
+        }
+
+        // If current selection is invalid, reset to default
+        if (modePaymentSelect.options[modePaymentSelect.selectedIndex].disabled) {
+            modePaymentSelect.selectedIndex = 0;
+        }
+    }
+
+    loanTermSelect.addEventListener("change", updatePaymentModes);
+    updatePaymentModes(); // Run on page load to apply initial state
+});
+</script>
+
     <script>
         $(document).ready(function () {
             // Disable past dates

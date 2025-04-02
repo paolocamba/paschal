@@ -58,7 +58,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Collateral Loan Form 3 | Member</title>
+    <title>?Collateral Loan Form 3 | Member</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -507,6 +507,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 ob_flush();
                 ?>
                 <div class="container">
+
+
                     <div class="form-container">
                         <h1 class="heading"><?php echo ucfirst($loan_type); ?> Loan Application - Step 3</h1>
                         <form action="collateral-form3.php" method="post" enctype="multipart/form-data">
@@ -560,7 +562,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="assets1" class="form-label">Assets 1</label>
+                                        <label for="assets1" class="form-label">Assets 1<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="assets1" id="assets1" required
                                             placeholder="Enter asset type (e.g., Property, Vehicle)">
                                     </div>
@@ -584,7 +586,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         </form>
                     </div>
                 </div>
-
                 <br><br><br><br><br><br><br>
 
                 <!-- content-wrapper ends -->

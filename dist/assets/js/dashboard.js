@@ -264,7 +264,10 @@
     }
 
     if ($.cookie('skydash-pro-banner')!="true") {
-      document.querySelector('#proBanner').classList.add('d-flex');
+      const proBanner = document.querySelector('#proBanner');
+if (proBanner) {
+  proBanner.classList.add('d-flex');
+}
       document.querySelector('.navbar').classList.remove('fixed-top');
     }
     else {

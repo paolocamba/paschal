@@ -508,7 +508,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 <!-- Document Inputs -->
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="validID" class="form-label">Valid ID with Signature</label>
+                                        <label for="validID" class="form-label">Valid ID with Signature<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="validID" 
                                             id="validID" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>
@@ -517,7 +517,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="proof_of_income" class="form-label">Proof Of Income</label>
+                                        <label for="proof_of_income" class="form-label">Proof Of Income<span style="color: red;">*</span></label>
                                         <input type="file" class="form-control" name="proof_of_income" 
                                             id="proof_of_income" accept=".pdf,.jpg,.jpeg,.png,.gif" required>
                                     </div>

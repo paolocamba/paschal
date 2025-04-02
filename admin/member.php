@@ -140,6 +140,23 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+
+        .table-responsive {
+            overflow-x: auto; /* Enables horizontal scrolling */
+            position: relative; /* Needed for sticky positioning */
+        }
+
+        th:last-child, td:last-child { 
+            position: sticky;
+            right: 0;
+            background: white; /* Keeps background color when scrolling */
+            z-index: 2; /* Ensures it stays above other columns */
+        }
+
+        th:last-child {
+            z-index: 3; /* Keeps header on top */
+        }
+
             .nav-link i {
                 margin-right: 10px;
             }

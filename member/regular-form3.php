@@ -562,7 +562,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="assets1" class="form-label">Assets 1</label>
+                                        <label for="assets1" class="form-label">Assets 1<span style="color: red;">*</span></label>
                                         <input type="text" class="form-control" name="assets1" id="assets1" required
                                             placeholder="Enter asset type (e.g., Property, Vehicle)">
                                     </div>

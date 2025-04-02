@@ -140,6 +140,28 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+            .nav-link i {
+                margin-right: 10px;
+            }
+
+            .btn-primary {
+                background-color: #03C03C !important;
+            }
+
+            .btn-primary:hover {
+                background-color: #00563B !important;
+            }
+
+            .btn-outline-primary:hover {
+                background-color: #00563B !important;
+            }
+
+            .page-item.active .page-link {
+                background-color: #00563B !important;
+                border-color: #00563B !important;
+            }
+        </style>
+        <style>
             .nav-link i{
                 margin-right: 10px;
             }
@@ -196,166 +218,167 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
-
+                
                 <style>
                     :root {
-                        --primary-color: #00FFAF;
-                        --secondary-color: #0F4332;
-                        --accent-color: #ffffff;
-                        --text-color: #2c3e50;
-                        --light-bg: #f3f4f9;
+                    --primary-color: #00FFAF;
+                    --secondary-color: #0F4332;
+                    --accent-color: #ffffff;
+                    --text-color: #2c3e50;
+                    --light-bg: #f3f4f9;
                     }
 
 
                     .container {
-                        max-width: 1200px;
-                        margin: 0 auto;
-                        background: transparent;
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    background: transparent;
                     }
 
                     .heading {
-                        background: var(--secondary-color);
-                        color: white;
-                        margin: 0 0 20px 0;
-                        padding: 1rem 2rem;
-                        font-size: 1.5rem;
-                        font-weight: 500;
-                        border-radius: 8px;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: var(--secondary-color);
+                    color: white;
+                    margin: 0 0 20px 0;
+                    padding: 1rem 2rem;
+                    font-size: 1.5rem;
+                    font-weight: 500;
+                    border-radius: 8px;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-container {
-                        background: white;
-                        border-radius: 8px;
-                        padding: 2rem;
-                        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    background: white;
+                    border-radius: 8px;
+                    padding: 2rem;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                     }
 
                     .form-group {
-                        margin-bottom: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     .form-label {
-                        font-weight: 500;
-                        color: var(--secondary-color);
-                        margin-bottom: 0.5rem;
-                        display: block;
-                        font-size: 0.95rem;
+                    font-weight: 500;
+                    color: var(--secondary-color);
+                    margin-bottom: 0.5rem;
+                    display: block;
+                    font-size: 0.95rem;
                     }
 
                     .form-control {
-                        border: 1px solid #e1e5ea;
-                        border-radius: 4px;
-                        padding: 0.8rem 1rem;
-                        transition: all 0.3s ease;
-                        font-size: 1rem;
-                        width: 100%;
-                        box-sizing: border-box;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 4px;
+                    padding: 0.8rem 1rem;
+                    transition: all 0.3s ease;
+                    font-size: 1rem;
+                    width: 100%;
+                    box-sizing: border-box;
                     }
 
                     .form-control:focus {
-                        border-color: var(--primary-color);
-                        box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
-                        outline: none;
+                    border-color: var(--primary-color);
+                    box-shadow: 0 0 0 3px rgba(0, 255, 175, 0.1);
+                    outline: none;
                     }
 
                     .checkbox-wrapper {
-                        display: flex;
-                        align-items: center;
-                        gap: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    gap: 0.5rem;
                     }
 
                     input[type="checkbox"] {
-                        width: 18px;
-                        height: 18px;
-                        border: 2px solid var(--primary-color);
-                        border-radius: 4px;
-                        cursor: pointer;
+                    width: 18px;
+                    height: 18px;
+                    border: 2px solid var(--primary-color);
+                    border-radius: 4px;
+                    cursor: pointer;
                     }
 
                     .btn {
-                        padding: 0.8rem 2rem;
-                        border-radius: 4px;
-                        font-weight: 500;
-                        transition: all 0.3s ease;
-                        border: none;
-                        cursor: pointer;
+                    padding: 0.8rem 2rem;
+                    border-radius: 4px;
+                    font-weight: 500;
+                    transition: all 0.3s ease;
+                    border: none;
+                    cursor: pointer;
                     }
 
                     .btn-primary {
-                        background: var(--primary-color);
-                        color: white;
-                        font-weight: 600;
+                    background: var(--primary-color);
+                    color: white;
+                    font-weight: 600;
                     }
 
                     .btn-primary:hover {
-                        background: #00e69d;
-                        transform: translateY(-1px);
+                    background: #00e69d;
+                    transform: translateY(-1px);
                     }
 
                     .row {
-                        background: white;
-                        border: 1px solid #e1e5ea;
-                        border-radius: 8px;
-                        padding: 1.5rem;
-                        margin-bottom: 1.5rem;
+                    background: white;
+                    border: 1px solid #e1e5ea;
+                    border-radius: 8px;
+                    padding: 1.5rem;
+                    margin-bottom: 1.5rem;
                     }
 
                     h6 {
-                        color: var(--secondary-color);
-                        font-size: 1.1rem;
-                        margin-top: 0;
-                        margin-bottom: 1.5rem;
-                        font-weight: 600;
+                    color: var(--secondary-color);
+                    font-size: 1.1rem;
+                    margin-top: 0;
+                    margin-bottom: 1.5rem;
+                    font-weight: 600;
                     }
 
                     .document-upload-1 {
-                        border-left: 3px solid var(--primary-color);
-                        padding-left: 1.5rem;
+                    border-left: 3px solid var(--primary-color);
+                    padding-left: 1.5rem;
                     }
 
                     .add-assets {
-                        background: transparent;
-                        color: white;
-                        border: 2px solid var(--primary-color);
-                        padding: 0.6rem 1.5rem;
+                    background: transparent;
+                    color: white;
+                    border: 2px solid var(--primary-color);
+                    padding: 0.6rem 1.5rem;
                     }
 
                     .add-assets:hover {
-                        background: var(--primary-color);
-                        color: white;
+                    background: var(--primary-color);
+                    color: white;
                     }
 
                     .items-count {
-                        background: var(--primary-color);
-                        color: var(--secondary-color);
-                        padding: 0.25rem 0.75rem;
-                        border-radius: 4px;
-                        font-size: 0.875rem;
-                        font-weight: 500;
-                        float: right;
+                    background: var(--primary-color);
+                    color: var(--secondary-color);
+                    padding: 0.25rem 0.75rem;
+                    border-radius: 4px;
+                    font-size: 0.875rem;
+                    font-weight: 500;
+                    float: right;
                     }
 
                     @media (max-width: 768px) {
-                        .form-container {
-                            padding: 1rem;
-                        }
-
-                        .row {
-                            padding: 1rem;
-                        }
-
-                        .document-upload-1 {
-                            padding-left: 1rem;
-                            margin-top: 1rem;
-                        }
+                    .form-container {
+                        padding: 1rem;
                     }
-
+                    
+                    .row {
+                        padding: 1rem;
+                    }
+                    
+                    .document-upload-1 {
+                        padding-left: 1rem;
+                        margin-top: 1rem;
+                    }
+                    }
                     .content-wrapper {
 
                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
 
                     }
+
+                   
                 </style>
                 <?php
                     include '../connection/config.php';
@@ -396,10 +419,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     // Handle form submission
                     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         try {
-                            // Prepare columns to update
                             $columns_to_update = [];
                             $params = [];
                             $types = '';
+                            $creditor_balance_total = 0; // Initialize total balance
 
                             // Validate and sanitize creditor information (up to 4 creditors)
                             for ($i = 1; $i <= 4; $i++) {
@@ -408,29 +431,38 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 $original_amount_key = "creditor{$i}_original_amount";
                                 $present_balance_key = "creditor{$i}_present_balance";
 
-                                // Check if creditor name is set and not empty
-                                if (isset($_POST[$name_key]) && $_POST[$name_key] !== '') {
-                                    // Sanitize and add creditor name
-                                    $columns_to_update[] = "{$name_key} = ?";
-                                    $params[] = trim($_POST[$name_key]);
-                                    $types .= 's';
+                                if (!empty($_POST[$name_key]) || !empty($_POST[$address_key]) || !empty($_POST[$original_amount_key]) || !empty($_POST[$present_balance_key])) {
+                                    if (!empty($_POST[$name_key])) {
+                                        $columns_to_update[] = "{$name_key} = ?";
+                                        $params[] = trim($_POST[$name_key]);
+                                        $types .= 's';
+                                    }
+                                    if (!empty($_POST[$address_key])) {
+                                        $columns_to_update[] = "{$address_key} = ?";
+                                        $params[] = trim($_POST[$address_key]);
+                                        $types .= 's';
+                                    }
+                                    if (!empty($_POST[$original_amount_key])) {
+                                        $columns_to_update[] = "{$original_amount_key} = ?";
+                                        $params[] = floatval($_POST[$original_amount_key]);
+                                        $types .= 'd';
+                                    }
+                                    if (!empty($_POST[$present_balance_key])) {
+                                        $balance = floatval($_POST[$present_balance_key]);
+                                        $columns_to_update[] = "{$present_balance_key} = ?";
+                                        $params[] = $balance;
+                                        $types .= 'd';
 
-                                    // Sanitize and add creditor address
-                                    $columns_to_update[] = "{$address_key} = ?";
-                                    $params[] = trim($_POST[$address_key]);
-                                    $types .= 's';
-
-                                    // Add original amount
-                                    $columns_to_update[] = "{$original_amount_key} = ?";
-                                    $params[] = isset($_POST[$original_amount_key]) ? floatval($_POST[$original_amount_key]) : null;
-                                    $types .= 'd';
-
-                                    // Add present balance
-                                    $columns_to_update[] = "{$present_balance_key} = ?";
-                                    $params[] = isset($_POST[$present_balance_key]) ? floatval($_POST[$present_balance_key]) : null;
-                                    $types .= 'd';
+                                        // Accumulate total present balance
+                                        $creditor_balance_total += $balance;
+                                    }
                                 }
                             }
+
+                            // Save total creditor balance
+                            $columns_to_update[] = "creditor_balance_total = ?";
+                            $params[] = $creditor_balance_total;
+                            $types .= 'd';
 
                             // Add property foreclosure status
                             if (isset($_POST['property_foreclosed_repossessed'])) {
@@ -446,7 +478,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 $types .= 's';
                             }
 
-                            // If no columns to update, throw an error
                             if (empty($columns_to_update)) {
                                 throw new Exception("No valid data to update");
                             }
@@ -462,23 +493,18 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                             // Prepare and execute statement
                             $stmt = $conn->prepare($query);
-                            
-                            // Dynamically bind parameters
                             $bind_params = array_merge(array($stmt, $types), $params);
                             call_user_func_array('mysqli_stmt_bind_param', $bind_params);
 
                             if ($stmt->execute()) {
                                 $stmt->close();
-                                // Redirect to next form step
                                 header("Location: collateral-form5.php?loanType=" . urlencode($loan_type));
                                 exit();
                             } else {
                                 throw new Exception("Database update failed: " . $stmt->error);
                             }
                         } catch (Exception $e) {
-                            // Log the full error for debugging
                             error_log("Loan Application Update Error: " . $e->getMessage());
-                            
                             echo "<script>
                                     alert('Error updating loan application. " . addslashes($e->getMessage()) . "');
                                     history.back();
@@ -486,6 +512,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             exit();
                         }
                     }
+
 
                     ob_end_flush();
                     ?>
@@ -495,32 +522,32 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <form action="collateral-form4.php" method="post">
                                 <div class="row mb-4">
                                     <h6>Debt and Liability Information</h6>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_name" class="form-label">Creditor 1 Name</label>
                                             <input type="text" class="form-control" name="creditor1_name"
-                                                id="creditor1_name" required>
+                                                id="creditor1_name">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_address" class="form-label">Creditor 1 Address</label>
                                             <input type="text" class="form-control" name="creditor1_address"
-                                                id="creditor1_address" required>
+                                                id="creditor1_address">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_original_amount" class="form-label">Creditor 1 Original Amount</label>
                                             <input type="number" class="form-control" name="creditor1_original_amount"
-                                                id="creditor1_original_amount" required>
+                                                id="creditor1_original_amount">
                                         </div>
                                     </div>
-                                    <div class="col-md-4">
+                                    <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="creditor1_present_balance" class="form-label">Creditor 1 Present Balance</label>
                                             <input type="number" class="form-control" name="creditor1_present_balance"
-                                                id="creditor1_present_balance" required>
+                                                id="creditor1_present_balance">
                                         </div>
                                     </div>
                                     <div id="additional-creditor"></div>
@@ -616,13 +643,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 });
             }
 
-            // Validation functions
             const validationRules = {
                 // Text fields (letters, spaces, and special characters)
                 textField: (value) => /^[a-zA-Z\s\p{P}]+$/u.test(value.trim()),
 
-                // Positive number fields
-                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) > 0,
+                // Positive number fields (Modified to allow zero)
+                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) >= 0,  // Now allows 0
 
                 // Address fields (allowing more flexibility)
                 addressField: (value) => value.trim().length > 0,
@@ -631,18 +657,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 radioField: (value) => ['yes', 'no'].includes(value)
             };
 
+
             // Creditor validation function
             function validateCreditorFields(creditorCount) {
                 const creditorFieldsToValidate = [
                     { 
                         selector: `#creditor${creditorCount}_name`, 
                         validate: validationRules.textField, 
-                        message: `Creditor ${creditorCount} name is required` 
+                        message: `Creditor ${creditorCount} name is invalid` 
                     },
                     { 
                         selector: `#creditor${creditorCount}_address`, 
                         validate: validationRules.addressField, 
-                        message: `Creditor ${creditorCount} address is required` 
+                        message: `Creditor ${creditorCount} address is invalid` 
                     },
                     { 
                         selector: `#creditor${creditorCount}_original_amount`, 
@@ -656,11 +683,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     }
                 ];
 
-                // Apply validation to creditor fields
+                // Apply validation only if the field has data
                 creditorFieldsToValidate.forEach(field => {
-                    validateInput(field.selector, field.validate, field.message);
+                    $(field.selector).on('input change', function () {
+                        if ($(this).val().trim() === '') {
+                            $(this).removeClass('is-invalid is-valid'); // Reset validation state
+                        } else {
+                            const isValid = field.validate($(this).val());
+                            showValidation(this, isValid, field.message);
+                        }
+                    });
                 });
             }
+
 
             // Radio button validation function
             function validateRadioFields() {
@@ -700,32 +735,32 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 creditorCount++;
                 const newCreditorHtml = `
                 <div class="row mb-4 creditor-row">
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_name" class="form-label">Creditor ${creditorCount} Name</label>
                             <input type="text" class="form-control" name="creditor${creditorCount}_name" 
-                                id="creditor${creditorCount}_name" required>
+                                id="creditor${creditorCount}_name">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_address" class="form-label">Creditor ${creditorCount} Address</label>
                             <input type="text" class="form-control" name="creditor${creditorCount}_address" 
-                                id="creditor${creditorCount}_address" required>
+                                id="creditor${creditorCount}_address">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_original_amount" class="form-label">Creditor ${creditorCount} Original Amount</label>
                             <input type="number" class="form-control" name="creditor${creditorCount}_original_amount" 
-                                id="creditor${creditorCount}_original_amount" required>
+                                id="creditor${creditorCount}_original_amount">
                         </div>
                     </div>
-                    <div class="col-md-4">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="creditor${creditorCount}_present_balance" class="form-label">Creditor ${creditorCount} Present Balance</label>
                             <input type="number" class="form-control" name="creditor${creditorCount}_present_balance" 
-                                id="creditor${creditorCount}_present_balance" required>
+                                id="creditor${creditorCount}_present_balance">
                         </div>
                     </div>
                     <div class="col-md-2">

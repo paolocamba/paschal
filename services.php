@@ -568,7 +568,7 @@
             </div>
         </div>
 
-        <button class="avail-btn" onclick="window.location.href='memblogin.php'">Avail Our Services</button>
+        <button class="avail-btn" onclick="window.location.href='member-login.php'">Avail Our Services</button>
     </section>
 
 
@@ -591,7 +591,7 @@
                         <li><a href="services.php" class="text-white text-decoration-none">Our Services</a></li>
                         <li><a href="benefits.php" class="text-white text-decoration-none">Member Benefits</a></li>
                         <li><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
-                        <li><a href="apply-loan.php" class="text-white text-decoration-none">Apply for Loan</a></li>
+                        <li><a href="member-login.php" class="text-white text-decoration-none">Apply for Loan</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-3 mt-4 mt-lg-0">

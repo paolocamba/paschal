@@ -317,7 +317,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         u.user_id,
                         l.DateOfLoan,
                         l.userID
-                    FROM collateral_info c
+                    FROM land_appraisal c
                     INNER JOIN loanapplication l ON c.LoanID = l.LoanID
                     INNER JOIN users u ON l.userID = u.user_id
                     WHERE u.first_name LIKE ? 
@@ -445,315 +445,332 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 </div>
 
                 <!-- Separate Modal for Each Row - Only shown when view button is clicked -->
-                <?php 
-                if ($result->num_rows > 0):
-                    $result->data_seek(0);
-                    while($row = $result->fetch_assoc()): 
-                        // Check if validation exists
-                        $appraisal_sql = "SELECT * FROM land_appraisal WHERE LoanID = ?";
-                        $appraisal_stmt = $conn->prepare($appraisal_sql);
-                        $appraisal_stmt->bind_param("i", $row['LoanID']);
-                        $appraisal_stmt->execute();
-                        $appraisal_data = $appraisal_stmt->get_result()->fetch_assoc();
-                ?>
-                    <div class="modal fade" id="viewModal<?php echo $row['LoanID']; ?>" tabindex="-1" role="dialog">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Collateral Assessment</h5>
-                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                        <span aria-hidden="true">&times;</span>
-                                    </button>
+<!-- Separate Modal for Each Row - Only shown when view button is clicked -->
+<?php 
+if ($result->num_rows > 0):
+    $result->data_seek(0);
+    while($row = $result->fetch_assoc()): 
+        // Check if validation exists (if any validator_ fields are filled)
+        $appraisal_sql = "SELECT * FROM land_appraisal WHERE LoanID = ?";
+        $appraisal_stmt = $conn->prepare($appraisal_sql);
+        $appraisal_stmt->bind_param("i", $row['LoanID']);
+        $appraisal_stmt->execute();
+        $appraisal_data = $appraisal_stmt->get_result()->fetch_assoc();
+        
+        // Check if this is validated (any validator field is not null)
+        $is_validated = false;
+        if ($appraisal_data) {
+            foreach ($appraisal_data as $key => $value) {
+                if (strpos($key, 'validator_') === 0 && $value !== null) {
+                    $is_validated = true;
+                    break;
+                }
+            }
+        }
+?>
+    <div class="modal fade" id="viewModal<?php echo $row['LoanID']; ?>" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Collateral Assessment</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <?php if ($is_validated): ?>
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Validated Assessment Results</h6>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th width="30%">Square Meters</th>
+                                                <td><?php echo number_format($appraisal_data['validator_square_meters'], 2); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Type of Land</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_type_of_land']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Location</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_location']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Right of Way</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_right_of_way']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Hospital</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_hospital']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Clinic</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_clinic']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>School</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_school']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Market</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_market']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Church</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_church']); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Public Terminal</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validator_terminal']); ?></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
                                 </div>
-                                <div class="modal-body">
-                                    <?php if ($appraisal_data): ?>
-                                        <div class="card">
-                                            <div class="card-body">
-                                                <h6 class="card-title">Validated Assessment Results</h6>
-                                                <div class="table-responsive">
-                                                    <table class="table table-bordered">
-                                                        <tbody>
-                                                            <tr>
-                                                                <th width="30%">Square Meters</th>
-                                                                <td><?php echo number_format($appraisal_data['square_meters'], 2); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Type of Land</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['type_of_land']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Location</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['location']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Right of Way</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['right_of_way']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Hospital</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['hospital']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Clinic</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['clinic']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>School</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['school']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Market</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['market']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Church</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['church']); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Public Terminal</th>
-                                                                <td><?php echo htmlspecialchars($appraisal_data['public_terminal']); ?></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
 
-                                                <div class="table-responsive mt-4">
-                                                    <table class="table table-bordered">
-                                                        <tbody>
-                                                            <tr>
-                                                                <th width="30%">Final Zonal Value</th>
-                                                                <td>₱<?php echo number_format($appraisal_data['final_zonal_value'], 2); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>EMV Per SQM</th>
-                                                                <td>₱<?php echo number_format($appraisal_data['EMV_per_sqm'], 2); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Total Value</th>
-                                                                <td>₱<?php echo number_format($appraisal_data['total_value'], 2); ?></td>
-                                                            </tr>
-                                                            <tr>
-                                                                <th>Loanable Amount</th>
-                                                                <td>₱<?php echo number_format($appraisal_data['loanable_amount'], 2); ?></td>
-                                                            </tr>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                <div class="table-responsive mt-4">
+                                    <table class="table table-bordered">
+                                        <tbody>
+                                            <tr>
+                                                <th width="30%">Final Zonal Value</th>
+                                                <td>₱<?php echo number_format($appraisal_data['final_zonal_value'], 2); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>EMV Per SQM</th>
+                                                <td>₱<?php echo number_format($appraisal_data['EMV_per_sqm'], 2); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Total Value</th>
+                                                <td>₱<?php echo number_format($appraisal_data['total_value'], 2); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Loanable Amount</th>
+                                                <td>₱<?php echo number_format($appraisal_data['loanable_amount'], 2); ?></td>
+                                            </tr>
+                                            <tr>
+                                                <th>Date Validated</th>
+                                                <td><?php echo htmlspecialchars($appraisal_data['validated_date']); ?></td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                                                <?php if($appraisal_data['image_path']): ?>
-                                                    <div class="mt-4">
-                                                        <h6>Property Images</h6>
-                                                        <img src="<?php echo htmlspecialchars($appraisal_data['image_path']); ?>" class="img-fluid" alt="Property Image">
-                                                    </div>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-                                        <?php else: ?>
-                                        <?php
-                                        $collateral_sql = "SELECT * FROM collateral_info WHERE LoanID = ?";
-                                        $collateral_stmt = $conn->prepare($collateral_sql);
-                                        $collateral_stmt->bind_param("s", $row['LoanID']);
-                                        $collateral_stmt->execute();
-                                        $collateral_info = $collateral_stmt->get_result()->fetch_assoc();
+                                <?php if (!empty($appraisal_data['image_path1']) || !empty($appraisal_data['image_path2']) || !empty($appraisal_data['image_path3'])): ?>
+
+                                    <div class="mt-4">
+                                        <h6>Property Images</h6>
+                                        <?php 
+                                        $imagePaths = [
+                                            $appraisal_data['image_path1'] ?? null,
+                                            $appraisal_data['image_path2'] ?? null,
+                                            $appraisal_data['image_path3'] ?? null
+                                        ];
                                         
-                                        // Get land_title_path from collateral_info
-                                        $land_title_path = isset($collateral_info['land_title_path']) ? $collateral_info['land_title_path'] : '';
+                                        foreach ($imagePaths as $image) {
+                                            if (!empty($image)) {
+                                                echo '<img src="' . htmlspecialchars($image) . '" class="img-fluid mb-2" alt="Property Image" style="max-width: 100%; height: auto; display: block;">';
+                                            }
+                                        }
                                         ?>
-                                        <form id="collateralForm<?php echo $row['LoanID']; ?>" class="collateral-form">
-                                            <div class="card">
-                                                <div class="card-body">
-                                                    <h6 class="card-title">Land Title</h6>
-                                                    <div class="title-image" style="text-align: center;">
-                                                        <img src="<?php echo htmlspecialchars($land_title_path) ?>" 
-                                                            alt="Land Title Image" 
-                                                            id="landTitleImage"
-                                                            style="margin: 0 auto; max-width: 300px; height: auto;">
-                                                    </div>
-                                                    <div class="table-responsive">
-                                                        <table class="table table-bordered">
-                                                            <thead class="thead-light">
-                                                                <tr>
-                                                                    <th width="25%">Property Detail</th>
-                                                                    <th width="25%">Borrower Input</th>
-                                                                    <th width="25%">Validator Input</th>
-                                                                    <th width="25%">Result</th>
-                                                                </tr>
-                                                            </thead>
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td>Square Meters</td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="square_meters" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['square_meters'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="validator_square_meters">
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" id="result_square_meters" class="form-control result-cell" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Type of Land</td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control" name="type_of_land" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['type_of_land'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                    <td>
-                                                                        <select class="form-control" name="validator_land_type" required>
-                                                                            <option value="">Select</option>
-                                                                            <option value="INDUSTRIAL">Industrial</option>
-                                                                            <option value="RESIDENTIAL">Residential</option>
-                                                                            <option value="AGRICULTURAL">Agricultural</option>
-                                                                            <option value="COMMERCIAL">Commercial</option>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" id="result_land_type" class="form-control result-cell" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Location</td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control" name="location_name"
-                                                                            value="<?php echo htmlspecialchars($collateral_info['location_name'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                    <td>
-                                                                        <select class="form-control" name="validator_location" required>
-                                                                            <option value="">Select</option>
-                                                                            <?php
-                                                                            $location_sql = "SELECT name FROM locations ORDER BY name";
-                                                                            $location_result = $conn->query($location_sql);
-                                                                            while ($loc = $location_result->fetch_assoc()) {
-                                                                                echo "<option value='" . htmlspecialchars($loc['name']) . "'>" . 
-                                                                                    htmlspecialchars($loc['name']) . "</option>";
-                                                                            }
-                                                                            ?>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" id="result_location" class="form-control result-cell" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Right of Way</td>
-                                                                    <td>
-                                                                        <input type="text" class="form-control borrower-input" name="right_of_way"
-                                                                            value="<?php echo htmlspecialchars($collateral_info['right_of_way'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                    <td>
-                                                                        <select class="form-control" name="validator_right_of_way">
-                                                                            <option value="">Select</option>
-                                                                            <option value="Yes">Yes</option>
-                                                                            <option value="No">No</option>
-                                                                        </select>
-                                                                    </td>
-                                                                    <td>
-                                                                        <input type="text" id="result_right_of_way" class="form-control result-cell" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <?php
-                                                                            $proximity_fields = [
-                                                                                ['hospital', 'Hospital', 'has_hospital'],
-                                                                                ['clinic', 'Clinic', 'has_clinic'],
-                                                                                ['school', 'School', 'has_school'],
-                                                                                ['market', 'Market', 'has_market'],
-                                                                                ['church', 'Church', 'has_church'],
-                                                                                ['public_terminal', 'Public Terminal', 'has_terminal']
-                                                                            ];
+                                    </div>
 
-                                                                            foreach ($proximity_fields as $field):
-                                                                                $field_name = $field[0];
-                                                                                $display_name = $field[1];
-                                                                                $db_field = $field[2];
-                                                                                $field_value = $collateral_info[$db_field] ?? 'No';
-                                                                                $display_value = $field_value === 'Yes' ? '< 1KM' : '> 1KM';
-                                                                            ?>
-                                                                            <tr>
-                                                                                <td><?php echo $display_name; ?></td>
-                                                                                <td>
-                                                                                    <input type="text" class="form-control" name="<?php echo $db_field; ?>" 
-                                                                                        value="<?php echo htmlspecialchars($field_value); ?>" readonly>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <select class="form-control" name="validator_<?php echo $field_name; ?>">
-                                                                                        <option value="">Select</option>
-                                                                                        <option value="No">> 1KM</option>
-                                                                                        <option value="Yes">< 1KM</option>
-                                                                                    </select>
-                                                                                </td>
-                                                                                <td>
-                                                                                    <input type="text" id="result_<?php echo $field_name; ?>" 
-                                                                                        class="form-control result-cell" readonly>
-                                                                                </td>
-                                                                            </tr>
-                                                                            <?php endforeach; ?>
-                                                            </tbody>
-                                                        </table>
-
-                                                        <table class="table table-bordered mt-4">
-                                                            <tbody>
-                                                                <tr>
-                                                                    <td width="25%">Final Zonal Value</td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="final_zonal_value" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['final_zonal_value'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>EMV (Per Sqm)</td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="emv_per_sqm" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['emv_per_sqm'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Total Value</td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="total_value" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['total_value'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                                <tr>
-                                                                    <td>Loanable Value</td>
-                                                                    <td>
-                                                                        <input type="number" class="form-control" name="loanable_value" 
-                                                                            value="<?php echo htmlspecialchars($collateral_info['loanable_value'] ?? ''); ?>" readonly>
-                                                                    </td>
-                                                                </tr>
-                                                            </tbody>
-                                                        </table>
-
-                                                        <div class="form-group mt-4">
-                                                            <label>Upload Property Images</label>
-                                                            <div class="custom-file">
-                                                                <input type="file" class="custom-file-input" name="property_images[]" multiple accept="image/*">
-                                                                <label class="custom-file-label">Choose files</label>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </form>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    <?php else: ?>
+                    <form id="collateralForm<?php echo $row['LoanID']; ?>" class="collateral-form">
+                        <div class="card">
+                            <div class="card-body">
+                                <h6 class="card-title">Land Title</h6>
+                                <div class="title-image" style="text-align: center;">
+                                    <?php if ($appraisal_data && $appraisal_data['land_title_path']): ?>
+                                        <img src="<?php echo htmlspecialchars($appraisal_data['land_title_path']) ?>" 
+                                            alt="Land Title Image" 
+                                            id="landTitleImage"
+                                            style="margin: 0 auto; max-width: 300px; height: auto;">
                                     <?php endif; ?>
                                 </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <?php if (!$appraisal_data): ?>
-                                        <button type="submit" class="btn btn-primary" onclick="submitValidatorAssessment(<?php echo $row['LoanID']; ?>)">Submit Assessment</button>
-                                    <?php endif; ?>
+                                <div class="table-responsive">
+                                    <table class="table table-bordered">
+                                        <thead class="thead-light">
+                                            <tr>
+                                                <th width="25%">Property Detail</th>
+                                                <th width="25%">Borrower Input</th>
+                                                <th width="25%">Validator Input</th>
+                                                <th width="25%">Result</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td>Square Meters</td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="square_meters" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['square_meters'] ?? ''); ?>" readonly>
+                                                </td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="validator_square_meters">
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="result_square_meters" class="form-control result-cell" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Type of Land</td>
+                                                <td>
+                                                    <input type="text" class="form-control" name="type_of_land" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['type_of_land'] ?? ''); ?>" readonly>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" name="validator_type_of_land" required>
+                                                        <option value="">Select</option>
+                                                        <option value="INDUSTRIAL">Industrial</option>
+                                                        <option value="RESIDENTIAL">Residential</option>
+                                                        <option value="AGRICULTURAL">Agricultural</option>
+                                                        <option value="COMMERCIAL">Commercial</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="result_land_type" class="form-control result-cell" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Location</td>
+                                                <td>
+                                                    <input type="text" class="form-control" name="location_name"
+                                                        value="<?php echo htmlspecialchars($appraisal_data['location_name'] ?? ''); ?>" readonly>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" name="validator_location" required>
+                                                        <option value="">Select</option>
+                                                        <?php
+                                                        $location_sql = "SELECT name FROM locations ORDER BY name";
+                                                        $location_result = $conn->query($location_sql);
+                                                        while ($loc = $location_result->fetch_assoc()) {
+                                                            echo "<option value='" . htmlspecialchars($loc['name']) . "'>" . 
+                                                                htmlspecialchars($loc['name']) . "</option>";
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="result_location" class="form-control result-cell" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Right of Way</td>
+                                                <td>
+                                                    <input type="text" class="form-control borrower-input" name="right_of_way"
+                                                        value="<?php echo htmlspecialchars($appraisal_data['right_of_way'] ?? 'No'); ?>" readonly>
+                                                </td>
+                                                <td>
+                                                    <select class="form-control" name="validator_right_of_way">
+                                                        <option value="">Select</option>
+                                                        <option value="Yes">Yes</option>
+                                                        <option value="No">No</option>
+                                                    </select>
+                                                </td>
+                                                <td>
+                                                    <input type="text" id="result_right_of_way" class="form-control result-cell" readonly>
+                                                </td>
+                                            </tr>
+                                            <?php
+                                            $proximity_fields = [
+                                                ['hospital', 'Hospital', 'has_hospital'],
+                                                ['clinic', 'Clinic', 'has_clinic'],
+                                                ['school', 'School', 'has_school'],
+                                                ['market', 'Market', 'has_market'],
+                                                ['church', 'Church', 'has_church'],
+                                                ['terminal', 'Terminal', 'has_terminal']
+                                            ];
+
+                                            foreach ($proximity_fields as $field):
+                                                $field_name = $field[0];
+                                                $display_name = $field[1];
+                                                $db_field = $field[2];
+                                                $field_value = $appraisal_data[$db_field] ?? 'No';
+                                                $display_value = $field_value === 'Yes' ? '< 1KM' : '> 1KM';
+                                            ?>
+                                                <tr>
+                                                    <td><?php echo $display_name; ?></td>
+                                                    <td>
+                                                        <input type="text" class="form-control" name="<?php echo $db_field; ?>" 
+                                                            value="<?php echo htmlspecialchars($field_value); ?>" readonly>
+                                                    </td>
+                                                    <td>
+                                                        <select class="form-control" name="validator_<?php echo $field_name; ?>">
+                                                            <option value="">Select</option>
+                                                            <option value="No">> 1KM</option>
+                                                            <option value="Yes">< 1KM</option>
+                                                        </select>
+                                                    </td>
+                                                    <td>
+                                                        <input type="text" id="result_<?php echo $field_name; ?>" 
+                                                            class="form-control result-cell" readonly>
+                                                    </td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                    </table>
+
+                                    <table class="table table-bordered mt-4">
+                                        <tbody>
+                                            <tr>
+                                                <td width="25%">Final Zonal Value</td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="final_zonal_value" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['final_zonal_value'] ?? ''); ?>" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>EMV (Per Sqm)</td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="EMV_per_sqm" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['EMV_per_sqm'] ?? ''); ?>" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Total Value</td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="total_value" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['total_value'] ?? ''); ?>" readonly>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td>Loanable Value</td>
+                                                <td>
+                                                    <input type="number" class="form-control" name="loanable_amount" 
+                                                        value="<?php echo htmlspecialchars($appraisal_data['loanable_amount'] ?? ''); ?>" readonly>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+
+                                    <div class="form-group mt-4">
+                                        <label>Upload Property Images (Max 3 images)</label>
+                                        <div class="custom-file">
+                                            <input type="file" class="custom-file-input" name="property_images[]" multiple accept="image/*" max="6">
+                                            <label class="custom-file-label">Choose files (up to 3 images)</label>
+                                        </div>
+                                        <small class="form-text text-muted">You can select multiple images (JPEG, PNG, etc.)</small>
+                                        <div id="filePreview<?php echo $row['LoanID']; ?>" class="mt-2"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                
-                <?php 
-                    endwhile;
-                endif;
-                ?>
-
-
+                    </form>
+                <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-info" id="calculateBtn">Calculate</button>
+                    <button type="button" class="btn btn-primary save-appraisal" data-loanid="<?php echo $row['LoanID']; ?>">Save Assessment</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php endwhile; ?>
+<?php endif; ?>
                 <br><br><br><br><br><br><br>
 
                 <!-- content-wrapper ends -->
@@ -788,382 +805,420 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 searchForm.submit();
             });
         }
+        document.addEventListener('DOMContentLoaded', function() {
+    // Initialize form event listeners
+    initializeForms();
+});
 
-        // Define the zonal values based on barangay and land type
-        const ZONAL_VALUES = {
-            'Bagbaguin': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1100,
-                'INDUSTRIAL': 3800
-            },
-            'Bagong Barrio': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Bakabakahan': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1100,
-                'INDUSTRIAL': 3800
-            },
-            'Bunsuran I': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 4800
-            },
-            'Bunsuran II': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1000,
-                'INDUSTRIAL': 4800
-            },
-            'Bunsuran III': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1000,
-                'INDUSTRIAL': 4800
-            },
-            'Cacarong Bata': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Cacarong Matanda': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Cupang': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Malibong Bata': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1100,
-                'INDUSTRIAL': 3800
-            },
-            'Malibong Matanda': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Manatal': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Mapulang Lupa': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1000,
-                'INDUSTRIAL': 4800
-            },
-            'Masagana': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Masuso': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 800,
-                'INDUSTRIAL': 5000
-            },
-            'Pinagkuartelan': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 4800
-            },
-            'Poblacion': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 5000
-            },
-            'Real De Cacarong': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'San Roque': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 4800
-            },
-            'Santo Niño': {
-                'RESIDENTIAL': 2000,
-                'COMMERCIAL': 4000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 3800
-            },
-            'Siling Bata': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 4800
-            },
-            'Siling Matanda': {
-                'RESIDENTIAL': 2500,
-                'COMMERCIAL': 5000,
-                'AGRICULTURAL': 1200,
-                'INDUSTRIAL': 4800
-            }
-        };
- // Function to check if values match
- function checkMatch(borrowerValue, validatorValue) {
-        if (!borrowerValue || !validatorValue) return '';
-        
-        // Convert both values to lowercase strings for comparison
-        const normalizedBorrower = String(borrowerValue).toLowerCase().trim();
-        const normalizedValidator = String(validatorValue).toLowerCase().trim();
-        
-        // Handle proximity values (> 1KM, < 1KM)
-        if (normalizedBorrower.includes('1km') || normalizedValidator === 'yes' || normalizedValidator === 'no') {
-            if ((normalizedBorrower === '< 1km' && normalizedValidator === 'yes') ||
-                (normalizedBorrower === '> 1km' && normalizedValidator === 'no')) {
-                return 'Matched';
-            }
-            return 'Not Matched';
-        }
-        
-        return normalizedBorrower === normalizedValidator ? 'Matched' : 'Not Matched';
-    }
+function initializeForms() {
+    const forms = document.querySelectorAll('.collateral-form');
+    forms.forEach(form => {
+        // Add change listeners to validator inputs to update match status
+        const validatorInputs = form.querySelectorAll('select[name^="validator_"], input[name^="validator_"]');
+        validatorInputs.forEach(input => {
+            input.addEventListener('change', () => {
+                updateCalculations(form);
+            });
+        });
+    });
+}
 
-    // Function to update result cell
-    function updateResultCell(resultElement, borrowerValue, validatorValue) {
-        if (!resultElement) return false;
-        
-        const result = checkMatch(borrowerValue, validatorValue);
-        resultElement.value = result;
-        resultElement.className = 'form-control result-cell ' + 
-            (result === 'Matched' ? 'matched' : 'not-matched');
-        
-        return result === 'Matched';
-    }
-    function updateCalculations(form) {
-    let allMatched = true;
+// Update match status indicators
+function updateCalculations(form) {
+    // Square Meters
+    updateMatchStatus(
+        form.querySelector('input[name="square_meters"]'),
+        form.querySelector('input[name="validator_square_meters"]'),
+        form.querySelector('#result_square_meters')
+    );
 
-    // Update Square Meters
-    const squareMetersResult = form.querySelector('#result_square_meters');
-    const borrowerSquareMeters = form.querySelector('input[name="square_meters"]')?.value;
-    const validatorSquareMeters = form.querySelector('input[name="validator_square_meters"]')?.value;
-    allMatched &= updateResultCell(squareMetersResult, borrowerSquareMeters, validatorSquareMeters);
+    // Land Type
+    updateMatchStatus(
+        form.querySelector('input[name="type_of_land"]'),
+        form.querySelector('select[name="validator_type_of_land"]'),
+        form.querySelector('#result_land_type')
+    );
 
-    // Update Land Type
-    const landTypeResult = form.querySelector('#result_land_type');
-    const borrowerLandType = form.querySelector('input[name="type_of_land"]')?.value;
-    const validatorLandType = form.querySelector('select[name="validator_land_type"]')?.value;
-    allMatched &= updateResultCell(landTypeResult, borrowerLandType, validatorLandType);
-      
-    // Update location comparison
-    const locationMatched = updateLocationComparison(form);
-    allMatched &= locationMatched;
-    
-    // Update Right of Way
-    const rightOfWayResult = form.querySelector('#result_right_of_way');
-    const borrowerRightOfWay = form.querySelector('input[name="right_of_way"]')?.value;
-    const validatorRightOfWay = form.querySelector('select[name="validator_right_of_way"]')?.value;
-    if (rightOfWayResult && borrowerRightOfWay && validatorRightOfWay) {
-        const normalizedBorrower = borrowerRightOfWay.trim().toLowerCase();
-        const normalizedValidator = validatorRightOfWay.trim().toLowerCase();
-        const rightOfWayMatched = normalizedBorrower === normalizedValidator;
-        
-        rightOfWayResult.value = rightOfWayMatched ? 'Matched' : 'Not Matched';
-        rightOfWayResult.className = `form-control result-cell ${rightOfWayMatched ? 'matched' : 'not-matched'}`;
-        allMatched &= rightOfWayMatched;
-    }
+    // Location
+    updateMatchStatus(
+        form.querySelector('input[name="location_name"]'),
+        form.querySelector('select[name="validator_location"]'),
+        form.querySelector('#result_location')
+    );
 
-    // Update Proximity Fields
+    // Right of Way
+    updateMatchStatus(
+        form.querySelector('input[name="right_of_way"]'),
+        form.querySelector('select[name="validator_right_of_way"]'),
+        form.querySelector('#result_right_of_way'),
+        'right_of_way'  // Pass the field name to identify it's the special case
+    );
+
+    // Proximity Fields
     const proximityFields = [
         { name: 'hospital', dbField: 'has_hospital' },
         { name: 'clinic', dbField: 'has_clinic' },
         { name: 'school', dbField: 'has_school' },
         { name: 'market', dbField: 'has_market' },
         { name: 'church', dbField: 'has_church' },
-        { name: 'public_terminal', dbField: 'has_terminal' }
+        { name: 'terminal', dbField: 'has_terminal' }
     ];
 
     proximityFields.forEach(field => {
-        const resultElement = form.querySelector(`#result_${field.name}`);
         const borrowerInput = form.querySelector(`input[name="${field.dbField}"]`);
-        const validatorSelect = form.querySelector(`select[name="validator_${field.name}"]`);
+        const validatorInput = form.querySelector(`select[name="validator_${field.name}"]`);
+        const resultCell = form.querySelector(`#result_${field.name}`);
         
-        if (resultElement && borrowerInput && validatorSelect) {
+        if (borrowerInput && validatorInput && resultCell) {
             const borrowerValue = borrowerInput.value === 'Yes' ? '< 1KM' : '> 1KM';
-            allMatched &= updateResultCell(resultElement, borrowerValue, validatorSelect.value);
+            updateMatchStatus(borrowerValue, validatorInput.value, resultCell);
         }
     });
-
-    // Calculate and update final values if all required fields are filled
-    const validatorLocation = form.querySelector('select[name="validator_location"]')?.value;
-    const validSquareMeters = parseFloat(validatorSquareMeters) > 0;
-    const validLandType = validatorLandType && validatorLandType !== '';
-    const validLocation = validatorLocation && validatorLocation !== '';
-
-    if (validSquareMeters && validLandType && validLocation) {
-        // Get references to final value fields
-        const finalZonalValueInput = form.querySelector('input[name="final_zonal_value"]');
-        const emvPerSqmInput = form.querySelector('input[name="emv_per_sqm"]');
-        const totalValueInput = form.querySelector('input[name="total_value"]');
-        const loanableValueInput = form.querySelector('input[name="loanable_value"]');
-
-        if (finalZonalValueInput && emvPerSqmInput && totalValueInput && loanableValueInput) {
-            // Calculate zonal value
-            const zonalValue = ZONAL_VALUES[validatorLocation]?.[validatorLandType] || 0;
-            
-            // Calculate EMV and other values
-            const emvPerSqm = zonalValue;
-            const totalValue = emvPerSqm * parseFloat(validatorSquareMeters);
-            const loanableValue = totalValue * 0.5;
-
-            // Update calculated fields
-            finalZonalValueInput.value = zonalValue.toFixed(2);
-            emvPerSqmInput.value = emvPerSqm.toFixed(2);
-            totalValueInput.value = totalValue.toFixed(2);
-            loanableValueInput.value = loanableValue.toFixed(2);
-        }
-    }
 }
 
-function updateLocationComparison(form) {
-    const locationResult = form.querySelector('#result_location');
-    const borrowerLocation = form.querySelector('input[name="location_name"]')?.value;
-    const validatorLocation = form.querySelector('select[name="validator_location"]')?.value;
+function updateMatchStatus(borrowerValue, validatorValue, resultElement, fieldName) {
+    if (!resultElement) return;
     
-    if (locationResult && borrowerLocation && validatorLocation) {
-        const normalizedBorrower = borrowerLocation.trim().toLowerCase();
-        const normalizedValidator = validatorLocation.trim().toLowerCase();
-        const locationMatched = normalizedBorrower === normalizedValidator;
-        
-        locationResult.value = locationMatched ? 'Matched' : 'Not Matched';
-        locationResult.className = `form-control result-cell ${locationMatched ? 'matched' : 'not-matched'}`;
-        
-        return locationMatched;
+    // Get the actual values (handling both direct values and input elements)
+    const borrowerVal = (typeof borrowerValue === 'object' && borrowerValue !== null) ? 
+        borrowerValue.value : borrowerValue;
+    const validatorVal = (typeof validatorValue === 'object' && validatorValue !== null) ? 
+        validatorValue.value : validatorValue;
+    
+    // If validator value is empty, show empty result
+    if (!validatorVal) {
+        resultElement.value = '';
+        resultElement.className = 'form-control result-cell';
+        return;
     }
-    return false;
+    
+    let result;
+    
+    // Special handling for Right of Way field
+    if (fieldName === 'right_of_way') {
+        // Consider it matched if both are "Yes" or both are "No"
+        result = (borrowerVal === validatorVal) ? 'Matched' : 'Not Matched';
+    } else {
+        // Normal matching logic for other fields
+        result = checkMatch(borrowerVal, validatorVal);
+    }
+    
+    resultElement.value = result;
+    resultElement.className = 'form-control result-cell ' + 
+        (result === 'Matched' ? 'matched' : 'not-matched');
 }
 
-
-    // Function to handle file input changes
-    function handleFileInputChange(input) {
-        const fileName = Array.from(input.files)
-            .map(file => file.name)
-            .join(', ');
-        const label = input.nextElementSibling;
-        label.textContent = fileName || 'Choose files';
+// Check if values match (for UI only)
+function checkMatch(borrowerValue, validatorValue) {
+    if (typeof borrowerValue === 'object' && borrowerValue !== null) {
+        borrowerValue = borrowerValue.value;
     }
-
- // Validation function
-    function validateForm(form) {
-        const requiredFields = [
-            'validator_square_meters',
-            'validator_land_type',
-            'validator_location',
-            'validator_right_of_way'
-        ];
-
-        for (const field of requiredFields) {
-            const input = form.querySelector(`[name="${field}"]`);
-            if (!input || !input.value) {
-                Swal.fire({
-                    icon: 'error',
-                    title: 'Required Field Missing',
-                    text: `Please fill in ${field.replace('validator_', '')}`
-                });
-                return false;
-            }
-        }
-        return true;
+    if (typeof validatorValue === 'object' && validatorValue !== null) {
+        validatorValue = validatorValue.value;
     }
-
-    // Check if all values match
-    function areAllValuesMatched(form) {
-        const resultCells = form.querySelectorAll('.result-cell');
-        return Array.from(resultCells).every(cell => cell.value === 'Matched');
+    
+    if (!validatorValue) return '';
+    
+    const strBorrower = String(borrowerValue).toLowerCase().trim();
+    const strValidator = String(validatorValue).toLowerCase().trim();
+    
+    // Handle proximity fields
+    if (strValidator === 'yes' || strValidator === 'no') {
+        const borrowerProximity = strBorrower.includes('< 1km') ? 'yes' : 'no';
+        return borrowerProximity === strValidator ? 'Matched' : 'Not Matched';
     }
+    
+    return strBorrower === strValidator ? 'Matched' : 'Not Matched';
+}
+// Calculate button handler
+document.addEventListener('click', function(e) {
+    if (e.target.id === 'calculateBtn') {
+        const modal = e.target.closest('.modal');
+        const form = modal.querySelector('.collateral-form');
+        const LoanID = modal.id.replace('viewModal', '');
+        calculateCollateralValue(form, LoanID);
+    }
+});
+async function calculateCollateralValue(form, LoanID) {
+    try {
+        Swal.fire({
+            title: 'Calculating...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
 
-    // Form submission function
-    async function submitValidatorAssessment(loanId) {
-        const form = document.getElementById(`collateralForm${loanId}`);
-        if (!form) return;
+        // Get form data
+        const formData = {
+            LoanID: LoanID,
+            square_meters: form.querySelector('[name="validator_square_meters"]').value,
+            type_of_land: form.querySelector('[name="validator_type_of_land"]').value,
+            location_name: form.querySelector('[name="validator_location"]').value,
+            right_of_way: form.querySelector('[name="validator_right_of_way"]').value || 'No',
+            hospital: form.querySelector('[name="validator_hospital"]').value || 'No',
+            clinic: form.querySelector('[name="validator_clinic"]').value || 'No',
+            school: form.querySelector('[name="validator_school"]').value || 'No',
+            market: form.querySelector('[name="validator_market"]').value || 'No',
+            church: form.querySelector('[name="validator_church"]').value || 'No',
+            terminal: form.querySelector('[name="validator_terminal"]').value || 'No'
+        };
 
-        if (!validateForm(form)) {
-            return;
-        }
+        const response = await fetch('run_prediction.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(formData)
+        });
 
-        updateCalculations(form);
-        
-        if (!areAllValuesMatched(form)) {
-            const result = await Swal.fire({
-                title: 'Warning',
-                text: 'Some values do not match. Do you want to proceed with submission?',
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonText: 'Yes, proceed',
-                cancelButtonText: 'No, cancel'
+        const result = await response.json();
+
+        if (result.success) {
+            // Update the form fields with the returned values
+            form.querySelector('[name="final_zonal_value"]').value = result.prediction.final_zonal_value.toFixed(2);
+            form.querySelector('[name="EMV_per_sqm"]').value = result.prediction.EMV_per_sqm.toFixed(2);
+            form.querySelector('[name="total_value"]').value = result.prediction.total_value.toFixed(2);
+            form.querySelector('[name="loanable_amount"]').value = result.prediction.loanable_amount.toFixed(2);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Calculation Complete',
+                text: `Loanable Amount: ₱${result.prediction.loanable_amount.toFixed(2)}`,
+                didClose: () => {
+                    // Any post-calculation actions can go here
+                }
             });
-            
-            if (!result.isConfirmed) {
-                return;
-            }
-        }
-
-        const formData = new FormData(form);
-        formData.append('loan_id', loanId);
-
-        const imageFiles = form.querySelector('input[name="property_images[]"]').files;
-        if (imageFiles.length > 0) {
-            for (let i = 0; i < imageFiles.length; i++) {
-                formData.append('property_images[]', imageFiles[i]);
-            }
-        }
-
-        try {
-            const response = await fetch('save_validator_assessment.php', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-
-            const result = await response.json();
-            if (result.success) {
-                await Swal.fire({
-                    icon: 'success',
-                    title: 'Success!',
-                    text: 'Validator assessment saved successfully',
-                    timer: 1500
-                });
-                location.reload();
-            } else {
-                throw new Error(result.message || result.error || 'Unknown error');
-            }
-        } catch (error) {
-            console.error('Error:', error);
+        } else {
             Swal.fire({
                 icon: 'error',
                 title: 'Error',
-                text: `Error saving validator assessment: ${error.message}`
+                text: result.error || "Unknown error occurred."
             });
         }
+    } catch (error) {
+        console.error("Error:", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message,
+            footer: 'Check console for details'
+        });
     }
+}
+
+
+// Add event listener for save buttons
+document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('save-appraisal')) {
+        const LoanID = e.target.getAttribute('data-loanid');
+        submitValidatorAssessment(LoanID);
+    }
+});
+
+function checkAllMatched(form) {
+    // Example logic: Check if required numeric fields have expected values
+    const expectedValues = {
+        final_zonal_value: form.querySelector('[name="final_zonal_value"]').value,
+        EMV_per_sqm: form.querySelector('[name="EMV_per_sqm"]').value,
+        total_value: form.querySelector('[name="total_value"]').value,
+        loanable_amount: form.querySelector('[name="loanable_amount"]').value
+    };
+
+    let allMatched = true;
+
+    Object.keys(expectedValues).forEach(field => {
+        const input = form.querySelector(`[name="${field}"]`);
+        if (!input || input.value.trim() !== expectedValues[field].trim()) {
+            allMatched = false;
+        }
+    });
+
+    return allMatched;
+}
+
+
+async function submitValidatorAssessment(LoanID) {
+    console.log("LoanID received:", LoanID); // Debugging
+
+    const form = document.querySelector(`#viewModal${LoanID} .collateral-form`);
+    if (!form) return;
+
+    // ✅ Declare formData at the top before using it
+    const formData = new FormData();
+    formData.append('LoanID', LoanID);
+
+    // Validate required fields
+    const requiredFields = form.querySelectorAll('[required]');
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+        if (!field.value) {
+            field.classList.add('is-invalid');
+            isValid = false;
+        } else {
+            field.classList.remove('is-invalid');
+        }
+    });
+
+    if (!isValid) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Validation Error',
+            text: 'Please fill in all required fields'
+        });
+        return;
+    }
+
+    // Add all validator fields
+    const validatorInputs = form.querySelectorAll('[name^="validator_"]');
+    validatorInputs.forEach(input => {
+        formData.append(input.name, input.value);
+    });
+
+    // Add calculation results
+    const calculationFields = ['final_zonal_value', 'EMV_per_sqm', 'total_value', 'loanable_amount'];
+    calculationFields.forEach(field => {
+        const value = form.querySelector(`[name="${field}"]`).value;
+        formData.append(field, value);
+    });
+
+    // Add image files if any
+    const imageInput = form.querySelector('input[name="property_images[]"]');
+    if (imageInput && imageInput.files.length > 0) {
+        for (let i = 0; i < imageInput.files.length; i++) {
+            formData.append('property_images[]', imageInput.files[i]);
+        }
+    }
+
+    try {
+        console.log("Submitting validator assessment...");
+
+        // First, save validator data in the database
+        const saveResponse = await fetch('/paschal/liaison-officer/save_validator_assessment.php', {
+            method: 'POST',
+            body: formData
+        });
+
+        const saveText = await saveResponse.text();
+        console.log("Raw response from save_validator_data.php:", saveText);
+        const saveResult = JSON.parse(saveText);
+
+        if (!saveResult.success) {
+            throw new Error(saveResult.error || "Failed to save validator data.");
+        }
+
+        // Now, run eligibility check
+        console.log("Running prediction for LoanID:", LoanID);
+        const predictionResponse = await fetch(`/paschal/member/run_prediction.php?LoanID=${String(LoanID)}`);
+
+        const predictionText = await predictionResponse.text();
+        console.log("Raw response from run_prediction.php:", predictionText);
+        const predictionResult = JSON.parse(predictionText);
+
+        if (!predictionResult.success) {
+            throw new Error(predictionResult.error || 'Eligibility check failed');
+        }
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Success!',
+            text: 'Assessment saved and eligibility check completed',
+            timer: 1500
+        }).then(() => {
+            $(`#viewModal${LoanID}`).modal('hide');
+            location.reload();
+        });
+
+    } catch (error) {
+        console.error('Error:', error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    }
+}
+
+
+
+
+// Function to handle file input changes with preview
+function handleFileInputChange(input) {
+    const previewContainer = input.closest('.form-group').querySelector('#filePreview' + input.closest('.modal').id.replace('viewModal', ''));
+    previewContainer.innerHTML = '';
+    
+    const files = input.files;
+    const label = input.nextElementSibling;
+    
+    if (files.length > 0) {
+        // Update label
+        if (files.length === 1) {
+            label.textContent = files[0].name;
+        } else {
+            label.textContent = files.length + ' files selected';
+        }
+        
+        // Show previews
+        if (files.length > 3) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Too many files',
+                text: 'You can upload a maximum of 3 images',
+            });
+            input.value = '';
+            label.textContent = 'Choose files (up to 3 images)';
+            return;
+        }
+        
+        // Create preview for each file
+        Array.from(files).slice(0, 3).forEach((file, index) => {
+            if (!file.type.match('image.*')) {
+                return;
+            }
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const previewDiv = document.createElement('div');
+                previewDiv.className = 'd-inline-block mr-2 mb-2 position-relative';
+                previewDiv.style.width = '100px';
+                
+                previewDiv.innerHTML = `
+                    <img src="${e.target.result}" class="img-thumbnail" style="height:100px;object-fit:cover">
+                    <button type="button" class="btn btn-danger btn-sm position-absolute" style="top:-10px;right:-10px" 
+                        onclick="removeImagePreview(this, ${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                
+                previewContainer.appendChild(previewDiv);
+            };
+            reader.readAsDataURL(file);
+        });
+    } else {
+        label.textContent = 'Choose files (up to 3 images)';
+    }
+}
+
+// Function to remove image preview
+// Add this to your script to make the function globally available
+window.removeImagePreview = function(button, index) {
+    const input = button.closest('.form-group').querySelector('input[type="file"]');
+    const files = Array.from(input.files);
+    
+    // Remove the file from the FileList
+    files.splice(index, 1);
+    
+    // Create a new DataTransfer object to hold the remaining files
+    const dataTransfer = new DataTransfer();
+    files.forEach(file => dataTransfer.items.add(file));
+    
+    // Assign the modified FileList back to the input
+    input.files = dataTransfer.files;
+    
+    // Trigger the change event to update the display
+    const event = new Event('change');
+    input.dispatchEvent(event);
+    
+    // Remove the preview element
+    button.closest('div').remove();
+};
     // Initialize all forms
     function initializeForms() {
         const forms = document.querySelectorAll('.collateral-form');
