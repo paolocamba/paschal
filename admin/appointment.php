@@ -689,7 +689,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                             <tr>
                                                 <th>Name & Email</th>
                                                 <th>Description</th>
-                                                <th>Appointment Date & Time</th>
+                                                <th>Appointment Date</th>
                                                 <th>Status</th>
                                                 <th>Action</th>
                                             </tr>
@@ -705,7 +705,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                             </div>
                                                         </td>
                                                         <td><?php echo htmlspecialchars($appointment['description']); ?></td>
-                                                        <td><?php echo date('M d, Y h:i A', strtotime($appointment['appointmentdate'])); ?></td>
+                                                        <td><?php echo date('M d, Y', strtotime($appointment['appointmentdate'])); ?></td>
                                                         <td>
                                                             <span class="badge badge-<?php echo $status_colors[$appointment['status']] ?? 'secondary'; ?> text-white">
                                                                 <?php echo htmlspecialchars($appointment['status']); ?>
@@ -742,8 +742,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                                     <p>Description:
                                                                         <?php echo htmlspecialchars($appointment['description']); ?>
                                                                     </p>
-                                                                    <p>Appointment Date & Time:
-                                                                        <?php echo date('M d, Y h:i A', strtotime($appointment['appointmentdate'])); ?>
+                                                                    <p>Appointment Date:
+                                                                        <?php echo date('M d, Y', strtotime($appointment['appointmentdate'])); ?>
                                                                     </p>
                                                                     <p>Status: <span
                                                                             id="status<?php echo $appointment['id']; ?>"><?php echo htmlspecialchars($appointment['status']); ?></span>

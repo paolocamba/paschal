@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Loan application not found");
         }
 
-        // Update loan status and amount from form submission
+        // Update loan status
         $status = $_POST['Status'];
         $loanable_amount = floatval($loan['loanable_amount']);
         
@@ -30,19 +30,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $update_stmt->execute();
 
         if ($status === 'Approved' || $status === 'Disapproved') {
-            // Calculate payment details
+            // Interest rate by loan type
             $interest_rate = ($loan['LoanType'] === 'Regular') ? 0.12 : 0.14;
-            $interval = match ($loan['ModeOfPayment']) {
-                'Monthly' => 1,
-                'Semi-Annual' => 6,
-                default => 12
+        
+            // Determine interval string for date math
+            $interval_string = match (strtolower($loan['ModeOfPayment'])) {
+                'weekly'       => '+7 days',
+                'bi-monthly'   => '+15 days',
+                'monthly'      => '+1 month',
+                'quarterly'    => '+3 months',
+                'semi-annual'  => '+6 months',
+                default        => '+1 month'
             };
+        
+            // Calculate the Payable Date
+            $payable_date = date('Y-m-d', strtotime($loan['DateOfLoan'] . ' ' . $interval_string));
 
-            $total_payments = $loan['LoanTerm'] / $interval;
-            $payable_amount = ($loanable_amount * (1 + $interest_rate)) / $total_payments;
-
+            // Calculate the Maturity Date (Loan Term + Loan Date)
             $maturity_date = date('Y-m-d', strtotime($loan['DateOfLoan'] . ' + ' . $loan['LoanTerm'] . ' months'));
-            $next_payment_date = date('Y-m-d', strtotime($loan['DateOfLoan'] . ' + ' . $interval . ' months'));
+
+            // Determine number of payments
+            $intervals_per_year = match (strtolower($loan['ModeOfPayment'])) {
+                'weekly'       => 52,
+                'bi-monthly'   => 24,
+                'monthly'      => 12,
+                'quarterly'    => 4,
+                'semi-annual'  => 2,
+                default        => 12
+            };
+        
+            $loan_term_years = $loan['LoanTerm'] / 12;
+            $total_payments = $intervals_per_year * $loan_term_years;
+        
+            // Calculate payment amounts
+            $principal = $loan['AmountRequested'];
+            $total_interest = $principal * $interest_rate * $loan_term_years;
+            $balance = $principal + $total_interest;
+            $payable_amount = $balance / $total_payments;
 
             // Get collateral value if applicable
             $collateral_value = null;
@@ -58,56 +82,59 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $existing_loans = ($status === 'Completed') ? 'Yes' : 'No';
             $loan_eligibility = ($status === 'Approved') ? 'Eligible' : 'Not Eligible';
 
-            // Update credit history
-            $credit_sql = "INSERT INTO credit_history (
-                LoanID, MemberID, AmountRequested, LoanTerm, LoanType,
-                InterestRate, loanable_amount, ApprovalStatus, MemberIncome,
-                LoanEligibility, ExistingLoans, CollateralValue, PayableAmount,
-                PayableDate, NextPayableAmount, NextPayableDate, Comaker,
-                MaturityDate, ModeOfPayment
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            ON DUPLICATE KEY UPDATE
-                ApprovalStatus = VALUES(ApprovalStatus),
-                loanable_amount = VALUES(loanable_amount),
-                PayableAmount = VALUES(PayableAmount),
-                NextPayableAmount = VALUES(NextPayableAmount),
-                NextPayableDate = VALUES(NextPayableDate),
-                MaturityDate = VALUES(MaturityDate)";
+// Update the INSERT statement to match the number of parameters you're binding
+$credit_sql = "INSERT INTO credit_history (
+    LoanID, MemberID, AmountRequested, LoanTerm, LoanType,
+    InterestRate, loanable_amount, ApprovalStatus, MemberIncome,
+    LoanEligibility, ExistingLoans, CollateralValue, PayableAmount,
+    PayableDate, Comaker,
+    MaturityDate, ModeOfPayment, Balance, TotalPayable
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)  -- 19 parameters
+ON DUPLICATE KEY UPDATE
+    ApprovalStatus = VALUES(ApprovalStatus),
+    loanable_amount = VALUES(loanable_amount),
+    PayableAmount = VALUES(PayableAmount),
+    PayableDate = VALUES(PayableDate),
+    MaturityDate = VALUES(MaturityDate),
+    Balance = VALUES(Balance),
+    TotalPayable = VALUES(TotalPayable)";
 
-            $credit_stmt = $conn->prepare($credit_sql);
-            $credit_stmt->bind_param(
-                "ssiisddssssddssssss",
-                $_POST['LoanID'],
-                $loan['userID'],
-                $loan['AmountRequested'],
-                $loan['LoanTerm'],
-                $loan['LoanType'],
-                $interest_rate,
-                $loanable_amount,
-                $status,
-                $loan['net_family_income'],
-                $loan_eligibility,
-                $existing_loans,
-                $collateral_value,
-                $payable_amount,
-                $loan['DateOfLoan'],
-                $payable_amount,
-                $next_payment_date,
-                $loan['comaker_name'],
-                $maturity_date,
-                $loan['ModeOfPayment']
-            );
+$credit_stmt = $conn->prepare($credit_sql);
+$credit_stmt->bind_param(
+    "ssiisddssssddsssssd",  // Now 19 characters to match 19 parameters
+    $_POST['LoanID'],
+    $loan['userID'],
+    $loan['AmountRequested'],
+    $loan['LoanTerm'],
+    $loan['LoanType'],
+    $interest_rate,
+    $loanable_amount,
+    $status,
+    $loan['net_family_income'],
+    $loan_eligibility,
+    $existing_loans,
+    $collateral_value,
+    $payable_amount,
+    $payable_date,
+    $loan['comaker_name'],
+    $maturity_date,
+    $loan['ModeOfPayment'],
+    $balance,
+    $balance // TotalPayable
+);
+            
             $credit_stmt->execute();
-
-            // Send email notification
+            
+            // Get member email
             $email_sql = "SELECT u.email FROM users u
-                         JOIN loanapplication l ON u.user_id = l.userID 
-                         WHERE l.LoanID = ?";
+                          JOIN loanapplication l ON u.user_id = l.userID 
+                          WHERE l.LoanID = ?";
             $email_stmt = $conn->prepare($email_sql);
             $email_stmt->bind_param("s", $_POST['LoanID']);
             $email_stmt->execute();
             $member_email = $email_stmt->get_result()->fetch_assoc()['email'];
 
+            // Send email notification
             $mail = new PHPMailer(true);
             $mail->isSMTP();
             $mail->Host = 'smtp.gmail.com';
@@ -123,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             $status_message = $status === 'Approved' ? 'approved' : 'disapproved';
             $mail->Subject = "Loan Application {$status_message}";
-            
+
             $mail->Body = "
                 <h2>Loan Application Status Update</h2>
                 <p>Your loan application has been {$status_message}.</p>
@@ -134,7 +161,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     " . ($status === 'Approved' ? "
                     <li>Interest Rate: " . ($interest_rate * 100) . "%</li>
                     <li>Monthly Payment: PHP " . number_format($payable_amount, 2) . "</li>
-                    <li>First Payment Due: " . date('F d, Y', strtotime($next_payment_date)) . "</li>
+                    <li>Total Payable (Principal + Interest): PHP " . number_format($balance, 2) . "</li>
+                    <li>First Payment Due: " . date('F d, Y', strtotime($payable_date)) . "</li>
                     <li>Maturity Date: " . date('F d, Y', strtotime($maturity_date)) . "</li>
                     " : "") . "
                 </ul>";

@@ -174,6 +174,40 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                 color: #00563B;
                 font-weight: bold;
             }
+
+            .receipt-section {
+                margin-bottom: 15px;
+                padding: 10px;
+                border: 1px solid #ddd;
+                border-radius: 5px;
+                background-color: #f9f9f9;
+            }
+
+            .receipt-item {
+                margin-bottom: 8px;
+                font-size: 14px;
+            }
+
+            .receipt-item strong {
+                font-weight: bold;
+            }
+
+            .text-primary {
+                color: #007bff;
+            }
+
+            .font-weight-bold {
+                font-weight: 700;
+            }
+
+            .modal-footer {
+                text-align: center;
+            }
+
+            .card-body {
+                padding: 15px;
+            }
+
         </style>
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
             <ul class="nav">
@@ -333,6 +367,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                 t.service_name,
                                 s.name as services_name,
                                 t.created_at,
+                                t.updated_at,
                                 t.payment_status   
                             FROM transactions t
                             JOIN users u ON t.user_id = u.user_id
@@ -434,7 +469,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                 <table class="table table-striped table-borderless">
                                     <thead>
                                         <tr>
-                                            <th>Created At</th>
+                                            <th>Date & Time</th>
                                             <th>OR No.</th>
                                             <th>Name</th>
                                             <th>Service</th>
@@ -573,71 +608,66 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                                 </button>
                                                             </div>
                                                             <div class="modal-body">
-                                                                <div class="row">
-                                                                    <!-- Left Column: Personal Information -->
-                                                                    <div class="col-md-6">
-                                                                        <h6 class="text-primary mb-3">Personal Information</h6>
-                                                                        <div class="form-group">
-                                                                            <label>OR No.</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['control_number']); ?>" readonly>
+                                                            <div class="row">
+                                                                <!-- Left Column: Personal Information -->
+                                                                <div class="col-md-6">
+                                                                    <div class="receipt-section">
+                                                                        <h5 class="text-center mb-3 text-primary">Receipt</h5>
+                                                                        <div class="receipt-item">
+                                                                            <strong>OR No.:</strong> <span><?php echo htmlspecialchars($row['control_number']); ?></span>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Certificate No.</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['certificate_no']); ?>" readonly>
+                                                                        <div class="receipt-item">
+                                                                            <strong>Certificate No.:</strong> <span><?php echo htmlspecialchars($row['certificate_no']); ?></span>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>First Name</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['first_name']); ?>" readonly>
+                                                                        <div class="receipt-item">
+                                                                            <strong>First Name:</strong> <span><?php echo htmlspecialchars($row['first_name']); ?></span>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Last Name</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['last_name']); ?>" readonly>
+                                                                        <div class="receipt-item">
+                                                                            <strong>Last Name:</strong> <span><?php echo htmlspecialchars($row['last_name']); ?></span>
                                                                         </div>
-                                                                        <div class="form-group">
-                                                                            <label>Email</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['email']); ?>" readonly>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <!-- Right Column: Membership Details -->
-                                                                    <div class="col-md-6">
-                                                                        <h6 class="text-primary mb-3">Membership Details</h6>
-                                                                        <div class="form-group">
-                                                                            <label>Service Name</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['services_name']); ?>" readonly>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Type of Payment</label>
-                                                                            <input type="text" class="form-control" value="₱<?php echo number_format((float)$row['amount'], 2); ?>" readonly>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label>Payment Status</label>
-                                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['payment_status']); ?>" readonly>
+                                                                        <div class="receipt-item">
+                                                                            <strong>Email:</strong> <span><?php echo htmlspecialchars($row['email']); ?></span>
                                                                         </div>
                                                                     </div>
                                                                 </div>
 
-                                                                <!-- Total Summary Row -->
-                                                                <div class="row mt-4">
-                                                                    <div class="col-12">
-                                                                        <div class="card bg-light">
-                                                                            <div class="card-body">
-                                                                                <h6 class="text-primary mb-3">Total Summary</h6>
-                                                                                <div class="form-group mb-0">
-                                                                                    <label><strong>Total Amount</strong></label>
-                                                                                    <input type="text" class="form-control font-weight-bold" value="₱<?php echo htmlspecialchars($row['amount']); ?>" readonly>
-                                                                                </div>
+                                                                <!-- Right Column: Membership Details -->
+                                                                <div class="col-md-6">
+                                                                    <div class="receipt-section">
+                                                                        <div class="receipt-item">
+                                                                            <strong>Service Name:</strong> <span><?php echo htmlspecialchars($row['services_name']); ?></span>
+                                                                        </div>
+                                                                        <div class="receipt-item">
+                                                                            <strong>Payment Status:</strong> <span><?php echo htmlspecialchars($row['payment_status']); ?></span>
+                                                                        </div>
+                                                                        <div class="receipt-item">
+                                                                            <strong>Payment Completed:</strong> <span><?php echo date('g:i A, F d, Y', strtotime($row['updated_at'])); ?></span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <!-- Total Summary Row -->
+                                                            <div class="row mt-4">
+                                                                <div class="col-12">
+                                                                    <div class="card bg-light">
+                                                                        <div class="card-body">
+                                                                            <h6 class="text-primary mb-3">Total Summary</h6>
+                                                                            <div class="form-group mb-0">
+                                                                                <label><strong>Total Amount</strong></label>
+                                                                                <input type="text" class="form-control font-weight-bold" value="₱<?php echo number_format((float)$row['amount'], 2); ?>" readonly>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
                                                             </div>
-                                                            <div class="modal-footer">
-                                                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                            </div>
                                                         </div>
-                                                    </div>
-                                                </div>
+
+                                                        <!-- Modal Footer -->
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                        </div>
+
                                             <?php endwhile; ?>
                                             <?php if ($result->num_rows == 0): ?>
                                                 <tr>
