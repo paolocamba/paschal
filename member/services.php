@@ -87,7 +87,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
     </div>
     <!-- partial:partials/_navbar.html -->
-    <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+    <nav class="navbar col-lg-12 col-12 p-0 fixed-top">
         <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
             <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../dist/assets/images/logo.png"
                     class="me-2" alt="logo" /></a>
@@ -237,6 +237,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 }
 
                 ?>
+
+<style>
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
 
 
 

@@ -262,6 +262,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               </div>
             </div>
 
+            <style>
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
+
             <?php
 
             // Check if the "success" parameter is set in the URL

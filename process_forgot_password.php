@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $updateStmt->execute();
 
         // Create reset link - update with your actual domain
-        $resetLink = "http://" . $_SERVER['HTTP_HOST'] . "/pmpc/reset_password.php?token=" . $token;
+        $resetLink = "http://" . $_SERVER['HTTP_HOST'] . "/paschal/reset_password.php?token=" . $token;
 
         // PHPMailer implementation
         $mail = new PHPMailer(true);

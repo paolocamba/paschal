@@ -338,6 +338,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           </div>
           <style>
             /* Preview thumbnail styles */
+            .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
 
 
             /* Modal styles */
@@ -427,6 +431,9 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               textarea {
                 font-size: 16px;
               }
+
+                    
+
 
 
             }

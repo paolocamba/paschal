@@ -81,6 +81,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
     <!-- endinject -->
     <link rel="shortcut icon" href="../dist/assets/images/ha.png" />
     <style>
+                    .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+                    
+                    
         .nav-link i {
             margin-right: 10px;
         }

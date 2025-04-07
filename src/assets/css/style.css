@@ -12335,9 +12335,15 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
   display: block;
 }
 
+nav.navbar.p-0.fixed-top.d-flex.flex-row {
+  padding-top: 0 !important;
+  margin-top: 0 !important;
+}
+
+
 .navbar {
-  --bs-navbar-padding-x: 0;
-  --bs-navbar-padding-y: 0.5rem;
+  --bs-navbar-padding-x: 0; /* Set horizontal padding to 0 */
+  --bs-navbar-padding-y: 0; /* Set vertical padding to 0 */
   --bs-navbar-color: rgba(var(--bs-emphasis-color-rgb), 0.65);
   --bs-navbar-hover-color: rgba(var(--bs-emphasis-color-rgb), 0.8);
   --bs-navbar-disabled-color: rgba(var(--bs-emphasis-color-rgb), 0.3);
@@ -12356,13 +12362,16 @@ textarea.is-invalid.tt-hint, .select2-container--default .select2-selection--sin
   --bs-navbar-toggler-border-radius: var(--bs-border-radius);
   --bs-navbar-toggler-focus-width: 0.25rem;
   --bs-navbar-toggler-transition: box-shadow 0.15s ease-in-out;
+  
+  /* Layout and display settings */
   position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--bs-navbar-padding-y) var(--bs-navbar-padding-x);
+  display: flex; /* Flexbox layout for navbar */
+  flex-wrap: wrap; /* Allow wrapping of navbar items */
+  align-items: center; /* Align items vertically in the center */
+  justify-content: space-between; /* Distribute items evenly */
+  padding: 0; /* Set both vertical and horizontal padding to 0 */
 }
+
 .navbar > .container,
 .navbar > .container-fluid,
 .navbar > .container-sm,

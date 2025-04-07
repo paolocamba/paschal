@@ -248,10 +248,12 @@
           }
           .navbar {
             position: fixed;
+            padding-top: 0 !important;
+            margin-top: 0 !important;
             top: 0;
             width: 100%;
             z-index: 1030; /* Bootstrap default z-index for fixed nav */
-        }
+        }        
           .count-indicator {
             position: relative;
             padding: 0;

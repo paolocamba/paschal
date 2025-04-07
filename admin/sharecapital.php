@@ -139,7 +139,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
-        <style>
+                <style>
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+
                        .table-responsive {
                 overflow-x: auto; /* Enables horizontal scrolling */
                 position: relative; /* Needed for sticky positioning */

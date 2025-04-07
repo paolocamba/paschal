@@ -249,6 +249,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
             </ul>
         </nav>
+        <style>
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">

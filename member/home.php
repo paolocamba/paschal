@@ -423,6 +423,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+.navbar {
+              padding-top: 0 !important;
+              margin-top: 0 !important;
+            }
+
 .receipt-title {
     font-weight: 700;
     color: #00563B;
@@ -1081,37 +1086,45 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               $limit = 10;
               $offset = ($page - 1) * $limit;
 
-              // Fetch transactions
               $sql = "SELECT 
-              t.transaction_id,
-              t.service_name,
-              t.user_id,
-              t.payment_status,
-              t.created_at,
-              t.amount,
-              t.control_number,
-              t.updated_at,
-              t.signature
-          FROM transactions t
+              t.transaction_id, 
+              t.service_name, 
+              t.user_id, 
+              t.payment_status, 
+              t.created_at, 
+              t.amount, 
+              t.control_number, 
+              t.updated_at, 
+              t.signature 
+          FROM transactions t 
           WHERE t.user_id = ? 
-          AND (t.transaction_id LIKE ? 
-          OR t.service_name LIKE ? 
-          OR t.payment_status LIKE ?)
-          ORDER BY t.created_at DESC
+          AND (
+              t.transaction_id LIKE ? 
+              OR t.service_name LIKE ? 
+              OR t.payment_status LIKE ? 
+              OR t.control_number LIKE ?
+          ) 
+          ORDER BY t.created_at DESC 
           LIMIT ? OFFSET ?";
-
-              $stmt = $conn->prepare($sql);
-              $search_param = "%" . $search . "%";
-              $stmt->bind_param("isssii", 
-                  $user_id,
-                  $search_param, 
-                  $search_param, 
-                  $search_param,
-                  $limit, 
-                  $offset
-              );
-              $stmt->execute();
-              $result = $stmt->get_result();
+  
+            $stmt = $conn->prepare($sql);
+            $search_param = "%" . $search . "%";
+            
+            // Add an extra 's' for control_number search
+            $stmt->bind_param("sssssii", 
+                $user_id, 
+                $search_param, 
+                $search_param, 
+                $search_param, 
+                $search_param,  // added for control_number
+                $limit, 
+                $offset
+            );
+            
+            $stmt->execute();
+            $result = $stmt->get_result();
+            
+            
 
               $loan_sql = "SELECT 
                   ch.LoanID,
@@ -1191,7 +1204,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                       id="searchInput" 
                                       name="search" 
                                       class="form-control form-control-lg" 
-                                      placeholder="Search by transaction ID, service name, or status..."
+                                      placeholder="Search Transaction (Service name, Receipt No., Status...)"
                                       value="<?php echo htmlspecialchars($search ?? ''); ?>">
                                   <button type="button" 
                                           id="clearButton" 
