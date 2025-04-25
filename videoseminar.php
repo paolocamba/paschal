@@ -636,6 +636,7 @@ if (empty($userID)) {
     const checkbox = document.getElementById("seminar-completed");
     const seminarForm = document.getElementById("seminarForm");
     let videoFullyWatched = false;
+    let lastTime = 0;
 
     // Initially disable checkbox and next button
     checkbox.disabled = true;
@@ -643,6 +644,12 @@ if (empty($userID)) {
 
     // Prevent skipping ahead in the video
     video.addEventListener("timeupdate", function() {
+        if (video.currentTime > lastTime + 0.5) { 
+            // If user tries to skip forward, reset to last watched position
+            video.currentTime = lastTime;
+        } else {
+            lastTime = video.currentTime; // Update last watched position
+        }
         // Check if video is close to the end (within last 2 seconds)
         if (video.currentTime >= video.duration - 2) {
             videoFullyWatched = true;

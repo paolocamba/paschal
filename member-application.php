@@ -721,12 +721,12 @@ if (isset($_POST['register'])) {
         <form id="signupForm" action="member-application.php" method="post" enctype="multipart/form-data" novalidate>
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">First Name</label>
+                    <label class="form-label">First Name <span style="color: red;">*</span></label>
                     <input type="text" name="firstname" class="form-control" required>
                     <div class="error-message" id="firstname-error">First name is required</div>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">Last Name</label>
+                    <label class="form-label">Last Name <span style="color: red;">*</span></label>
                     <input type="text" name="lastname" class="form-control" required>
                     <div class="error-message" id="lastname-error">Last name is required</div>
                 </div>
@@ -743,22 +743,22 @@ if (isset($_POST['register'])) {
                     <input type="text" name="street" class="form-control" required>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Barangay</label>
+                    <label class="form-label">Barangay <span style="color: red;">*</span></label>
                     <input type="text" name="barangay" class="form-control" required>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Municipality</label>
+                    <label class="form-label">Municipality <span style="color: red;">*</span></label>
                     <input type="text" name="municipality" class="form-control" required>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Province</label>
+                    <label class="form-label">Province <span style="color: red;">*</span></label>
                     <input type="text" name="province" class="form-control" required>
                 </div>
             </div>
             
             <div class="row">
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Gender</label>
+                    <label class="form-label">Gender <span style="color: red;">*</span></label>
                     <select name="gender" class="form-control" required>
                         <option value="">Select Gender</option>
                         <option value="male">Male</option>
@@ -767,15 +767,15 @@ if (isset($_POST['register'])) {
                     </select>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Birthday</label>
+                    <label class="form-label">Birthday <span style="color: red;">*</span></label>
                     <input type="date" name="birthday" class="form-control" required>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Age</label>
-                    <input type="number" name="age" class="form-control" required>
+                    <label class="form-label">Age <span style="color: red;">*</span></label>
+                    <input type="number" name="age" class="form-control" readonly>
                 </div>
                 <div class="col-md-3 mb-3">
-                    <label class="form-label">Phone Number</label>
+                    <label class="form-label">Phone Number <span style="color: red;">*</span></label>
                     <input type="tel" name="mobile" class="form-control" required maxlength="11">
                     <div class="error-message" id="mobile-error">Mobile number must be 11 digits</div>
                 </div>
@@ -783,11 +783,11 @@ if (isset($_POST['register'])) {
             
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">TIN No. (Required)</label>
+                    <label class="form-label">TIN No. (Required) <span style="color: red;">*</span></label>
                     <input type="text" name="tin-number" class="form-control" required>
                 </div>
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">TIN ID Image</label>
+                    <label class="form-label">TIN ID Image <span style="color: red;">*</span></label>
                     <div class="file-input-container">
                         <div class="custom-file-input">
                             <input type="file" name="tinIdImage" accept="image/*" required>
@@ -798,12 +798,12 @@ if (isset($_POST['register'])) {
             
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">Email Address</label>
+                    <label class="form-label">Email Address <span style="color: red;">*</span></label>
                     <input type="email" name="email" class="form-control" required>
                     <div class="error-message" id="email-error">Please enter a valid email address</div>
                 </div>
                 <div class="col-md-4 mb-3 password-container">
-                    <label class="form-label">Password</label>
+                    <label class="form-label">Password <span style="color: red;">*</span></label>
                     <div class="input-group">
                     <input type="password" name="password" class="form-control password-input" required minlength="8">
                     <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
@@ -813,7 +813,7 @@ if (isset($_POST['register'])) {
                     <div class="error-message" id="password-error">Password must be at least 8 characters long</div>
                 </div>
                 <div class="col-md-4 mb-3 password-container">
-                    <label class="form-label">Confirm Password</label>
+                    <label class="form-label">Confirm Password <span style="color: red;">*</span></label>
                     <div class="input-group">
                     <input type="password" name="confirmPassword" class="form-control password-input" required minlength="8">
                     <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
@@ -1134,6 +1134,32 @@ if (isset($_POST['register'])) {
             }
         });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const birthdayInput = document.querySelector('input[name="birthday"]');
+    const ageInput = document.querySelector('input[name="age"]');
+
+    birthdayInput.addEventListener('change', function() {
+        const birthDate = new Date(this.value);
+        const today = new Date();
+        
+        let age = today.getFullYear() - birthDate.getFullYear();
+        const monthDiff = today.getMonth() - birthDate.getMonth();
+        const dayDiff = today.getDate() - birthDate.getDate();
+        
+        // Adjust age if birthday hasn't occurred yet this year
+        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+            age--;
+        }
+
+        if (age < 18) {
+                ageInput.value = ''; // Keep age field empty
+            } else {
+                ageInput.value = age; // Set calculated age
+            }
+    });
+});
+
 </script>
 </body>
 </html>

@@ -245,6 +245,22 @@
         <div class="membership-type">
             <h3>1. Associate Membership</h3>
             <p>Below 5 thousand Pesos Share Capital</p>
+
+            <div class="membership-breakdown">
+            <h5>Breakdown for Associate Membership:</h5>
+            <ul>
+                    <li><strong>1,000.00 PHP - 4,999.00 PHP</strong> – Share Capital</li>
+                    <li><strong>1,000.00 PHP</strong> – (At least) Savings Deposit</li>
+                    <li><strong>450.00 PHP</strong> – Insurance for 18 years old up to 64 years old</li>
+                    <li><strong>550.00 PHP</strong> – Insurance for 65 years old to 75 years old</li>
+                    <li><strong>300.00 PHP</strong> – Membership Fee</li>
+                </ul>
+                <p class="mt-3">
+                    <strong>Total:</strong><br>
+                    <strong>2,750 Pesos - 6,749 Pesos</strong> – 18 to 64 Years Old<br>
+                    <strong>2,850 Pesos - 6,849 Pesos</strong> – 65 to 75 Years Old
+                </p>
+            </div>
         </div>
         
         <div class="membership-type">
