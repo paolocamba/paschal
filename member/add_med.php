@@ -21,7 +21,7 @@ if (empty($service) || empty($appointmentDate)) {
 $serviceQuery = "SELECT id FROM services WHERE name = '$service' AND type = 'Medical'";
 $serviceResult = mysqli_query($conn, $serviceQuery);
 
-if (!$serviceResult) {
+if (!$serviceResult || mysqli_num_rows($serviceResult) === 0) {
     header("Location: services.php?error=Service not found");
     exit();
 }
@@ -59,22 +59,7 @@ try {
     
     $appointmentResult = mysqli_query($conn, $appointmentQuery);
 
-    // Get the last inserted appointment ID
-    $appointmentId = mysqli_insert_id($conn);
-
-    // Insert into transactions table
-    $transactionQuery = "INSERT INTO transactions 
-                         (user_id, service_name, payment_status) 
-                         VALUES 
-                         (
-                             '{$_SESSION['user_id']}', 
-                             '$service', 
-                             'In Progress'
-                         )";
-    
-    $transactionResult = mysqli_query($conn, $transactionQuery);
-
-    // Commit the transaction if both queries succeed
+    // Commit the transaction
     mysqli_commit($conn);
 
     // Redirect with success

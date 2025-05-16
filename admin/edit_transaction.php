@@ -249,6 +249,147 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             }
         }
 
+// Check if the payment is for Membership Payment
+if ($service_name === 'Membership Payment') {
+    error_log("Entered Membership Payment section");
+    
+    // Get user_id from the transaction (note: your table uses varchar(255))
+    $user_query = "SELECT user_id FROM transactions WHERE transaction_id = ?";
+    $stmt_user = $conn->prepare($user_query);
+    $stmt_user->bind_param("i", $transaction_id);
+    
+    if (!$stmt_user->execute()) {
+        error_log("User query error: " . $stmt_user->error);
+        throw new Exception("Transaction query failed");
+    }
+    
+    $user_result = $stmt_user->get_result();
+    
+    if ($user_result->num_rows === 0) {
+        error_log("No user found for transaction ID: $transaction_id");
+        throw new Exception("Transaction not found");
+    }
+
+    $user_row = $user_result->fetch_assoc();
+    $user_id = $user_row['user_id'];
+    error_log("Found user_id: $user_id");
+
+    // Verify member application exists (table name is member_applications with an 's')
+    $check_member_query = "SELECT id FROM member_applications WHERE user_id = ?";
+    $stmt_check = $conn->prepare($check_member_query);
+    $stmt_check->bind_param("s", $user_id); // Changed to "s" for varchar
+    
+    if (!$stmt_check->execute()) {
+        error_log("Member check error: " . $stmt_check->error);
+        throw new Exception("Member verification failed");
+    }
+    
+    if ($stmt_check->get_result()->num_rows === 0) {
+        error_log("No member_applications record for user_id: $user_id");
+        throw new Exception("User not found in member applications");
+    }
+
+    // Set statuses based on your enum values
+    $new_status = ($payment_status === 'Completed') ? 'Completed' : 'In Progress';
+    $payment_status_value = ($payment_status === 'Completed') ? 'Completed' : 'In Progress';
+    
+    error_log("Attempting to update with status: $new_status, payment: $payment_status_value");
+
+    // Update member_applications (note the table name change)
+    $update_member_query = "UPDATE member_applications SET 
+                          status = ?, 
+                          payment_status = ?
+                          WHERE user_id = ?";
+    $stmt_member = $conn->prepare($update_member_query);
+    $stmt_member->bind_param("sss", $new_status, $payment_status_value, $user_id); // All strings
+
+    if (!$stmt_member->execute()) {
+        error_log("Update error: " . $stmt_member->error);
+        throw new Exception("Update failed: " . $stmt_member->error);
+    }
+    
+    $affected = $conn->affected_rows;
+    error_log("Update affected rows: $affected");
+
+    if ($payment_status === 'Completed') {
+        error_log("Processing completed payment...");
+        
+        // Generate certificate number
+        $certificate_no = null;
+        $attempts = 0;
+        
+        while ($attempts < 10) {
+            $temp_cert = str_pad(mt_rand(0, 9999), 4, '0', STR_PAD_LEFT);
+            
+            $check_query = "SELECT user_id FROM users WHERE certificate_no = ?";
+            $stmt_check = $conn->prepare($check_query);
+            $stmt_check->bind_param("s", $temp_cert);
+            $stmt_check->execute();
+            
+            if ($stmt_check->get_result()->num_rows === 0) {
+                $certificate_no = $temp_cert;
+                break;
+            }
+            $attempts++;
+        }
+        
+        if (!$certificate_no) {
+            error_log("Failed to generate unique certificate after 10 attempts");
+            throw new Exception("Certificate generation failed");
+        }
+        
+        error_log("Generated certificate: $certificate_no");
+
+        // Get savings and share_capital from appointments table
+        $get_appointment_query = "SELECT savings, share_capital FROM appointments 
+                                WHERE user_id = ? AND description = 'Membership Payment' 
+                                ORDER BY id DESC LIMIT 1";
+        $stmt_appointment = $conn->prepare($get_appointment_query);
+        $stmt_appointment->bind_param("s", $user_id);
+        
+        if (!$stmt_appointment->execute()) {
+            error_log("Appointment query error: " . $stmt_appointment->error);
+            throw new Exception("Failed to fetch appointment details");
+        }
+        
+        $appointment_result = $stmt_appointment->get_result();
+        
+        if ($appointment_result->num_rows === 0) {
+            error_log("No appointment found for user_id: $user_id with Membership Payment");
+            throw new Exception("Membership appointment details not found");
+        }
+        
+        $appointment_row = $appointment_result->fetch_assoc();
+        $savings = $appointment_row['savings'];
+        $share_capital = $appointment_row['share_capital'];
+        
+        error_log("Fetched savings: $savings, share_capital: $share_capital");
+
+        // Update users table with certificate number, membership status, savings and share_capital
+        $update_user_query = "UPDATE users SET 
+                            certificate_no = ?, 
+                            membership_status = 'Active',
+                            savings = ?,
+                            share_capital = ?
+                            WHERE user_id = ?";
+        $stmt_user_update = $conn->prepare($update_user_query);
+        $stmt_user_update->bind_param("sdds", 
+            $certificate_no, 
+            $savings,
+            $share_capital,
+            $user_id
+        );
+
+        if (!$stmt_user_update->execute()) {
+            error_log("User update error: " . $stmt_user_update->error);
+            throw new Exception("User update failed");
+        }
+        
+        error_log("Successfully updated user with certificate, active status, savings and share capital");
+    }
+    
+    error_log("Membership Payment section completed successfully");
+}
         $conn->commit();
         $_SESSION['success'] = "Transaction updated successfully.";
         header("Location: transaction.php?success=1");

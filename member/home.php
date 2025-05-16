@@ -1097,7 +1097,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               t.updated_at, 
               t.signature 
           FROM transactions t 
-          WHERE t.user_id = ? 
+          WHERE t.user_id = ?
+          AND t.payment_status = 'Completed' 
           AND (
               t.transaction_id LIKE ? 
               OR t.service_name LIKE ? 
@@ -1177,6 +1178,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               $count_sql = "SELECT COUNT(*) as total 
                               FROM transactions
                               WHERE user_id = ?
+                              AND payment_status = 'Completed'
                               AND (transaction_id LIKE ? 
                               OR service_name LIKE ? 
                               OR payment_status LIKE ?)";
@@ -1480,139 +1482,139 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                       </div>
                   </div>
 
-                    <!-- Loan Details Modal -->
-                    <div class="modal fade" id="viewLoanModal<?php echo $loan['LoanID']; ?>" tabindex="-1" aria-labelledby="viewLoanModalLabel<?php echo $loan['LoanID']; ?>" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header bg-primary text-white">
-                                    <h5 class="modal-title" id="viewLoanModalLabel<?php echo $loan['LoanID']; ?>">
-                                        Loan Details - #<?php echo $loan['LoanID']; ?>
-                                    </h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <?php
-                                    // Get detailed loan information from credit_history
-                                    $loanDetailSql = "SELECT 
-                                                        ch.AmountRequested,
-                                                        ch.InterestRate,
-                                                        ch.LoanTerm,
-                                                        ch.TotalPayment,
-                                                        ch.Balance,
-                                                        ch.PayableAmount,
-                                                        ch.PayableDate,
-                                                        la.LoanType,
-                                                        la.ModeOfPayment,
-                                                        la.Status
-                                                    FROM credit_history ch
-                                                    JOIN loanapplication la ON ch.LoanID = la.LoanID
-                                                    WHERE ch.LoanID = ?";
-                                    $loanDetailStmt = $conn->prepare($loanDetailSql);
-                                    $loanDetailStmt->bind_param("i", $loan['LoanID']);
-                                    $loanDetailStmt->execute();
-                                    $loanDetails = $loanDetailStmt->get_result()->fetch_assoc();
+                        <!-- Loan Details Modal -->
+                        <div class="modal fade" id="viewLoanModal<?php echo $loan['LoanID']; ?>" tabindex="-1" aria-labelledby="viewLoanModalLabel<?php echo $loan['LoanID']; ?>" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header bg-primary text-white">
+                                        <h5 class="modal-title" id="viewLoanModalLabel<?php echo $loan['LoanID']; ?>">
+                                            Loan Details - #<?php echo $loan['LoanID']; ?>
+                                        </h5>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <?php
+                                        // Get detailed loan information from credit_history
+                                        $loanDetailSql = "SELECT 
+                                                            ch.AmountRequested,
+                                                            ch.InterestRate,
+                                                            ch.LoanTerm,
+                                                            ch.TotalPayment,
+                                                            ch.Balance,
+                                                            ch.PayableAmount,
+                                                            ch.PayableDate,
+                                                            la.LoanType,
+                                                            la.ModeOfPayment,
+                                                            la.Status
+                                                        FROM credit_history ch
+                                                        JOIN loanapplication la ON ch.LoanID = la.LoanID
+                                                        WHERE ch.LoanID = ?";
+                                        $loanDetailStmt = $conn->prepare($loanDetailSql);
+                                        $loanDetailStmt->bind_param("i", $loan['LoanID']);
+                                        $loanDetailStmt->execute();
+                                        $loanDetails = $loanDetailStmt->get_result()->fetch_assoc();
 
-                                    // Correct simple interest calculation
-                                    $principal = $loanDetails['AmountRequested'];
-                                    $rate = $loanDetails['InterestRate']; // Annual rate
-                                    $time = $loanDetails['LoanTerm'] / 12; // Convert months to years
+                                        // Correct simple interest calculation
+                                        $principal = $loanDetails['AmountRequested'];
+                                        $rate = $loanDetails['InterestRate']; // Annual rate
+                                        $time = $loanDetails['LoanTerm'] / 12; // Convert months to years
 
-                                    $totalInterest = $principal * $rate * $time;
-                                    $totalLoanAmount = $principal + $totalInterest;
-                                    $annualInterest = $principal * $rate; 
-                                    ?>
+                                        $totalInterest = $principal * $rate * $time;
+                                        $totalLoanAmount = $principal + $totalInterest;
+                                        $annualInterest = $principal * $rate; 
+                                        ?>
 
-                                    <div class="row">
-                                        <div class="col-md-6">
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Loan Type</div>
-                                                <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['LoanType']); ?></div>
-                                            </div>
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Loan Type</div>
+                                                    <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['LoanType']); ?></div>
+                                                </div>
 
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Amount Requested</div>
-                                                <div class="loan-detail-value">₱<?php echo number_format($loanDetails['AmountRequested'], 2); ?></div>
-                                            </div>
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Amount Requested</div>
+                                                    <div class="loan-detail-value">₱<?php echo number_format($loanDetails['AmountRequested'], 2); ?></div>
+                                                </div>
 
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Interest Rate</div>
-                                                <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['InterestRate']); ?>%</div>
-                                            </div>
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Interest Rate</div>
+                                                    <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['InterestRate']); ?>%</div>
+                                                </div>
 
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Loan Term</div>
-                                                <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['LoanTerm']); ?> months</div>
-                                            </div>
-                                        </div>
-
-                                        <div class="col-md-6">
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Mode of Payment</div>
-                                                <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['ModeOfPayment']); ?></div>
-                                            </div>
-
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Status</div>
-                                                <div class="loan-detail-value">
-                                                    <span class="badge bg-<?php echo $loanDetails['Status'] === 'Approved' ? 'success' : 'warning'; ?>">
-                                                        <?php echo htmlspecialchars($loanDetails['Status']); ?>
-                                                    </span>
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Loan Term</div>
+                                                    <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['LoanTerm']); ?> months</div>
                                                 </div>
                                             </div>
 
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Amount Payable</div>
-                                                <div class="loan-detail-value">₱<?php echo number_format($loanDetails['PayableAmount'], 2); ?></div>
-                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Mode of Payment</div>
+                                                    <div class="loan-detail-value"><?php echo htmlspecialchars($loanDetails['ModeOfPayment']); ?></div>
+                                                </div>
 
-                                            <div class="loan-detail-item">
-                                                <div class="loan-detail-label">Next Payment Date</div>
-                                                <div class="loan-detail-value"><?php echo date('M d, Y', strtotime($loanDetails['PayableDate'])); ?></div>
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Status</div>
+                                                    <div class="loan-detail-value">
+                                                        <span class="badge bg-<?php echo $loanDetails['Status'] === 'Approved' ? 'success' : 'warning'; ?>">
+                                                            <?php echo htmlspecialchars($loanDetails['Status']); ?>
+                                                        </span>
+                                                    </div>
+                                                </div>
+
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Amount Payable</div>
+                                                    <div class="loan-detail-value">₱<?php echo number_format($loanDetails['PayableAmount'], 2); ?></div>
+                                                </div>
+
+                                                <div class="loan-detail-item">
+                                                    <div class="loan-detail-label">Next Payment Date</div>
+                                                    <div class="loan-detail-value"><?php echo date('M d, Y', strtotime($loanDetails['PayableDate'])); ?></div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="row mt-4">
+                                            <div class="col-md-12">
+                                                <h5 class="mb-3">Financial Summary</h5>
+                                                <div class="table-responsive">
+                                                    <table class="table table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Total Loan Amount (with interest)</th>
+                                                                <th>Amount Paid</th>
+                                                                <th>Remaining Balance</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td>₱<?php echo number_format($totalLoanAmount, 2); ?></td>
+                                                                <td>₱<?php echo number_format($loanDetails['TotalPayment'], 2); ?></td>
+                                                                <td>₱<?php echo number_format($loanDetails['Balance'], 2); ?></td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+
+                                                <!-- Interest Calculation Breakdown -->
+                                                <div class="alert alert-info mt-3">
+                                                    <h6>Interest Calculation:</h6>
+                                                    <p>
+                                                        <strong>Principal:</strong> ₱<?php echo number_format($principal, 2); ?><br>
+                                                        <strong>Annual Interest (<?php echo $loanDetails['InterestRate']; ?>%):</strong> ₱<?php echo number_format($annualInterest, 2); ?><br>
+                                                        <strong>Loan Term:</strong> <?php echo $loanDetails['LoanTerm']; ?> months (<?php echo number_format($time, 1); ?> years)<br>
+                                                        <strong>Total Interest:</strong> ₱<?php echo number_format($totalInterest, 2); ?>
+                                                    </p>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-
-                                    <div class="row mt-4">
-                                        <div class="col-md-12">
-                                            <h5 class="mb-3">Financial Summary</h5>
-                                            <div class="table-responsive">
-                                                <table class="table table-bordered">
-                                                    <thead>
-                                                        <tr>
-                                                            <th>Total Loan Amount (with interest)</th>
-                                                            <th>Amount Paid</th>
-                                                            <th>Remaining Balance</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>₱<?php echo number_format($totalLoanAmount, 2); ?></td>
-                                                            <td>₱<?php echo number_format($loanDetails['TotalPayment'], 2); ?></td>
-                                                            <td>₱<?php echo number_format($loanDetails['Balance'], 2); ?></td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div>
-
-                                            <!-- Interest Calculation Breakdown -->
-                                            <div class="alert alert-info mt-3">
-                                                <h6>Interest Calculation:</h6>
-                                                <p>
-                                                    <strong>Principal:</strong> ₱<?php echo number_format($principal, 2); ?><br>
-                                                    <strong>Annual Interest (<?php echo $loanDetails['InterestRate']; ?>%):</strong> ₱<?php echo number_format($annualInterest, 2); ?><br>
-                                                    <strong>Loan Term:</strong> <?php echo $loanDetails['LoanTerm']; ?> months (<?php echo number_format($time, 1); ?> years)<br>
-                                                    <strong>Total Interest:</strong> ₱<?php echo number_format($totalInterest, 2); ?>
-                                                </p>
-                                            </div>
-                                        </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                     </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
                     <!-- Payment Modal -->
                     <div class="modal fade" id="payModal<?php echo $loan['LoanID']; ?>" tabindex="-1" aria-labelledby="payModalLabel<?php echo $loan['LoanID']; ?>" aria-hidden="true">
@@ -1682,7 +1684,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         <tr>
             <th>Transaction ID</th>
             <th>Service Name</th>
-            <th>Status</th>
             <th>Date</th>
             <th>Action</th>
         </tr>
@@ -1692,11 +1693,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             <tr>
                 <td><?php echo htmlspecialchars($row['transaction_id']); ?></td>
                 <td><?php echo htmlspecialchars($row['service_name']); ?></td>
-                <td>
-                    <span class="badge <?php echo $row['payment_status'] === 'Completed' ? 'bg-success' : 'bg-warning'; ?>">
-                    <?php echo htmlspecialchars($row['payment_status']); ?>
-                    </span>
-                </td>
                 <td><?php echo date('M d, Y h:i A', strtotime($row['created_at'])); ?></td>
                 <td>
                     <?php if($row['payment_status'] === 'Completed'): ?>

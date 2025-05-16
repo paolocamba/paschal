@@ -151,6 +151,38 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 background-color: #00563B !important;
                 border-color: #00563B !important ;
             }
+
+            .badge {
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.badge-warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.badge-success {
+    background-color: #28a745;
+    color: white;
+}
+
+.badge-primary {
+    background-color: #007bff;
+    color: white;
+}
+
+.badge-danger {
+    background-color: #dc3545;
+    color: white;
+}
+
+.badge-secondary {
+    background-color: #6c757d;
+    color: white;
+}
           
         </style>
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -575,6 +607,77 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </div>
                 </div>
             </div>
+
+            <div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <p class="card-title mb-0">My Appointments</p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Description</th>
+                                <th>Appointment Date</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            // Fetch appointments for the logged-in user
+                            $appointment_sql = "SELECT * FROM appointments WHERE user_id = ? ORDER BY appointmentdate DESC";
+                            $appointment_stmt = $conn->prepare($appointment_sql);
+                            $appointment_stmt->bind_param("i", $user_id);
+                            $appointment_stmt->execute();
+                            $appointment_result = $appointment_stmt->get_result();
+                            
+                            if ($appointment_result->num_rows > 0): ?>
+                                <?php while($appointment = $appointment_result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($appointment['description']); ?></td>
+                                        <td><?php echo date('F d, Y', strtotime($appointment['appointmentdate'])); ?></td>
+                                        <td>
+                                            <span class="badge 
+                                                <?php 
+                                                switch($appointment['status']) {
+                                                    case 'Pending': echo 'badge-warning'; break;
+                                                    case 'Approved': echo 'badge-success'; break;
+                                                    case 'Completed': echo 'badge-primary'; break;
+                                                    case 'Cancelled': echo 'badge-danger'; break;
+                                                    default: echo 'badge-secondary';
+                                                }
+                                                ?>">
+                                                <?php echo htmlspecialchars($appointment['status']); ?>
+                                            </span>
+                                        </td>
+                                        <td>
+                                        <?php if ($appointment['status'] == 'Pending'): ?>
+                                        <button class="btn btn-danger btn-sm cancel-appointment" 
+                                            data-id="<?php echo $appointment['id']; ?>">
+                                            Cancel
+                                        </button>
+                                    <?php else: ?>
+                                        N/A
+                                    <?php endif; ?>
+
+                                        </td>
+                                    </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4">No appointments found</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
              
            
            <br><br><br><br><br><br><br>
@@ -597,6 +700,55 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- plugins:js -->
 <!-- jQuery -->
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    // Appointment cancellation
+$(document).on('click', '.cancel-appointment', function() {
+    var appointmentId = $(this).data('id');
+    
+    Swal.fire({
+        title: 'Are you sure?',
+        text: "You want to cancel this appointment?",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Yes, cancel it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+    url: 'cancel_appointment.php',
+    type: 'POST',
+    dataType: 'json', // <-- this line ensures automatic JSON parsing
+    data: { id: appointmentId },
+    success: function(response) {
+        if (response.success) {
+            Swal.fire(
+                'Cancelled!',
+                'Your appointment has been cancelled.',
+                'success'
+            ).then(() => {
+                location.reload();
+            });
+        } else {
+            Swal.fire(
+                'Error!',
+                response.message || 'Failed to cancel appointment.',
+                'error'
+            );
+        }
+    },
+    error: function() {
+        Swal.fire(
+            'Error!',
+            'Failed to cancel appointment.',
+            'error'
+        );
+    }
+});
+        }
+    });
+});
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     var searchForm = document.getElementById('searchForm');
