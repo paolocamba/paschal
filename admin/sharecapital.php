@@ -362,14 +362,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     </div>
 
                                     <div class="mb-3">
-                                        <label for="paymentMethod" class="form-label">Payment Method</label>
-                                        <select class="form-control" id="paymentMethod" name="PaymentMethod" required>
-                                            <option value="">Select Payment Method</option>
-                                            <option value="walkin">Walk-in</option>
-                                        </select>
-                                    </div>
-
-                                    <div class="mb-3">
                                         <label for="notes" class="form-label">Notes</label>
                                         <textarea class="form-control" id="notes" name="Notes" 
                                                 rows="3" placeholder="Enter notes"></textarea>
@@ -413,6 +405,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                 OR u.last_name LIKE ?
                                 OR sc.Amount LIKE ?
                                 OR sc.Status LIKE ?
+                                ORDER BY sc.TransactionDate DESC
                                 LIMIT ? OFFSET ?";
                         $stmt = $conn->prepare($sql);
                         $search_param = "%" . $search . "%";
@@ -474,10 +467,9 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                 <tr>
                                                     <th>Member Name</th>
                                                     <th>Amount</th>
-                                                    <th>Payment Method</th>
-                                                    <th>Notes</th>
                                                     <th>Status</th>
                                                     <th>Transaction Date</th>
+                                                    <th>Notes</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -487,10 +479,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                         <tr>
                                                             <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                                             <td>₱<?php echo htmlspecialchars($row['Amount']); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['PaymentMethod']); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['Notes']); ?></td>
+                                                            
                                                             <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                                             <td><?php echo date('F d, Y h:i A', strtotime($row['TransactionDate'])); ?></td>
+                                                            <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                                             <td>
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
                                                                     data-target="#editShareCapitalModal<?php echo $row['ShareCapitalID']; ?>">
@@ -528,13 +520,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                 <label class="form-label">Amount</label>
                                                                                 <input type="text" class="form-control" 
                                                                                     value="<?php echo htmlspecialchars($row['Amount']); ?>" 
-                                                                                    readonly>
-                                                                            </div>
-
-                                                                            <div class="mb-3">
-                                                                                <label class="form-label">Payment Method</label>
-                                                                                <input type="text" class="form-control" 
-                                                                                    value="<?php echo htmlspecialchars($row['PaymentMethod']); ?>" 
                                                                                     readonly>
                                                                             </div>
 

@@ -2,61 +2,103 @@
 session_start();
 require_once '../connection/config.php';
 
+if (!isset($_SESSION['user_id'])) {
+    header("Location: login.php");
+    exit();
+}
+
+$memberID = intval($_SESSION['user_id']); // Ensure user_id is an integer
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $memberID = $_SESSION['user_id'];
     $amount = floatval($_POST['amount']);
-    $paymentMethod = $_POST['payment_method'];
+    $transactionType = $_POST['transaction_type']; // 'deposit' or 'withdrawal'
     $notes = $_POST['notes'] ?? '';
+    $appointmentDate = $_POST['appointment_date'];
     $status = 'In Progress';
-    
+
+    // Set description and serviceID based on transaction type
+    if ($transactionType === 'deposit') {
+        $description = 'Savings Deposit';
+        $serviceID = 14;
+    } elseif ($transactionType === 'withdrawal') {
+        $description = 'Savings Withdrawal';
+        $serviceID = 21;
+    } else {
+        $description = 'Savings Transaction';
+        $serviceID = 0;
+    }
+
+    // Validate appointment date format (YYYY-MM-DD)
+    $dateObj = DateTime::createFromFormat('Y-m-d', $appointmentDate);
+    if (!$dateObj || $dateObj->format('Y-m-d') !== $appointmentDate) {
+        header("Location: home.php?error=invalid_date");
+        exit();
+    }
+
     // Insert into savings table
-    $sqlSavings = "INSERT INTO savings (MemberID, Amount, PaymentMethod, Notes, Status) 
+    $sqlSavings = "INSERT INTO savings (MemberID, Amount, Notes, Status, Type) 
                    VALUES (?, ?, ?, ?, ?)";
-    
     $stmtSavings = $conn->prepare($sqlSavings);
-    $stmtSavings->bind_param("sdsss", $memberID, $amount, $paymentMethod, $notes, $status);
-    
+    $stmtSavings->bind_param("sdsss", $memberID, $amount, $notes, $status, $transactionType);
+
     if ($stmtSavings->execute()) {
+        $savingsID = $conn->insert_id; // Get the inserted SavingsID
         $stmtSavings->close();
-        
-        // Retrieve member details for the appointment table
-        $sqlMember = "SELECT first_name, last_name, email FROM users WHERE id = ?";
-        $stmtMember = $conn->prepare($sqlMember);
-        $stmtMember->bind_param("i", $memberID);
-        $stmtMember->execute();
-        $stmtMember->bind_result($firstName, $lastName, $email);
-        $stmtMember->fetch();
-        $stmtMember->close();
 
-        // Insert into appointments table
-        $appointmentDate = $_POST['appointment_date']; // Assuming you send an appointment date from the form
-        $serviceID = $_POST['service_id'] ?? null; // Optionally, a service ID
-        $statusAppointment = 'Approved'; // Default status can be "Approved" based on your requirements
+        // Fetch first_name, last_name, email using prepare and bind_result
+        $sqlUser = "SELECT first_name, last_name, email FROM users WHERE user_id = ?";
+        $stmtUser = $conn->prepare($sqlUser);
+        $stmtUser->bind_param("i", $memberID);
+        $stmtUser->execute();
+        $stmtUser->bind_result($firstName, $lastName, $email);
 
-        $sqlAppointments = "INSERT INTO appointments 
-                            (first_name, last_name, email, description, savings, membership_fee, insurance, 
-                             total_amount, ModeOfPayment, payable_amount, payable_date, appointmentdate, 
-                             user_id, serviceID, status) 
-                            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        if ($stmtUser->fetch()) {
+            $stmtUser->close();
 
-        $stmtAppointments = $conn->prepare($sqlAppointments);
-        $stmtAppointments->bind_param("ssssiiiddssss", 
-            $firstName, $lastName, $email, 'Regular Loan Payment', 
-            $amount, 0, 0, $amount, $paymentMethod, $amount, $appointmentDate, $appointmentDate, 
-            $memberID, $serviceID, $statusAppointment);
-        
-        if ($stmtAppointments->execute()) {
-            $stmtAppointments->close();
-            header("Location: home.php?success=1");
-            exit();
+            $statusAppointment = 'Pending';
+
+            // Insert into appointments table (now including SavingsID)
+            $sqlAppointments = "INSERT INTO appointments 
+                (user_id, serviceID, description, payable_amount, appointmentdate, status, first_name, last_name, email, SavingsID) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            
+            $stmtAppointments = $conn->prepare($sqlAppointments);
+            if (!$stmtAppointments) {
+                header("Location: home.php?error=stmt_error");
+                exit();
+            }
+
+            $stmtAppointments->bind_param(
+                "iisdsssssi",
+                $memberID,
+                $serviceID,
+                $description,
+                $amount,
+                $appointmentDate,
+                $statusAppointment,
+                $firstName,
+                $lastName,
+                $email,
+                $savingsID
+            );
+
+            if ($stmtAppointments->execute()) {
+                $stmtAppointments->close();
+                header("Location: home.php?success=1");
+                exit();
+            } else {
+                $stmtAppointments->close();
+                header("Location: home.php?error=appointment_fail");
+                exit();
+            }
         } else {
-            $stmtAppointments->close();
-            header("Location: home.php?error=1");
+            $stmtUser->close();
+            header("Location: home.php?error=user_fetch_fail");
             exit();
         }
     } else {
         $stmtSavings->close();
-        header("Location: home.php?error=1");
+        header("Location: home.php?error=savings_fail");
         exit();
     }
 }

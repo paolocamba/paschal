@@ -1,6 +1,7 @@
 <?php
 require_once '../connection/config.php';
 session_start();
+$logged_in_user_id = $_SESSION['user_id'];
 
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Sanitize and validate inputs
@@ -390,6 +391,232 @@ if ($service_name === 'Membership Payment') {
     
     error_log("Membership Payment section completed successfully");
 }
+
+try {
+    if ($service_name === 'Savings Deposit' || $service_name === 'Savings Withdrawal') {
+        echo "Matched service_name: $service_name<br>";
+
+        // Map to correct savings type
+        $savings_type = ($service_name === 'Savings Deposit') ? 'Deposit' : 'Withdrawal';
+        echo "Mapped savings type: $savings_type<br>";
+
+        // Get user_id, SavingsID, and amount from transactions
+        $user_query = "SELECT user_id, SavingsID, amount FROM transactions WHERE transaction_id = ?";
+        $stmt_user = $conn->prepare($user_query);
+        if (!$stmt_user) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+
+        $stmt_user->bind_param("i", $transaction_id);
+
+        if (!$stmt_user->execute()) {
+            throw new Exception("Failed to fetch user and SavingsID for savings update: " . $stmt_user->error);
+        }
+
+        $user_result = $stmt_user->get_result();
+        if ($user_result->num_rows === 0) {
+            throw new Exception("User or SavingsID not found for savings update");
+        }
+
+        $user_row = $user_result->fetch_assoc();
+        $user_id = $user_row['user_id'];
+        $savings_id = $user_row['SavingsID'];
+        $amount = $user_row['amount'];
+
+        echo "Fetched user_id: $user_id, savings_id: $savings_id, amount: $amount<br>";
+
+        if (strtolower($payment_status) === 'completed') {
+            // Update savings table status
+            $update_savings_query = "UPDATE savings 
+                                     SET Status = 'Approved' 
+                                     WHERE SavingsID = ? AND MemberID = ? AND Type = ? AND Status != 'Approved'";
+            $stmt_savings = $conn->prepare($update_savings_query);
+            if (!$stmt_savings) {
+                throw new Exception("Prepare update savings failed: " . $conn->error);
+            }
+
+            $stmt_savings->bind_param("iss", $savings_id, $user_id, $savings_type);
+
+            if (!$stmt_savings->execute()) {
+                throw new Exception("Failed to update savings status: " . $stmt_savings->error);
+            }
+
+            echo "Rows affected by savings update: " . $stmt_savings->affected_rows . "<br>";
+
+            // Update user savings balance
+            $update_user_savings_sql = ($savings_type === 'Deposit') ?
+                "UPDATE users SET savings = savings + ? WHERE user_id = ?" :
+                "UPDATE users SET savings = savings - ? WHERE user_id = ?";
+
+            $stmt_user_savings = $conn->prepare($update_user_savings_sql);
+            if (!$stmt_user_savings) {
+                throw new Exception("Prepare update user savings failed: " . $conn->error);
+            }
+
+            $stmt_user_savings->bind_param("di", $amount, $user_id);
+
+            if (!$stmt_user_savings->execute()) {
+                throw new Exception("Failed to update user's savings balance: " . $stmt_user_savings->error);
+            }
+
+            echo "User savings updated successfully.<br>";
+
+            // Get logged-in user ID from session
+            if (!isset($_SESSION['user_id'])) {
+                throw new Exception("Logged-in user ID not found in session");
+            }
+            $logged_in_user_id = $_SESSION['user_id'];
+
+            // Fetch first and last name of logged-in user
+            $fetch_names_sql = "SELECT first_name, last_name FROM users WHERE user_id = ?";
+            $stmt_names = $conn->prepare($fetch_names_sql);
+            if (!$stmt_names) {
+                throw new Exception("Prepare fetch first and last name failed: " . $conn->error);
+            }
+            $stmt_names->bind_param("i", $logged_in_user_id);
+            $stmt_names->execute();
+            $result_names = $stmt_names->get_result();
+
+            if ($result_names->num_rows > 0) {
+                $row_names = $result_names->fetch_assoc();
+                $first_name = $row_names['first_name'];
+                $last_name = $row_names['last_name'];
+                // Create initials (e.g., J.D.)
+                $initials = strtoupper(substr($first_name, 0, 1)) . '.' . strtoupper(substr($last_name, 0, 1)) . '.';
+            } else {
+                throw new Exception("Logged-in user's first or last name not found");
+            }
+
+            // Update the signature column in transactions table with initials
+            $update_signature_sql = "UPDATE transactions SET signature = ? WHERE transaction_id = ?";
+            $stmt_signature = $conn->prepare($update_signature_sql);
+            if (!$stmt_signature) {
+                throw new Exception("Prepare update signature failed: " . $conn->error);
+            }
+            $stmt_signature->bind_param("si", $initials, $transaction_id);
+
+            if (!$stmt_signature->execute()) {
+                throw new Exception("Failed to update transaction signature: " . $stmt_signature->error);
+            }
+
+            echo "Transaction signature updated successfully.";
+        } else {
+            echo "Payment status is not 'completed' (received: '$payment_status')<br>";
+        }
+    }
+} catch (Exception $e) {
+    echo "Exception: " . $e->getMessage();
+}
+
+try {
+    if ($service_name === 'Share Capital Deposit') {
+        echo "Matched service_name: $service_name<br>";
+
+        // Get user_id, ShareCapitalID, and amount from transactions
+        $user_query = "SELECT user_id, ShareCapitalID, amount FROM transactions WHERE transaction_id = ?";
+        $stmt_user = $conn->prepare($user_query);
+        if (!$stmt_user) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+
+        $stmt_user->bind_param("i", $transaction_id);
+
+        if (!$stmt_user->execute()) {
+            throw new Exception("Failed to fetch user and ShareCapitalID: " . $stmt_user->error);
+        }
+
+        $user_result = $stmt_user->get_result();
+        if ($user_result->num_rows === 0) {
+            throw new Exception("User or ShareCapitalID not found");
+        }
+
+        $user_row = $user_result->fetch_assoc();
+        $user_id = $user_row['user_id'];
+        $share_capital_id = $user_row['ShareCapitalID'];
+        $amount = $user_row['amount'];
+
+        echo "Fetched user_id: $user_id, ShareCapitalID: $share_capital_id, amount: $amount<br>";
+
+        if (strtolower($payment_status) === 'completed') {
+            // Update ShareCapital status
+            $update_capital_query = "UPDATE share_capital 
+                                     SET Status = 'Approved' 
+                                     WHERE ShareCapitalID = ? AND MemberID = ? AND Status != 'Approved'";
+            $stmt_capital = $conn->prepare($update_capital_query);
+            if (!$stmt_capital) {
+                throw new Exception("Prepare update share capital failed: " . $conn->error);
+            }
+
+            $stmt_capital->bind_param("ii", $share_capital_id, $user_id);
+
+            if (!$stmt_capital->execute()) {
+                throw new Exception("Failed to update share capital status: " . $stmt_capital->error);
+            }
+
+            echo "Rows affected by share capital update: " . $stmt_capital->affected_rows . "<br>";
+
+            // Update user's share capital balance
+            $update_balance_sql = "UPDATE users SET share_capital = share_capital + ? WHERE user_id = ?";
+            $stmt_balance = $conn->prepare($update_balance_sql);
+            if (!$stmt_balance) {
+                throw new Exception("Prepare update share capital balance failed: " . $conn->error);
+            }
+
+            $stmt_balance->bind_param("di", $amount, $user_id);
+
+            if (!$stmt_balance->execute()) {
+                throw new Exception("Failed to update user's share capital: " . $stmt_balance->error);
+            }
+
+            echo "User's share capital updated successfully.<br>";
+
+            // Get initials of the logged-in user
+            if (!isset($_SESSION['user_id'])) {
+                throw new Exception("Logged-in user ID not found in session");
+            }
+
+            $logged_in_user_id = $_SESSION['user_id'];
+
+            $fetch_names_sql = "SELECT first_name, last_name FROM users WHERE user_id = ?";
+            $stmt_names = $conn->prepare($fetch_names_sql);
+            if (!$stmt_names) {
+                throw new Exception("Prepare fetch name failed: " . $conn->error);
+            }
+            $stmt_names->bind_param("i", $logged_in_user_id);
+            $stmt_names->execute();
+            $result_names = $stmt_names->get_result();
+
+            if ($result_names->num_rows > 0) {
+                $row_names = $result_names->fetch_assoc();
+                $initials = strtoupper(substr($row_names['first_name'], 0, 1)) . '.' . strtoupper(substr($row_names['last_name'], 0, 1)) . '.';
+            } else {
+                throw new Exception("Name not found for logged-in user");
+            }
+
+            // Update signature in transaction
+            $update_signature_sql = "UPDATE transactions SET signature = ? WHERE transaction_id = ?";
+            $stmt_signature = $conn->prepare($update_signature_sql);
+            if (!$stmt_signature) {
+                throw new Exception("Prepare signature update failed: " . $conn->error);
+            }
+
+            $stmt_signature->bind_param("si", $initials, $transaction_id);
+
+            if (!$stmt_signature->execute()) {
+                throw new Exception("Failed to update transaction signature: " . $stmt_signature->error);
+            }
+
+            echo "Transaction signature updated successfully.";
+        } else {
+            echo "Payment status is not 'completed' (received: '$payment_status')<br>";
+        }
+    }
+} catch (Exception $e) {
+    echo "Exception: " . $e->getMessage();
+}
+
+
+
         $conn->commit();
         $_SESSION['success'] = "Transaction updated successfully.";
         header("Location: transaction.php?success=1");

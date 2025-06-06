@@ -5,19 +5,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['appointment_id']) && 
     $appointment_id = $_POST['appointment_id'];
     $status = $_POST['status'];
     
-    // Start transaction
     $conn->begin_transaction();
     
     try {
-        // First, get the appointment details
-        $appointment_sql = "SELECT description, user_id, payable_amount FROM appointments WHERE id = ?";
+        // Fetch appointment details
+        $appointment_sql = "SELECT description, user_id, payable_amount, SavingsID, ShareCapitalID FROM appointments WHERE id = ?";
         $stmt = $conn->prepare($appointment_sql);
         $stmt->bind_param("i", $appointment_id);
         $stmt->execute();
         $result = $stmt->get_result();
         $appointment = $result->fetch_assoc();
-        
-        // Update the appointment status
+
+        if (!$appointment) {
+            throw new Exception("Appointment not found.");
+        }
+
+        // Update appointment status
         $update_sql = "UPDATE appointments SET status = ? WHERE id = ?";
         $update_stmt = $conn->prepare($update_sql);
         $update_stmt->bind_param("si", $status, $appointment_id);
@@ -47,56 +50,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['appointment_id']) && 
             return $next_control;
         }
 
-        // Check if this is a loan payment appointment
-        if ($appointment && ($appointment['description'] === 'Regular Loan Payment' || 
-            $appointment['description'] === 'Collateral Loan Payment') && 
-            $status === 'Approved') {
-
+        // Insert into transactions if status is Approved
+        if ($status === 'Approved') {
             $next_control = generateUniqueControlNumber($conn);
+            $user_id = $appointment['user_id'];
+            $amount = $appointment['payable_amount'];
+            $description = $appointment['description'];
+            $savingsID = $appointment['SavingsID'];
+            $shareCapitalID = $appointment['ShareCapitalID'];
 
-            // Insert into transactions table
-            $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number) 
-                                VALUES (?, ?, ?, ?)";
-            $transaction_stmt = $conn->prepare($transaction_sql);
-            $transaction_stmt->bind_param(
-                "idss",
-                $appointment['user_id'],
-                $appointment['payable_amount'],
-                $appointment['description'],
-                $next_control
-            );
+            if ($description === 'Regular Loan Payment' || $description === 'Collateral Loan Payment') {
+                // Loan payments – no SavingsID or ShareCapitalID
+                $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number) 
+                                    VALUES (?, ?, ?, ?)";
+                $transaction_stmt = $conn->prepare($transaction_sql);
+                $transaction_stmt->bind_param("idss", $user_id, $amount, $description, $next_control);
+
+            } elseif (!empty($savingsID)) {
+                // With SavingsID
+                $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number, payment_status, SavingsID) 
+                                    VALUES (?, ?, ?, ?, 'In Progress', ?)";
+                $transaction_stmt = $conn->prepare($transaction_sql);
+                $transaction_stmt->bind_param("idssi", $user_id, $amount, $description, $next_control, $savingsID);
+
+            } elseif (!empty($shareCapitalID)) {
+                // With ShareCapitalID
+                $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number, payment_status, ShareCapitalID) 
+                                    VALUES (?, ?, ?, ?, 'In Progress', ?)";
+                $transaction_stmt = $conn->prepare($transaction_sql);
+                $transaction_stmt->bind_param("idssi", $user_id, $amount, $description, $next_control, $shareCapitalID);
+
+            } else {
+                // No reference to savings or share capital
+                $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number, payment_status) 
+                                    VALUES (?, ?, ?, ?, 'In Progress')";
+                $transaction_stmt = $conn->prepare($transaction_sql);
+                $transaction_stmt->bind_param("idss", $user_id, $amount, $description, $next_control);
+            }
+
             $transaction_stmt->execute();
         }
 
-        // Insert into transactions for other approved appointments (non-loan)
-        elseif ($appointment && $status === 'Approved') {
-            $next_control = generateUniqueControlNumber($conn);
-
-            // Insert into transactions table
-            $transaction_sql = "INSERT INTO transactions (user_id, amount, service_name, control_number, payment_status) 
-                                VALUES (?, ?, ?, ?, 'In Progress')";
-            $transaction_stmt = $conn->prepare($transaction_sql);
-            $transaction_stmt->bind_param(
-                "idss",
-                $appointment['user_id'],
-                $appointment['payable_amount'],
-                $appointment['description'],
-                $next_control
-            );
-            $transaction_stmt->execute();
-        }
-        
-        // Commit the transaction
         $conn->commit();
         header("Location: appointment.php?success=1");
-        
     } catch (Exception $e) {
-        // Rollback on error
         $conn->rollback();
+        error_log("Error processing appointment update: " . $e->getMessage());
         header("Location: appointment.php?error=1");
     }
-    
-    // Close the connection
+
     $conn->close();
 } else {
     header("Location: appointment.php?error=1");

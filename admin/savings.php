@@ -353,19 +353,21 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             ?>
                                         </select>
                                     </div>
+
+                                    <div class="mb-3">
+                                        <label for="type" class="form-label">Transaction Type</label>
+                                        <select class="form-control" id="type" name="Type" required>
+                                            <option value="">Select Type</option>
+                                            <option value="Deposit">Deposit</option>
+                                            <option value="Withdrawal">Withdrawal</option>
+                                        </select>
+                                    </div>
+
                                     
                                     <div class="mb-3">
                                         <label for="amount" class="form-label">Amount</label>
                                         <input type="number" step="0.01" class="form-control" id="amount" name="Amount" 
                                             placeholder="Enter amount" required>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="paymentMethod" class="form-label">Payment Method</label>
-                                        <select class="form-control" id="paymentMethod" name="PaymentMethod" required>
-                                            <option value="">Select Payment Method</option>
-                                            <option value="walkin">Walk-in</option>
-                                        </select>
                                     </div>
 
                                     <div class="mb-3">
@@ -405,14 +407,16 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     try {
                         // Query to fetch savings data with user information
                         $sql = "SELECT s.*, u.first_name, u.last_name, u.email 
-                                FROM savings s
-                                JOIN users u ON s.MemberID = u.user_id
-                                WHERE s.SavingsID LIKE ? 
-                                OR u.first_name LIKE ? 
-                                OR u.last_name LIKE ?
-                                OR s.Amount LIKE ?
-                                OR s.Status LIKE ?
-                                LIMIT ? OFFSET ?";
+                        FROM savings s
+                        JOIN users u ON s.MemberID = u.user_id
+                        WHERE s.SavingsID LIKE ? 
+                        OR u.first_name LIKE ? 
+                        OR u.last_name LIKE ?
+                        OR s.Amount LIKE ?
+                        OR s.Status LIKE ?
+                        ORDER BY s.TransactionDate DESC
+                        LIMIT ? OFFSET ?";
+                
                         $stmt = $conn->prepare($sql);
                         $search_param = "%" . $search . "%";
                         $stmt->bind_param("sssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $limit, $offset);
@@ -449,7 +453,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                         <p class="card-title mb-0">Savings</p>
                                         <div class="ml-auto">
                                             <button class="btn btn-primary mb-3" data-toggle="modal"
-                                                data-target="#savingsModal">Add Savings</button>
+                                                data-target="#savingsModal">Create Savings Transaction</button>
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -473,10 +477,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                 <tr>
                                                     <th>Member Name</th>
                                                     <th>Amount</th>
-                                                    <th>Payment Method</th>
-                                                    <th>Notes</th>
+                                                    <th>Transaction Type</th>
                                                     <th>Status</th>
                                                     <th>Transaction Date</th>
+                                                    <th>Notes</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
@@ -486,10 +490,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                         <tr>
                                                             <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                                             <td>₱<?php echo htmlspecialchars($row['Amount']); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['PaymentMethod']); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['Notes']); ?></td>
+                                                            <td><?php echo htmlspecialchars($row['Type']); ?></td>
                                                             <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                                             <td><?php echo date('F d, Y h:i A', strtotime($row['TransactionDate'])); ?></td>
+                                                            <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                                             <td>
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
                                                                     data-target="#editSavingsModal<?php echo $row['SavingsID']; ?>">
@@ -531,16 +535,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                             </div>
 
                                                                             <div class="mb-3">
-                                                                                <label class="form-label">Payment Method</label>
+                                                                                <label class="form-label">Transaction Type</label>
                                                                                 <input type="text" class="form-control" 
-                                                                                    value="<?php echo htmlspecialchars($row['PaymentMethod']); ?>" 
+                                                                                    value="<?php echo htmlspecialchars($row['Type']); ?>" 
                                                                                     readonly>
                                                                             </div>
 
-                                                                            <div class="mb-3">
-                                                                                <label class="form-label">Notes</label>
-                                                                                <textarea class="form-control" readonly><?php echo htmlspecialchars($row['Notes']); ?></textarea>
-                                                                            </div>
+
 
                                                                             <div class="mb-3">
                                                                                 <label for="status" class="form-label">Status</label>
@@ -549,6 +550,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                     <option value="Approved" <?php echo ($row['Status'] == 'Approved') ? 'selected' : ''; ?>>Approved</option>
                                                                                     <option value="Disapproved" <?php echo ($row['Status'] == 'Disapproved') ? 'selected' : ''; ?>>Disapproved</option>
                                                                                 </select>
+                                                                            </div>
+
+                                                                            <div class="mb-3">
+                                                                                <label class="form-label">Notes</label>
+                                                                                <textarea class="form-control" readonly><?php echo htmlspecialchars($row['Notes']); ?></textarea>
                                                                             </div>
 
                                                                             <div class="modal-footer">
@@ -563,7 +569,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                     <?php endwhile; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="7">No savings found</td>
+                                                        <td colspan="8">No savings found</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>

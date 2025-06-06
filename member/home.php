@@ -564,7 +564,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               document.addEventListener("DOMContentLoaded", function() {
                   Swal.fire({
                       icon: "success",
-                      title: "You Deposit To Your Savings Please Wait To Reflect",
+                      title: "You Successfully Set Up An Appointment",
                       showConfirmButton: false,
                       timer: 1500
                   });
@@ -576,7 +576,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               document.addEventListener("DOMContentLoaded", function() {
                   Swal.fire({
                       icon: "success",
-                      title: "You Deposit To Your Share Capital Please Wait To Reflect",
+                      title: "You Have Successfully Set Up An Appointment",
                       showConfirmButton: false,
                       timer: 1500
                   });
@@ -589,19 +589,18 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           $user_id = $_SESSION['user_id'];
           $full_name = $_SESSION['full_name'];
 
-          // Get total approved savings and calculate interest
-          $savings_query = "SELECT COALESCE(SUM(amount), 0) as total_savings 
-                          FROM savings 
-                          WHERE MemberID = ? AND Status = 'Approved'";
-          $stmt = $conn->prepare($savings_query);
-          $stmt->bind_param("i", $user_id);
-          $stmt->execute();
-          $savings_result = $stmt->get_result();
-          $total_savings = $savings_result->fetch_assoc()['total_savings'];
+        // Get user's total savings from the users table
+        $savings_query = "SELECT COALESCE(savings, 0) as total_savings FROM users WHERE user_id = ?";
+        $stmt = $conn->prepare($savings_query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $savings_result = $stmt->get_result();
+        $total_savings = $savings_result->fetch_assoc()['total_savings'];
 
-          // Calculate savings with interest (1.5% annual rate)
-          $savings_interest_rate = 0.015;
-          $total_savings_with_interest = $total_savings * (1 + $savings_interest_rate);
+        // Calculate savings with interest (1.5% annual rate)
+        $savings_interest_rate = 0.015;
+        $total_savings_with_interest = $total_savings * (1 + $savings_interest_rate);
+
 
           // Calculate savings percentage this month
           $monthly_savings_query = "SELECT COALESCE(SUM(amount), 0) as monthly_savings 
@@ -768,83 +767,92 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                   </div>
               </div>
 
-              <!-- Savings Modal -->
-              <div class="modal fade" id="savingsModal" tabindex="-1">
-                  <div class="modal-dialog modal-lg">
-                      <div class="modal-content">
-                          <div class="modal-header">
-                              <h5 class="modal-title">
-                                  <i class="fas fa-piggy-bank me-2"></i>
-                                  Savings Account Details
-                              </h5>
-                              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                          </div>
-                          <div class="modal-body">
-                              <form id="savingsForm" action="add_savings.php" method="post">
-                                  <div class="row">
-                                      <div class="col-md-4">
-                                          <div class="stat-card">
-                                              <div class="stat-label">Current Balance</div>
-                                              <div class="stat-value">₱<?php echo number_format($total_savings_with_interest, 2); ?></div>
-                                          </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                          <div class="stat-card">
-                                              <div class="stat-label">Interest Rate</div>
-                                              <div class="stat-value">₱<?php echo number_format($total_savings_with_interest - $total_savings, 2); ?></div>
-                                          </div>
-                                      </div>
-                                      <div class="col-md-4">
-                                          <div class="stat-card">
-                                              <div class="stat-label">Last Transaction</div>
-                                              <div class="stat-value">₱<?php echo number_format($last_transaction['amount'], 2); ?></div>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  
-                                  <div class="deposit-section">
-                                      <h6 class="section-title">Make a Deposit</h6>
-                                      <div class="row">
-                                          <div class="col-md-6">
-                                              <div class="form-group">
-                                                  <label class="form-label">Deposit Amount</label>
-                                                  <div class="input-group">
-                                                      <span class="input-group-text">₱</span>
-                                                      <input type="number" name="amount" class="form-control" placeholder="Enter amount" required>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div class="col-md-6">
-                                              <div class="form-group">
-                                                  <label class="form-label">Payment Method</label>
-                                                  <select name="payment_method" class="form-select" required>
-                                                      <option value="">Select payment method</option>
-                                                      <option value="walkin">Walkin</option>
-                                                  </select>
-                                              </div>
-                                          </div>
-                                          <div class="col-md-12">
-                                              <div class="form-group">
-                                                  <label class="form-label">Notes (Optional)</label>
-                                                  <textarea name="notes" class="form-control" rows="2" placeholder="Add any additional notes"></textarea>
-                                              </div>
-                                          </div>
-                                      </div>
-                                  </div>
-                                  <div class="modal-footer">
-                                      <button type="submit" form="savingsForm" class="btn btn-deposit">
-                                          <i class="fas fa-plus-circle me-2"></i>Make Deposit
-                                      </button>
-                                      <a href="download_statement.php?download_statement=1" class="btn btn-custom">
-                                          <i class="fas fa-download me-2"></i>Download Statement
-                                      </a>
-                                      <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                  </div>
-                              </form>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+<!-- Savings Modal -->
+<div class="modal fade" id="savingsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-piggy-bank me-2"></i>
+                    Savings Account Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="savingsForm" action="add_savings.php" method="post">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Current Balance</div>
+                                <div class="stat-value">₱<?php echo number_format($total_savings_with_interest, 2); ?></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Interest Rate</div>
+                                <div class="stat-value">₱<?php echo number_format($total_savings_with_interest - $total_savings, 2); ?></div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-label">Last Transaction</div>
+                                <div class="stat-value">₱<?php echo number_format($last_transaction['amount'], 2); ?></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="deposit-section">
+                        <h6 class="section-title">Set Appointment</h6>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Transaction Type</label>
+                                    <select name="transaction_type" class="form-select" required>
+                                        <option value="">Select type</option>
+                                        <option value="deposit">Deposit</option>
+                                        <option value="withdrawal">Withdrawal</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Amount</label>
+                                    <div class="input-group">
+                                        <span class="input-group-text">₱</span>
+                                        <input type="number" name="amount" class="form-control" placeholder="Enter amount" min="0.01" step="0.01" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label class="form-label">Appointment Date</label>
+                                    <input type="date" name="appointment_date" class="form-control" required min="<?php echo date('Y-m-d'); ?>">
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="form-label">Notes (Optional)</label>
+                                    <textarea name="notes" class="form-control" rows="2" placeholder="Add any additional notes"></textarea>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" form="savingsForm" class="btn btn-deposit">
+                            <i class="fas fa-calendar-check me-2"></i>Set Appointment
+                        </button>
+                        <a href="download_statement.php?download_statement=1" class="btn btn-custom">
+                            <i class="fas fa-download me-2"></i>Download Statement
+                        </a>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
 
               <!-- Share Capital Modal -->
               <div class="modal fade" id="shareCapitalModal" tabindex="-1">
@@ -882,24 +890,21 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                   <div class="deposit-section">
                                       <h6 class="section-title">Add Share Capital</h6>
                                       <div class="row">
-                                          <div class="col-md-6">
-                                              <div class="form-group">
-                                                  <label class="form-label">Investment Amount</label>
-                                                  <div class="input-group">
-                                                      <span class="input-group-text">₱</span>
-                                                      <input type="number" name="amount" class="form-control" placeholder="Enter amount" required>
-                                                  </div>
-                                              </div>
-                                          </div>
-                                          <div class="col-md-6">
-                                              <div class="form-group">
-                                                  <label class="form-label">Payment Method</label>
-                                                  <select name="payment_method" class="form-select" required>
-                                                      <option value="">Select payment method</option>
-                                                      <option value="walkin">Walkin</option>
-                                                  </select>
-                                              </div>
-                                          </div>
+                                      <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Amount</label>
+                                            <div class="input-group">
+                                                <span class="input-group-text">₱</span>
+                                                <input type="number" name="amount" class="form-control" placeholder="Enter amount" min="0.01" step="0.01" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="form-group">
+                                            <label class="form-label">Appointment Date</label>
+                                            <input type="date" name="appointment_date" class="form-control" required min="<?php echo date('Y-m-d'); ?>">
+                                        </div>
+                                    </div>
                                           <div class="col-md-12">
                                               <div class="form-group">
                                                   <label class="form-label">Notes (Optional)</label>
@@ -910,7 +915,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                   </div>
                                   <div class="modal-footer">
                                       <button type="submit" form="shareCapitalForm" class="btn btn-deposit">
-                                          <i class="fas fa-plus-circle me-2"></i>Add Share Capital
+                                          <i class="fas fa-plus-circle me-2"></i>Set an Appointment
                                       </button>
                                       <a href="download_report.php?download_report=1" class="btn btn-custom">
                                           <i class="fas fa-file-pdf me-2"></i>Download Report
@@ -929,23 +934,28 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               $loggedInUserId = $_SESSION['user_id'];
               $fullName = $_SESSION['full_name'];
               
-              // Modified Savings query to get distinct transactions
               $savingsSql = "
-                  SELECT DISTINCT
-                      t.created_at as TransactionDate,
-                      t.amount as Amount,
-                      t.signature,
-                      t.control_number
-                  FROM transactions t
-                  WHERE t.user_id = ? 
-                  AND t.service_name = 'Savings Deposit'
+              SELECT 
+                  s.TransactionDate,
+                  s.Amount,
+                  s.Type,
+                  t.control_number,
+                  t.signature
+              FROM savings s
+              LEFT JOIN transactions t 
+                  ON t.SavingsID = s.SavingsID
                   AND t.payment_status = 'Completed'
-                  ORDER BY t.created_at ASC";
-              
-              $savingsStmt = $conn->prepare($savingsSql);
-              $savingsStmt->bind_param("s", $loggedInUserId);
-              $savingsStmt->execute();
-              $savingsResult = $savingsStmt->get_result();
+              WHERE s.MemberID = ?
+                AND s.Status = 'Approved'
+              ORDER BY s.TransactionDate ASC
+          ";
+          
+          
+          $savingsStmt = $conn->prepare($savingsSql);
+          $savingsStmt->bind_param("s", $loggedInUserId);
+          $savingsStmt->execute();
+          $savingsResult = $savingsStmt->get_result();
+          
               
               // Modified Share Capital query to get distinct transactions
               $shareCapitalSql = "
@@ -966,60 +976,76 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               $shareCapitalResult = $shareCapitalStmt->get_result();
               ?>
 
-              <!-- Savings Passbook Modal -->
-              <div class="modal fade" id="savingsPassModal" tabindex="-1" aria-labelledby="savingsPassModalLabel" aria-hidden="true">
-                  <div class="modal-dialog modal-lg">
-                      <div class="modal-content">
-                          <div class="modal-header">
-                              <h5 class="modal-title" id="savingsPassModalLabel">Savings Passbook</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <div class="modal-body">
-                              <div class="mb-3">
-                                  <p><strong>Member No.:</strong> <?php echo htmlspecialchars($loggedInUserId); ?></p>
-                                  <p><strong>Name:</strong> <?php echo htmlspecialchars($fullName); ?></p>
-                              </div>
-                              <div class="table-responsive">
-                                  <table class="table table-bordered text-center">
-                                      <thead>
-                                          <tr>
-                                              <th>Date</th>
-                                              <th>OR/CV No.</th>
-                                              <th>Received (DR)</th>
-                                              <th>Interest</th>
-                                              <th>Withdrawn (CR)</th>
-                                              <th>Balance</th>
-                                              <th>Cashier's Initial</th>
-                                          </tr>
-                                      </thead>
-                                      <tbody>
-                                          <?php 
-                                          $totalBalance = 0;
-                                          while ($row = $savingsResult->fetch_assoc()) { 
-                                              $interest = $row['Amount'] * 0.0135;
-                                              $currentAmount = $row['Amount'] + $interest;
-                                              $totalBalance += $currentAmount;
-                                          ?>
-                                              <tr>
-                                                  <td><?php echo date('M. d, Y', strtotime($row['TransactionDate'])); ?></td>
-                                                  <td><?php echo htmlspecialchars($row['control_number'] ?? 'N/A'); ?></td>
-                                                  <td>₱<?php echo number_format($row['Amount'], 2); ?></td>
-                                                  <td>₱<?php echo number_format($interest, 2); ?></td>
-                                                  <td>₱0.00</td>
-                                                  <td>₱<?php echo number_format($totalBalance, 2); ?></td>
-                                                  <td><?php echo htmlspecialchars($row['signature'] ?? 'N/A'); ?></td>
-                                              </tr>
-                                          <?php } ?>
-                                      </tbody>
-                                  </table>
-                              </div>
-                          </div>
-                          <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+<!-- Savings Passbook Modal -->
+<div class="modal fade" id="savingsPassModal" tabindex="-1" aria-labelledby="savingsPassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="savingsPassModalLabel">Savings Passbook</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p><strong>Member No.:</strong> <?php echo htmlspecialchars($loggedInUserId); ?></p>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($fullName); ?></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>OR/CV No.</th>
+                                <th>Received (DR)</th>
+                                <th>Interest</th>
+                                <th>Withdrawn (CR)</th>
+                                <th>Balance</th>
+                                <th>Cashier's Initial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $totalBalance = 0;
+                            while ($row = $savingsResult->fetch_assoc()) {
+                                $type = $row['Type'];
+                                $amount = $row['Amount'];
+                                $received = 0;
+                                $withdrawn = 0;
+                                $interest = 0;
+
+                                if ($type === 'Deposit') {
+                                    $interest = $amount * 0.0135;
+                                    $received = $amount;
+                                    $totalBalance += $received + $interest;
+                                } elseif ($type === 'Withdrawal') {
+                                    $withdrawn = $amount;
+                                    $totalBalance -= $withdrawn;
+                                }
+
+                                $date = date('M. d, Y', strtotime($row['TransactionDate']));
+                                $controlNumber = htmlspecialchars($row['control_number']);
+                                $cashierInitial = htmlspecialchars($row['signature']);
+                            ?>
+                                <tr>
+                                    <td><?php echo $date; ?></td>
+                                    <td><?php echo $controlNumber; ?></td>
+                                    <td>₱<?php echo number_format($received, 2); ?></td>
+                                    <td>₱<?php echo number_format($interest, 2); ?></td>
+                                    <td>₱<?php echo number_format($withdrawn, 2); ?></td>
+                                    <td>₱<?php echo number_format($totalBalance, 2); ?></td>
+                                    <td><?php echo $cashierInitial; ?></td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
               <!-- Share Capital Passbook Modal -->
               <div class="modal fade" id="shareCapitalPassModal" tabindex="-1" aria-labelledby="shareCapitalPassModalLabel" aria-hidden="true">
