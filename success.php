@@ -1,3 +1,48 @@
+<?php
+// Include the database configuration
+require_once 'connection/config.php';
+
+// Get the member-id from the URL
+$member_id = isset($_GET['member-id']) ? intval($_GET['member-id']) : 0;
+
+// Initialize variables
+$appointment_date = '';
+$share_capital = '';
+$savings = '';
+$membership_fee = '';
+$insurance = '';
+$total_amount = '';
+
+if ($member_id > 0) {
+    // Fetch data from member_applications table
+    $stmt = $conn->prepare("SELECT appointment_date FROM member_applications WHERE user_id = ?");
+    $stmt->bind_param("i", $member_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $member_app = $result->fetch_assoc();
+    $stmt->close();
+    
+    if ($member_app) {
+        $appointment_date = $member_app['appointment_date'];
+        
+        // Fetch data from appointments table
+        $stmt = $conn->prepare("SELECT share_capital, savings, membership_fee, insurance, total_amount FROM appointments WHERE user_id = ?");
+        $stmt->bind_param("i", $member_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $appointment = $result->fetch_assoc();
+        $stmt->close();
+        
+        if ($appointment) {
+            $share_capital = $appointment['share_capital'];
+            $savings = $appointment['savings'];
+            $membership_fee = $appointment['membership_fee'];
+            $insurance = $appointment['insurance'];
+            $total_amount = $appointment['total_amount'];
+        }
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -8,6 +53,7 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
   <style>
+    /* Original Header and Footer Styles */
     :root {
       --primary-color: #00FFAF;
       --secondary-color: #0F4332;
@@ -146,27 +192,63 @@
       font-size: 0.9rem;
     }
 
+    /* Cleaned Content Styles */
     .success-container {
       display: flex;
       justify-content: center;
       align-items: center;
       min-height: calc(100vh - 196px);
+      padding: 2rem 0;
+      background-color: #f8f9fa;
     }
 
-    .card {
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    .success-card {
+      width: 100%;
+      max-width: 700px;
+      border: none;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     }
 
     .card-header {
-      background-color: #00b894;
+      background-color: var(--secondary-color);
       color: white;
-      border-top-left-radius: 10px;
-      border-top-right-radius: 10px;
+      padding: 1.5rem;
+      text-align: center;
     }
 
     .card-body {
-      padding: 30px;
+      padding: 2rem;
+      background-color: white;
+    }
+
+    .success-icon {
+      font-size: 3rem;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+    }
+
+    .detail-row {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-weight: 600;
+    }
+
+    .detail-value {
+      text-align: right;
+    }
+
+    .total-row {
+      background-color: rgba(15, 67, 50, 0.05);
+      font-weight: 600;
     }
 
     @media (max-width: 767.98px) {
@@ -195,11 +277,15 @@
         height: 35px;
         font-size: 1rem;
       }
+      
+      .card-body {
+        padding: 1.5rem;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- Navigation -->
+  <!-- Original Navigation -->
   <nav class="navbar navbar-expand-lg navbar-light sticky-top">
     <div class="container">
       <a class="navbar-brand" href="index.php">
@@ -234,24 +320,85 @@
     </div>
   </nav>
 
+  <!-- Cleaned Content Section -->
   <div class="success-container">
-    <div class="card">
+    <div class="success-card">
       <div class="card-header">
-        <div class="d-flex justify-content-center align-items-center">
-          <img src="dist/assets/images/pmpc-logo.png" alt="PASCHAL Logo" class="me-2" style="height: 50px;">
-          <h4 class="mb-0">Membership Application Submitted Successfully!</h4>
-        </div>
+        <h4 class="mb-0">Membership Application Submitted</h4>
       </div>
       <div class="card-body">
-        <p>Please settle the payment for Share Capital on the Appointment Date.</p>
-        <div class="d-grid gap-2">
-          <a href="index.php" class="btn btn-primary" style="background: var(--secondary-color);">Home</a>
+        <div class="text-center mb-4">
+          <div class="success-icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <h3>Thank You!</h3>
+          <p class="text-muted">Your application has been received successfully</p>
+        </div>
+        
+        <?php if ($member_id > 0 && $appointment_date): ?>
+          <div class="mb-4">
+            <h5 class="mb-3">Application Details</h5>
+            
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Appointment Date</div>
+                <div class="col-6 detail-value"><?php echo date("F j, Y", strtotime($appointment_date)); ?></div>
+              </div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Share Capital</div>
+                <div class="col-6 detail-value">₱<?php echo number_format($share_capital, 2); ?></div>
+              </div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Savings</div>
+                <div class="col-6 detail-value">₱<?php echo number_format($savings, 2); ?></div>
+              </div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Membership Fee</div>
+                <div class="col-6 detail-value">₱<?php echo number_format($membership_fee, 2); ?></div>
+              </div>
+            </div>
+            
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Insurance</div>
+                <div class="col-6 detail-value">₱<?php echo number_format($insurance, 2); ?></div>
+              </div>
+            </div>
+            
+            <div class="detail-row total-row">
+              <div class="row">
+                <div class="col-6 detail-label">Total Amount</div>
+                <div class="col-6 detail-value">₱<?php echo number_format($total_amount, 2); ?></div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="alert alert-info">
+            <p class="mb-0">Please bring the exact amount and a valid ID on your appointment date.</p>
+          </div>
+        <?php else: ?>
+          <div class="alert alert-warning">
+            <p class="mb-0">We couldn't retrieve your application details. Please contact support for assistance.</p>
+          </div>
+        <?php endif; ?>
+        
+        <div class="d-grid mt-3">
+          <a href="index.php" class="btn btn-primary" style="background: var(--secondary-color);">Return to Home</a>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- Original Footer -->
   <footer class="footer">
     <div class="container">
       <div class="row">

@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Check the status of the application
-    $statusSql = "SELECT fillupform, watchvideoseminar, membershipfee FROM member_applications WHERE user_id = ?";
+    $statusSql = "SELECT fillupform, watchvideoseminar, payment_status FROM member_applications WHERE user_id = ?";
     $stmtStatus = $conn->prepare($statusSql);
     $stmtStatus->bind_param('s', $userID);
     $stmtStatus->execute();
@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Determine status based on enum values in your schema
         $status = 'In Progress'; // Default status
         
-        if ($row['fillupform'] && $row['watchvideoseminar'] && $row['membershipfee'] > 0) {
+        if ($row['fillupform'] && $row['watchvideoseminar'] && $row['payment_status'] > 0) {
             $status = 'Approved';
         } elseif (!$row['fillupform'] || !$row['watchvideoseminar']) {
             $status = 'Failed';
