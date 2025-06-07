@@ -1,6 +1,8 @@
 <?php
+session_start();
 include 'connection/config.php';
 
+// Function to log activity
 function logActivity($user_id, $user_type, $activity) {
     global $conn;
     $sql = "INSERT INTO activity_logs (user_id, user_type, action, details) VALUES (?, ?, ?, ?)";
@@ -9,6 +11,7 @@ function logActivity($user_id, $user_type, $activity) {
     $stmt->execute();
 }
 
+// Function to get next user ID
 function getNextUserId($conn) {
     $query = "SELECT MAX(CAST(user_id AS UNSIGNED)) AS max_id FROM users";
     $result = $conn->query($query);
@@ -21,8 +24,8 @@ function getNextUserId($conn) {
     return '1';
 }
 
+// Function to determine user type
 function determineUserType($conn) {
-    // Check if admin exists
     $checkAdmin = "SELECT COUNT(*) as count FROM users WHERE user_type = 'Admin'";
     $result = $conn->query($checkAdmin);
     $row = $result->fetch_assoc();
@@ -30,11 +33,10 @@ function determineUserType($conn) {
     if ($row['count'] == 0) {
         return array('user_type' => 'Admin', 'status' => 1);
     }
-
-    // Default to member
     return array('user_type' => 'Member', 'status' => 0);
 }
 
+// Process registration form
 if (isset($_POST['register'])) {
     // Basic information
     $first_name = mysqli_real_escape_string($conn, $_POST['firstname']);
@@ -63,74 +65,135 @@ if (isset($_POST['register'])) {
     $tin_id_image = $_FILES['tinIdImage'];
     $upload_dir = "dist/assets/images/tin_id/";
     $tin_id_filename = time() . '_' . $tin_id_image['name'];
-    move_uploaded_file($tin_id_image['tmp_name'], $upload_dir . $tin_id_filename);
+    $upload_path = $upload_dir . $tin_id_filename;
 
+            // Store all form data except password for security
+            $_SESSION['form_data'] = array_filter($_POST, function($key) {
+                return !in_array($key, ['password', 'confirmPassword']);
+            }, ARRAY_FILTER_USE_KEY);
+            
+            // Store file info
+            $_SESSION['form_data']['tinIdImage_name'] = $_FILES['tinIdImage']['name'];
+
+    // Validate age
+    if ($age < 18) {
+        $_SESSION['error'] = 'You must be 18 years or older to register';
+        header('Location: member-application.php');
+        exit();
+    }
+
+    // Validate TIN number
+    if (strlen($tin_number) != 9 || !ctype_digit($tin_number)) {
+        $_SESSION['error'] = 'TIN number must be exactly 9 digits';
+        header('Location: member-application.php');
+        exit();
+    }
+
+    // Validate password match
     if ($password !== $confirm_password) {
-        $error[] = 'Passwords do not match.';
-    } else {
-        $password = password_hash($password, PASSWORD_DEFAULT);
-        $user_id = getNextUserId($conn);
+        $_SESSION['error'] = 'Passwords do not match';
+        header('Location: member-application.php');
+        exit();
+    }
 
-        // For new registrations, always set as Member
-        $user_type = 'Member';
-        $status = 0;
+    // Hash password
+    $password = password_hash($password, PASSWORD_DEFAULT);
+    $user_id = getNextUserId($conn);
+    $user_type_info = determineUserType($conn);
+    $user_type = $user_type_info['user_type'];
+    $status = $user_type_info['status'];
 
-        $checkEmail = "SELECT * FROM users WHERE email = ?";
-        $stmt = $conn->prepare($checkEmail);
-        $stmt->bind_param("s", $email);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // Check for existing email
+$checkEmail = "SELECT * FROM users WHERE email = ?";
+$stmt = $conn->prepare($checkEmail);
+$stmt->bind_param("s", $email);
+$stmt->execute();
+$result = $stmt->get_result();
 
-        if ($result->num_rows > 0) {
-            $error[] = 'Email is already registered!';
-        } else {
-            // Start transaction
-            $conn->begin_transaction();
+if ($result->num_rows > 0) {
+    $_SESSION['error'] = 'Email is already registered!';
+    header('Location: member-application.php');
+    exit();
+}
 
-            try {
-                // Insert into users table
-                $insert = "INSERT INTO users (user_id, first_name, middle_name, last_name, gender, 
-                    birthday, age, street, barangay, municipality, province, email, mobile, 
-                    password, tin_number, tin_id_image, user_type, status) 
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-                $stmt = $conn->prepare($insert);
-                $stmt->bind_param("sssssssssssssssssi", 
-                    $user_id, $first_name, $middle_name, $last_name, $gender,
-                    $birthday, $age, $street, $barangay, $municipality, $province,
-                    $email, $mobile, $password, $tin_number, $tin_id_filename,
-                    $user_type, $status);
-                $stmt->execute();
+// Check for existing mobile
+$checkMobile = "SELECT * FROM users WHERE mobile = ?";
+$stmt = $conn->prepare($checkMobile);
+$stmt->bind_param("s", $mobile);
+$stmt->execute();
+$result = $stmt->get_result();
 
-                // Insert into member_applications table
-                $fillUpForm = 1;
-                $watchedVideoSeminar = 0;
-                $status = "In Progress";
-                $membershipFee = 0.00;
+if ($result->num_rows > 0) {
+    $_SESSION['error'] = 'Mobile number is already registered!';
+    header('Location: member-application.php');
+    exit();
+}
 
-                $insert_application = "INSERT INTO member_applications 
-                    (user_id, fillupform, watchvideoseminar, status) 
-                    VALUES (?, ?, ?, ?)";
-                $stmt = $conn->prepare($insert_application);
-                $stmt->bind_param("siis", 
-                    $user_id, $fillUpForm, $watchedVideoSeminar, $status);
-                $stmt->execute();
+// Check for existing TIN
+$checkTIN = "SELECT * FROM users WHERE tin_number = ?";
+$stmt = $conn->prepare($checkTIN);
+$stmt->bind_param("s", $tin_number);
+$stmt->execute();
+$result = $stmt->get_result();
 
-                // Commit transaction
-                $conn->commit();
+if ($result->num_rows > 0) {
+    $_SESSION['error'] = 'TIN number is already registered!';
+    header('Location: member-application.php');
+    exit();
+}
 
-                // Log activity
-                logActivity($user_id, $user_type, 'Registered');
+    // Start transaction
+    $conn->begin_transaction();
 
-                // Redirect to video seminar page
-                header('Location: videoseminar.php?member-id=' . $user_id);
-                exit();
-
-            } catch (Exception $e) {
-                // Rollback transaction on error
-                $conn->rollback();
-                $error[] = 'Registration failed: ' . $e->getMessage();
-            }
+    try {
+        // Move uploaded file
+        if (!move_uploaded_file($tin_id_image['tmp_name'], $upload_path)) {
+            throw new Exception("Failed to upload TIN ID image");
         }
+
+        // Insert into users table
+        $insert = "INSERT INTO users (user_id, first_name, middle_name, last_name, gender, 
+            birthday, age, street, barangay, municipality, province, email, mobile, 
+            password, tin_number, tin_id_image, user_type, status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        $stmt = $conn->prepare($insert);
+        $stmt->bind_param("sssssssssssssssssi", 
+            $user_id, $first_name, $middle_name, $last_name, $gender,
+            $birthday, $age, $street, $barangay, $municipality, $province,
+            $email, $mobile, $password, $tin_number, $tin_id_filename,
+            $user_type, $status);
+        $stmt->execute();
+
+        // Insert into member_applications table
+        $fillUpForm = 1;
+        $watchedVideoSeminar = 0;
+        $status = "In Progress";
+        $membershipFee = 0.00;
+
+        $insert_application = "INSERT INTO member_applications 
+            (user_id, fillupform, watchvideoseminar, status) 
+            VALUES (?, ?, ?, ?)";
+        $stmt = $conn->prepare($insert_application);
+        $stmt->bind_param("siis", 
+            $user_id, $fillUpForm, $watchedVideoSeminar, $status);
+        $stmt->execute();
+
+        // Commit transaction
+        $conn->commit();
+
+        // Log activity
+        logActivity($user_id, $user_type, 'Registered');
+
+        // Redirect to video seminar page
+        header('Location: videoseminar.php?member-id=' . $user_id);
+        exit();
+
+    } catch (Exception $e) {
+        // Rollback transaction on error
+        $conn->rollback();
+        $_SESSION['error'] = 'Registration failed: ' . $e->getMessage();
+        header('Location: member-application.php');
+        exit();
     }
 }
 ?>
@@ -143,12 +206,30 @@ if (isset($_POST['register'])) {
     <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <style>
         :root {
             --primary-color: #00FFAF;
             --secondary-color: #0F4332;
             --dark-color: #1f1f1f;
             --accent-color: #00FFAF;
+        }
+
+        input[name="tin-number"] {
+    letter-spacing: 1px;
+}
+
+        /* Make error messages more visible */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #dc3545 !important;
+            background-color: #fff5f5;
         }
 
         body {
@@ -278,6 +359,25 @@ if (isset($_POST['register'])) {
         .copyright {
             color: white;
             font-size: 0.9rem;
+        }
+
+        .swal2-popup {
+            border-radius: 12px !important;
+            box-shadow: 0 5px 20px rgba(15, 67, 50, 0.2) !important;
+        }
+
+        .swal2-title {
+            color: #0F4332 !important;
+            font-weight: 600 !important;
+        }
+
+        .swal2-icon.swal2-error {
+            color: #dc3545 !important;
+            border-color: #dc3545 !important;
+        }
+
+        .swal2-popup .swal2-title {
+            color: #dc3545 !important;
         }
 
         /* Form Styles */
@@ -713,112 +813,141 @@ if (isset($_POST['register'])) {
         </div>
     </nav>
     
-  
+    <!-- Display error messages from session -->
+    <?php if (isset($_SESSION['error'])): ?>
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                Swal.fire({
+                    title: 'Error',
+                    text: '<?php echo $_SESSION['error']; ?>',
+                    icon: 'error',
+                    confirmButtonColor: '#0F4332'
+                });
+                <?php unset($_SESSION['error']); ?>
+            });
+        </script>
+    <?php endif; ?>
+
     <div class="container signup-container">
         <h2 class="form-title">Sign Up | Membership Application</h2>
-        <p class="form-subtitle">To register, please take the time fill out the information below.</p>
+        <p class="form-subtitle">To register, please take the time to fill out the information below.</p>
         
-        <form id="signupForm" action="member-application.php" method="post" enctype="multipart/form-data" novalidate>
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">First Name <span style="color: red;">*</span></label>
-                    <input type="text" name="firstname" class="form-control" required>
-                    <div class="error-message" id="firstname-error">First name is required</div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Last Name <span style="color: red;">*</span></label>
-                    <input type="text" name="lastname" class="form-control" required>
-                    <div class="error-message" id="lastname-error">Last name is required</div>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Middle Name</label>
-                    <input type="text" name="middlename" class="form-control">
-                </div>
+        <form id="signupForm" action="<?php echo htmlspecialchars($_SERVER['PHP_SELF']); ?>" method="post" enctype="multipart/form-data" novalidate>
+<!-- First Row -->
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">First Name <span class="text-danger">*</span></label>
+        <input type="text" name="firstname" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['firstname'] ?? ''); ?>" required>
+        <div class="error-message" id="firstname-error">First name is required</div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Last Name <span class="text-danger">*</span></label>
+        <input type="text" name="lastname" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['lastname'] ?? ''); ?>" required>
+        <div class="error-message" id="lastname-error">Last name is required</div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Middle Name</label>
+        <input type="text" name="middlename" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['middlename'] ?? ''); ?>">
+    </div>
+</div>
+
+<!-- Second Row -->
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Street</label>
+        <input type="text" name="street" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['street'] ?? ''); ?>">
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Barangay <span class="text-danger">*</span></label>
+        <input type="text" name="barangay" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['barangay'] ?? ''); ?>" required>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Municipality <span class="text-danger">*</span></label>
+        <input type="text" name="municipality" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['municipality'] ?? ''); ?>" required>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Province <span class="text-danger">*</span></label>
+        <input type="text" name="province" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['province'] ?? ''); ?>" required>
+    </div>
+</div>
+
+<!-- Third Row -->
+<div class="row">
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Gender <span class="text-danger">*</span></label>
+        <select name="gender" class="form-control" required>
+            <option value="male" <?php echo ($_SESSION['form_data']['gender'] ?? '') == 'male' ? 'selected' : ''; ?>>Male</option>
+            <option value="female" <?php echo ($_SESSION['form_data']['gender'] ?? '') == 'female' ? 'selected' : ''; ?>>Female</option>
+            <option value="other" <?php echo ($_SESSION['form_data']['gender'] ?? '') == 'other' ? 'selected' : ''; ?>>Other</option>
+        </select>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Birthday <span class="text-danger">*</span></label>
+        <input type="date" name="birthday" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['birthday'] ?? ''); ?>" required>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Age <span class="text-danger">*</span></label>
+        <input type="number" name="age" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['age'] ?? ''); ?>" readonly>
+    </div>
+    <div class="col-md-3 mb-3">
+        <label class="form-label">Phone Number <span class="text-danger">*</span></label>
+        <input type="tel" name="mobile" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['mobile'] ?? ''); ?>" required maxlength="11">
+        <div class="error-message" id="mobile-error">Please enter a valid 11-digit phone number</div>
+    </div>
+</div>
+
+<!-- TIN Row -->
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">TIN No. (Required) <span style="color: red;">*</span></label>
+        <input type="text" name="tin-number" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['tin-number'] ?? ''); ?>" required maxlength="9">
+        <div class="error-message" id="tin-error">TIN must be exactly 9 digits</div>
+    </div>
+    <div class="col-md-4 mb-3">
+        <label class="form-label">TIN ID Image <span style="color: red;">*</span></label>
+        <div class="file-input-container">
+            <div class="custom-file-input">
+                <input type="file" name="tinIdImage" accept="image/*" required>
             </div>
-            
-            
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Street</label>
-                    <input type="text" name="street" class="form-control" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Barangay <span style="color: red;">*</span></label>
-                    <input type="text" name="barangay" class="form-control" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Municipality <span style="color: red;">*</span></label>
-                    <input type="text" name="municipality" class="form-control" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Province <span style="color: red;">*</span></label>
-                    <input type="text" name="province" class="form-control" required>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Gender <span style="color: red;">*</span></label>
-                    <select name="gender" class="form-control" required>
-                        <option value="">Select Gender</option>
-                        <option value="male">Male</option>
-                        <option value="female">Female</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Birthday <span style="color: red;">*</span></label>
-                    <input type="date" name="birthday" class="form-control" required>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Age <span style="color: red;">*</span></label>
-                    <input type="number" name="age" class="form-control" readonly>
-                </div>
-                <div class="col-md-3 mb-3">
-                    <label class="form-label">Phone Number <span style="color: red;">*</span></label>
-                    <input type="tel" name="mobile" class="form-control" required maxlength="11">
-                    <div class="error-message" id="mobile-error">Mobile number must be 11 digits</div>
-                </div>
-            </div>
+        </div>
+    </div>
+</div>
             
             <div class="row">
                 <div class="col-md-4 mb-3">
-                    <label class="form-label">TIN No. (Required) <span style="color: red;">*</span></label>
-                    <input type="text" name="tin-number" class="form-control" required>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">TIN ID Image <span style="color: red;">*</span></label>
-                    <div class="file-input-container">
-                        <div class="custom-file-input">
-                            <input type="file" name="tinIdImage" accept="image/*" required>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Email Address <span style="color: red;">*</span></label>
-                    <input type="email" name="email" class="form-control" required>
-                    <div class="error-message" id="email-error">Please enter a valid email address</div>
+                <label class="form-label">Email Address <span style="color: red;">*</span></label>
+        <input type="email" name="email" class="form-control"
+               value="<?php echo htmlspecialchars($_SESSION['form_data']['email'] ?? ''); ?>" required>
+        <div class="error-message" id="email-error">Please enter a valid email address</div>
                 </div>
                 <div class="col-md-4 mb-3 password-container">
                     <label class="form-label">Password <span style="color: red;">*</span></label>
                     <div class="input-group">
-                    <input type="password" name="password" class="form-control password-input" required minlength="8">
-                    <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
-                        <i class="fas fa-eye"></i>
-                    </span>
+                        <input type="password" name="password" class="form-control password-input" required minlength="8">
+                        <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
+                            <i class="fas fa-eye"></i>
+                        </span>
                     </div>
                     <div class="error-message" id="password-error">Password must be at least 8 characters long</div>
                 </div>
                 <div class="col-md-4 mb-3 password-container">
                     <label class="form-label">Confirm Password <span style="color: red;">*</span></label>
                     <div class="input-group">
-                    <input type="password" name="confirmPassword" class="form-control password-input" required minlength="8">
-                    <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
-                        <i class="fas fa-eye"></i>
-                    </span>
+                        <input type="password" name="confirmPassword" class="form-control password-input" required minlength="8">
+                        <span class="input-group-text toggle-password" onclick="togglePasswordVisibility(this)">
+                            <i class="fas fa-eye"></i>
+                        </span>
                     </div>
                     <div class="error-message" id="confirmPassword-error">Passwords must match</div>
                 </div>
@@ -833,50 +962,49 @@ if (isset($_POST['register'])) {
             
             <div class="d-flex justify-content-center gap-4 mt-5">
                 <button type="button" name="previousBtn" class="btn btn-previous px-5 py-2" style="background-color: #E9ECEF; border: none; border-radius: 5px; color: #666; width: 150px;">Previous</button>
-                <button type="submit" name="nextBtn" class="btn btn-next px-5 py-2" style="background-color: #0F4332; border: none; border-radius: 5px; color: white; width: 150px;">Next</button>
+                <button type="submit" name="register" class="btn btn-next px-5 py-2" style="background-color: #0F4332; border: none; border-radius: 5px; color: white; width: 150px;">Next</button>
             </div>
         </form>
     </div>
 
     <!-- Footer -->
     <footer class="footer">
-            <div class="container">
-                <div class="row">
-                    <div class="col-lg-6">
-                        <h3 class="footer-title">PASCHAL MULTIPURPOSE COOPERATIVE</h3>
-                        <p class="footer-description">Corner Acacia St., Bunsuran 1st, Pandi, Bul.(Main Office)</p>
-                        <div class="social-icons">
-                            <a href="https://www.facebook.com/paschalcoop" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
-                            <a href="mailto:paschal_mpc@yahoo.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
-                        
-                        </div>
-                    </div>
-                    <div class="col-lg-3 mt-4 mt-lg-0">
-                        <h4 class="h5 mb-3">Quick Links</h4>
-                        <ul class="list-unstyled">
-                            <li><a href="services.php" class="text-white text-decoration-none">Our Services</a></li>
-                            <li><a href="benefits.php" class="text-white text-decoration-none">Member Benefits</a></li>
-                            <li><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
-                            <li><a href="apply-loan.php" class="text-white text-decoration-none">Apply for Loan</a></li>
-                        </ul>
-                    </div>
-                    <div class="col-lg-3 mt-4 mt-lg-0">
-                        <h4 class="h5 mb-3">Contact Us</h4>
-                        <ul class="list-unstyled text-white">
-                            <li><i class="fas fa-phone me-2"></i>0917-520-1287 / 0932-864-5536</li>
-                        
-                        </ul>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-6">
+                    <h3 class="footer-title">PASCHAL MULTIPURPOSE COOPERATIVE</h3>
+                    <p class="footer-description">Corner Acacia St., Bunsuran 1st, Pandi, Bul.(Main Office)</p>
+                    <div class="social-icons">
+                        <a href="https://www.facebook.com/paschalcoop" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+                        <a href="mailto:paschal_mpc@yahoo.com" aria-label="Email"><i class="fa-solid fa-envelope"></i></a>
                     </div>
                 </div>
-                <hr>
-                <div class="text-center copyright">
-                    <p>©2024 | PASCHAL Multi-Purpose Cooperative. All rights reserved.</p>
+                <div class="col-lg-3 mt-4 mt-lg-0">
+                    <h4 class="h5 mb-3">Quick Links</h4>
+                    <ul class="list-unstyled">
+                        <li><a href="services.php" class="text-white text-decoration-none">Our Services</a></li>
+                        <li><a href="benefits.php" class="text-white text-decoration-none">Member Benefits</a></li>
+                        <li><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
+                        <li><a href="apply-loan.php" class="text-white text-decoration-none">Apply for Loan</a></li>
+                    </ul>
+                </div>
+                <div class="col-lg-3 mt-4 mt-lg-0">
+                    <h4 class="h5 mb-3">Contact Us</h4>
+                    <ul class="list-unstyled text-white">
+                        <li><i class="fas fa-phone me-2"></i>0917-520-1287 / 0932-864-5536</li>
+                    </ul>
                 </div>
             </div>
-        </footer>
+            <hr>
+            <div class="text-center copyright">
+                <p>©2024 | PASCHAL Multi-Purpose Cooperative. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     // Initialize AOS (Animate on Scroll)
     AOS.init({
@@ -897,10 +1025,7 @@ if (isset($_POST['register'])) {
 
         // Set active class based on current page
         navLinks.forEach(link => {
-            // Remove any pre-existing active classes
             link.classList.remove('active');
-
-            // Check if link's href matches current page
             if (link.getAttribute('href') === currentLocation || 
                 (currentLocation === '' && link.getAttribute('href') === 'index.php')) {
                 link.classList.add('active');
@@ -925,6 +1050,242 @@ if (isset($_POST['register'])) {
                 }
             });
         });
+
+        // Age calculation from birthday
+        const birthdayInput = document.querySelector('input[name="birthday"]');
+        const ageInput = document.querySelector('input[name="age"]');
+
+        if (birthdayInput && ageInput) {
+            birthdayInput.addEventListener('change', function() {
+                const birthDate = new Date(this.value);
+                const today = new Date();
+                
+                let age = today.getFullYear() - birthDate.getFullYear();
+                const monthDiff = today.getMonth() - birthDate.getMonth();
+                const dayDiff = today.getDate() - birthDate.getDate();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
+                    age--;
+                }
+
+                if (age < 18 || isNaN(age)) {
+                    Swal.fire({
+                        title: 'Age Restriction',
+                        html: '<div style="color:#dc3545;font-size:1.1rem">You must be <strong>18 years or older</strong> to register.</div>' +
+                              '<div style="margin-top:15px;color:#6c757d">Please provide a valid date of birth.</div>',
+                        icon: 'error',
+                        confirmButtonColor: '#0F4332',
+                        confirmButtonText: 'OK',
+                        backdrop: `
+                            rgba(15,67,50,0.4)
+                            url("dist/assets/images/age-restriction.png")
+                            center top
+                            no-repeat
+                        `
+                    });
+                    this.value = '';
+                    ageInput.value = '';
+                } else {
+                    ageInput.value = age;
+                }
+            });
+        }
+
+        // Form validation functions
+        function validateFirstName() {
+            const firstname = document.querySelector('input[name="firstname"]');
+            const error = document.getElementById('firstname-error');
+            
+            if (!firstname.value.trim()) {
+                firstname.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                firstname.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateLastName() {
+            const lastname = document.querySelector('input[name="lastname"]');
+            const error = document.getElementById('lastname-error');
+            
+            if (!lastname.value.trim()) {
+                lastname.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                lastname.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateMobile() {
+            const mobile = document.querySelector('input[name="mobile"]');
+            const error = document.getElementById('mobile-error');
+            const mobileRegex = /^\d{11}$/;
+            
+            if (!mobileRegex.test(mobile.value)) {
+                mobile.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                mobile.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateEmail() {
+            const email = document.querySelector('input[name="email"]');
+            const error = document.getElementById('email-error');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            
+            if (!emailRegex.test(email.value)) {
+                email.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                email.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validatePassword() {
+            const password = document.querySelector('input[name="password"]');
+            const error = document.getElementById('password-error');
+            
+            if (password.value.length < 8) {
+                password.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                password.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateConfirmPassword() {
+            const password = document.querySelector('input[name="password"]');
+            const confirmPassword = document.querySelector('input[name="confirmPassword"]');
+            const error = document.getElementById('confirmPassword-error');
+            
+            if (password.value !== confirmPassword.value) {
+                confirmPassword.classList.add('input-error');
+                error.style.display = 'block';
+                return false;
+            } else {
+                confirmPassword.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        function validateTIN() {
+            const tin = document.querySelector('input[name="tin-number"]');
+            const error = document.getElementById('tin-error');
+            const tinRegex = /^\d{9}$/;
+            
+            if (!tinRegex.test(tin.value)) {
+                tin.classList.add('input-error');
+                error.textContent = 'TIN must be exactly 9 digits';
+                error.style.display = 'block';
+                return false;
+            } else {
+                tin.classList.remove('input-error');
+                error.style.display = 'none';
+                return true;
+            }
+        }
+
+        // Toggle Password Visibility
+        function togglePasswordVisibility(el) {
+            const input = el.previousElementSibling;
+            const icon = el.querySelector('i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.classList.remove('fa-eye');
+                icon.classList.add('fa-eye-slash');
+            } else {
+                input.type = 'password';
+                icon.classList.remove('fa-eye-slash');
+                icon.classList.add('fa-eye');
+            }
+        }
+
+        // Real-time Validation Event Listeners
+        const firstname = document.querySelector('input[name="firstname"]');
+        const lastname = document.querySelector('input[name="lastname"]');
+        const mobile = document.querySelector('input[name="mobile"]');
+        const email = document.querySelector('input[name="email"]');
+        const password = document.querySelector('input[name="password"]');
+        const confirmPassword = document.querySelector('input[name="confirmPassword"]');
+        const tin = document.querySelector('input[name="tin-number"]');
+        const form = document.getElementById('signupForm');
+
+        if (firstname) firstname.addEventListener('input', validateFirstName);
+        if (lastname) lastname.addEventListener('input', validateLastName);
+        if (mobile) mobile.addEventListener('input', validateMobile);
+        if (email) email.addEventListener('input', validateEmail);
+        if (password) password.addEventListener('input', validatePassword);
+        if (confirmPassword) confirmPassword.addEventListener('input', validateConfirmPassword);
+        if (tin) tin.addEventListener('input', validateTIN);
+
+        if (form) {
+    form.addEventListener('submit', function(e) {
+        // Prevent default only if validation fails
+        const isFirstNameValid = validateFirstName();
+        const isLastNameValid = validateLastName();
+        const isMobileValid = validateMobile();
+        const isEmailValid = validateEmail();
+        const isPasswordValid = validatePassword();
+        const isConfirmPasswordValid = validateConfirmPassword();
+        const isTINValid = validateTIN();
+
+        // Check age again
+        const ageInput = document.querySelector('input[name="age"]');
+        const isAgeValid = parseInt(ageInput.value) >= 18 && !isNaN(parseInt(ageInput.value));
+
+        if (!isFirstNameValid || !isLastNameValid || !isMobileValid || 
+            !isEmailValid || !isPasswordValid || !isConfirmPasswordValid || 
+            !isTINValid || !isAgeValid) {
+            
+            e.preventDefault();
+            
+            if (!isAgeValid) {
+                Swal.fire({
+                    title: 'Age Restriction',
+                    html: '<div style="color:#dc3545;font-size:1.1rem">You must be <strong>18 years or older</strong> to register.</div>' +
+                          '<div style="margin-top:15px;color:#6c757d">Please provide a valid date of birth.</div>',
+                    icon: 'error',
+                    confirmButtonColor: '#0F4332',
+                    confirmButtonText: 'OK',
+                    backdrop: `
+                        rgba(15,67,50,0.4)
+                        url("dist/assets/images/age-restriction.png")
+                        center top
+                        no-repeat
+                    `
+                });
+            }
+            
+            // Scroll to first error
+            const firstError = document.querySelector('.input-error');
+            if (firstError) {
+                firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+            
+            return false;
+        }
+        
+        // If all validations pass, allow form to submit
+    });
+}
     });
 
     // Navbar scroll handler
@@ -938,228 +1299,6 @@ if (isset($_POST['register'])) {
             navbar.style.boxShadow = 'none';
         }
     });
-
-    // Function to handle checklist redirection
-    function continueToNextStep() {
-        window.location.href = "member-application.php";
-    }
-
-    // Optional: Add event listener for mobile menu
-    document.addEventListener('DOMContentLoaded', function() {
-        const navbarToggler = document.querySelector('.navbar-toggler');
-        const navbarCollapse = document.querySelector('.navbar-collapse');
-
-        if (navbarToggler && navbarCollapse) {
-            navbarToggler.addEventListener('click', function() {
-                navbarCollapse.classList.toggle('show');
-            });
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!navbarCollapse.contains(event.target) && !navbarToggler.contains(event.target)) {
-                    navbarCollapse.classList.remove('show');
-                }
-            });
-
-            // Close mobile menu when clicking on a link
-            const mobileNavLinks = navbarCollapse.querySelectorAll('.nav-link');
-            mobileNavLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    navbarCollapse.classList.remove('show');
-                });
-            });
-        }
-    });
-
-    // Optional: Add scroll to top functionality
-    window.addEventListener('scroll', function() {
-        const scrollToTop = document.querySelector('.scroll-to-top');
-        if (scrollToTop) {
-            if (window.pageYOffset > 100) {
-                scrollToTop.style.display = 'block';
-            } else {
-                scrollToTop.style.display = 'none';
-            }
-        }
-    });
-    // Validation Functions
-    function validateFirstName() {
-        const firstname = document.querySelector('input[name="firstname"]');
-        const error = document.getElementById('firstname-error');
-        
-        if (!firstname.value.trim()) {
-            firstname.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            firstname.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    function validateLastName() {
-        const lastname = document.querySelector('input[name="lastname"]');
-        const error = document.getElementById('lastname-error');
-        
-        if (!lastname.value.trim()) {
-            lastname.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            lastname.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    function validateMobile() {
-        const mobile = document.querySelector('input[name="mobile"]');
-        const error = document.getElementById('mobile-error');
-        const mobileRegex = /^\d{11}$/;
-        
-        if (!mobileRegex.test(mobile.value)) {
-            mobile.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            mobile.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    function validateEmail() {
-        const email = document.querySelector('input[name="email"]');
-        const error = document.getElementById('email-error');
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
-        if (!emailRegex.test(email.value)) {
-            email.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            email.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    function validatePassword() {
-        const password = document.querySelector('input[name="password"]');
-        const error = document.getElementById('password-error');
-        
-        if (password.value.length < 8) {
-            password.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            password.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    function validateConfirmPassword() {
-        const password = document.querySelector('input[name="password"]');
-        const confirmPassword = document.querySelector('input[name="confirmPassword"]');
-        const error = document.getElementById('confirmPassword-error');
-        
-        if (password.value !== confirmPassword.value) {
-            confirmPassword.classList.add('input-error');
-            error.style.display = 'block';
-            return false;
-        } else {
-            confirmPassword.classList.remove('input-error');
-            error.style.display = 'none';
-            return true;
-        }
-    }
-
-    // Toggle Password Visibility
-    function togglePasswordVisibility(el) {
-        const input = el.previousElementSibling;
-        const icon = el.querySelector('i');
-        
-        if (input.type === 'password') {
-            input.type = 'text';
-            icon.classList.remove('fa-eye');
-            icon.classList.add('fa-eye-slash');
-        } else {
-            input.type = 'password';
-            icon.classList.remove('fa-eye-slash');
-            icon.classList.add('fa-eye');
-        }
-    }
-
-    // Real-time Validation Event Listeners
-    document.addEventListener('DOMContentLoaded', function() {
-        const firstname = document.querySelector('input[name="firstname"]');
-        const lastname = document.querySelector('input[name="lastname"]');
-        const mobile = document.querySelector('input[name="mobile"]');
-        const email = document.querySelector('input[name="email"]');
-        const password = document.querySelector('input[name="password"]');
-        const confirmPassword = document.querySelector('input[name="confirmPassword"]');
-
-        firstname.addEventListener('input', validateFirstName);
-        lastname.addEventListener('input', validateLastName);
-        mobile.addEventListener('input', validateMobile);
-        email.addEventListener('input', validateEmail);
-        password.addEventListener('input', validatePassword);
-        confirmPassword.addEventListener('input', validateConfirmPassword);
-
-        // Form Submission Validation
-        const form = document.getElementById('signupForm');
-        form.addEventListener('submit', function(e) {
-            e.preventDefault(); // Prevent default submission initially
-
-            const isFirstNameValid = validateFirstName();
-            const isLastNameValid = validateLastName();
-            const isMobileValid = validateMobile();
-            const isEmailValid = validateEmail();
-            const isPasswordValid = validatePassword();
-            const isConfirmPasswordValid = validateConfirmPassword();
-
-            if (isFirstNameValid && isLastNameValid && isMobileValid && 
-                isEmailValid && isPasswordValid && isConfirmPasswordValid) {
-                // Add a hidden input to indicate registration
-                const registerInput = document.createElement('input');
-                registerInput.type = 'hidden';
-                registerInput.name = 'register';
-                registerInput.value = 'true';
-                form.appendChild(registerInput);
-
-                // Now submit the form
-                form.submit();
-            }
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-    const birthdayInput = document.querySelector('input[name="birthday"]');
-    const ageInput = document.querySelector('input[name="age"]');
-
-    birthdayInput.addEventListener('change', function() {
-        const birthDate = new Date(this.value);
-        const today = new Date();
-        
-        let age = today.getFullYear() - birthDate.getFullYear();
-        const monthDiff = today.getMonth() - birthDate.getMonth();
-        const dayDiff = today.getDate() - birthDate.getDate();
-        
-        // Adjust age if birthday hasn't occurred yet this year
-        if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-            age--;
-        }
-
-        if (age < 18) {
-                ageInput.value = ''; // Keep age field empty
-            } else {
-                ageInput.value = age; // Set calculated age
-            }
-    });
-});
-
-</script>
+    </script>
 </body>
 </html>

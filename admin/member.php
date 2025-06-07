@@ -954,8 +954,7 @@ try {
         <table class="table table-striped table-borderless">
             <thead>
                 <tr>
-                    <th>First Name</th>
-                    <th>Last Name</th>
+                    <th>Name</th>
                     <th>Email</th>
                     <th>Mobile</th>
                     <th>Membership Type</th>
@@ -973,15 +972,14 @@ try {
                     <?php if ($row['membership_status'] == 'Pending'): ?>
                         <?php $pending_members_found = true; ?>
                         <tr>
-                            <td><?php echo htmlspecialchars($row['first_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']); ?></td>
                             <td><?php echo htmlspecialchars($row['email']); ?></td>
                             <td><?php echo htmlspecialchars($row['mobile']); ?></td>
                             <td><?php echo htmlspecialchars($row['membership_type']); ?></td>
                             <td><?php echo htmlspecialchars($row['created_at']); ?></td>
                             <td>
-                                <!-- View Button with unique modal ID -->
-                                <button class="btn btn-primary btn-sm" data-toggle="modal"
+                                                                <!-- View Button with unique modal ID -->
+                                                                <button class="btn btn-primary btn-sm" data-toggle="modal"
                                     data-target="#viewPendingModal<?php echo $row['id']; ?>">
                                     <i class="fa-solid fa-eye"></i>
                                 </button>
@@ -1011,6 +1009,16 @@ try {
                     $app_stmt->execute();
                     $app_result = $app_stmt->get_result();
                     $app_data = $app_result->fetch_assoc();
+                    ?>
+
+                    <?php
+                    // Fetch payment breakdown from appointments table
+                    $pay_sql = "SELECT share_capital, savings, membership_fee, insurance, total_amount FROM appointments WHERE user_id = ?";
+                    $pay_stmt = $conn->prepare($pay_sql);
+                    $pay_stmt->bind_param("s", $row['user_id']);
+                    $pay_stmt->execute();
+                    $pay_result = $pay_stmt->get_result();
+                    $pay_data = $pay_result->fetch_assoc();
                     ?>
 
                     <!-- Checklist Card -->
@@ -1068,6 +1076,35 @@ try {
                                     <div class="border rounded p-2"><?php echo htmlspecialchars($app_data['payment_status']); ?></div>
                                 </div>
                             </div>
+
+                            <?php if ($pay_data): ?>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h6 class="text-warning fw-bold mb-2 text-center">Need to Pay Breakdown</h6>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Share Capital</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['share_capital'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Savings</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['savings'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Membership Fee</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['membership_fee'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Insurance</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['insurance'], 2); ?></div>
+        </div>
+        <div class="col-md-12">
+            <small class="text-muted fw-bold">Total Amount</small>
+            <div class="border rounded p-2 bg-light text-dark fw-bold">₱<?php echo number_format($pay_data['total_amount'], 2); ?></div>
+        </div>
+    </div>
+<?php endif; ?>
+
                         </div>
                     </div>
 

@@ -8,6 +8,7 @@ function sanitizeInput($input) {
     $input = htmlspecialchars($input);
     return $input;
 }
+
 $userID = isset($_GET['member-id']) ? intval($_GET['member-id']) : 0;
 if (!empty($userID)) {
     $stmt = $conn->prepare("SELECT age FROM users WHERE user_id = ?");
@@ -18,20 +19,30 @@ if (!empty($userID)) {
     $userAge = $userData['age'];
 }
 
-
 // Function to calculate membership totals
-function calculateMembershipTotals($membershipType, $age) {
+function calculateMembershipTotals($membershipType, $age, $shareCapital, $savings) {
     $totals = [
-        'share_capital' => 0,
-        'savings' => 1000,
+        'share_capital' => $shareCapital,
+        'savings' => $savings,
         'insurance' => 0,
         'membership_fee' => 300,
         'total_amount' => 0
     ];
 
-    // Set share capital based on membership type
-    $totals['share_capital'] = ($membershipType === 'Regular') ? 5000 : 1000;
+    // Validate share capital based on membership type
+    if ($membershipType === 'Regular' && $shareCapital < 5000) {
+        die("Error: Regular membership requires minimum share capital of 5,000");
+    }
     
+    if ($membershipType === 'Associate' && ($shareCapital < 1000 || $shareCapital > 4999)) {
+        die("Error: Associate membership share capital must be between 1,000 and 4,999");
+    }
+    
+    // Validate savings
+    if ($savings < 1000) {
+        die("Error: Minimum savings amount is 1,000");
+    }
+
     // Set insurance based on age
     $totals['insurance'] = ($age >= 65 && $age <= 75) ? 550 : 450;
     
@@ -48,6 +59,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $userID = isset($_POST['member-id']) ? intval($_POST['member-id']) : 0;
     $appointmentDate = isset($_POST['appointment-date']) ? sanitizeInput($_POST['appointment-date']) : '';
     $membershipType = isset($_POST['membership-type']) ? sanitizeInput($_POST['membership-type']) : '';
+    $shareCapital = isset($_POST['share-capital']) ? floatval($_POST['share-capital']) : 0;
+    $savings = isset($_POST['savings']) ? floatval($_POST['savings']) : 1000;
 
     // Validate inputs
     if (empty($userID) || empty($appointmentDate) || empty($membershipType)) {
@@ -67,7 +80,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     try {
         // Fetch member details including age
-        $memberQuery = $conn->prepare("SELECT first_name, last_name, email
+        $memberQuery = $conn->prepare("SELECT first_name, last_name, email, age
             FROM users WHERE user_id = ?");
         $memberQuery->bind_param('i', $userID);
         $memberQuery->execute();
@@ -84,46 +97,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $age = $memberData['age'];
 
         // Calculate membership totals
-        $totals = calculateMembershipTotals($membershipType, $age);
+        $totals = calculateMembershipTotals($membershipType, $age, $shareCapital, $savings);
         
         // Predefined service ID for membership application
         $serviceID = 13;
         $description = "Membership Payment";
 
-      
         $appointmentStmt = $conn->prepare("
         INSERT INTO appointments (
             user_id, appointmentdate, last_name, first_name, email, 
             description, serviceID, share_capital, savings, insurance, 
-            membership_fee, total_amount
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            membership_fee, total_amount, payable_amount
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         $appointmentStmt->bind_param(
-        'isssssiiiiid',
-        $userID,
-        $appointmentDate,
-        $lastName,
-        $firstName,
-        $email,
-        $description,
-        $serviceID,
-        $totals['share_capital'],
-        $totals['savings'],
-        $totals['insurance'],
-        $totals['membership_fee'],
-        $totals['total_amount']
+            'isssssiiiiidd',
+            $userID,
+            $appointmentDate,
+            $lastName,
+            $firstName,
+            $email,
+            $description,
+            $serviceID,
+            $totals['share_capital'],
+            $totals['savings'],
+            $totals['insurance'],
+            $totals['membership_fee'],
+            $totals['total_amount'],
+            $totals['total_amount'] // This sets payable_amount equal to total_amount
         );
 
-        // Add this line to execute the insert:
         $appointmentStmt->execute();
 
-        // Also, let's add error checking:
         if ($appointmentStmt->errno) {
         throw new Exception("Error inserting appointment: " . $appointmentStmt->error);
         }
         
-
         // Update membership type and set membership status to Pending
         $updateUserStmt = $conn->prepare("UPDATE users SET membership_type = ?, membership_status = 'Pending' WHERE user_id = ?");
         $updateUserStmt->bind_param('si', $membershipType, $userID);
@@ -133,7 +143,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $updateAppStmt = $conn->prepare("UPDATE member_applications SET appointment_date = ?, status = ? WHERE user_id = ?");
         $updateAppStmt->bind_param('ssi', $appointmentDate, $status, $userID);
         $updateAppStmt->execute();
-
 
         // Commit the transaction
         $conn->commit();
@@ -428,6 +437,24 @@ if (empty($userID)) {
                 min-height: 40px;
             }
         }
+        
+        /* Custom styles for editable fields */
+        .editable-field {
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+            transition: all 0.3s;
+        }
+        
+        .editable-field:focus {
+            background-color: white;
+            border-color: #80bdff;
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        }
+        
+        .amount-label {
+            font-weight: 600;
+            color: #495057;
+        }
     </style>
 </head>
 <body>
@@ -471,7 +498,7 @@ if (empty($userID)) {
             <div class="card">
                 <div class="card-body">
                     <h4 class="card-title">Date of Appointment</h4><br>
-                    <form action="member-doa.php?member-id=<?php echo htmlspecialchars($userID); ?>" method="post">
+                    <form action="member-doa.php?member-id=<?php echo htmlspecialchars($userID); ?>" method="post" id="membershipForm">
                     <div class="row mb-3">
                         <div class="col-6">
                             <label for="appointment-date" class="form-label">Date of Appointment:</label>
@@ -479,7 +506,7 @@ if (empty($userID)) {
                         </div>
                         <div class="col-6">
                             <label for="membership-type" class="form-label">Membership Type:</label>
-                            <select class="form-select" id="membership-type" name="membership-type">
+                            <select class="form-select" id="membership-type" name="membership-type" required>
                                 <option value="Associate">Associate Membership</option>
                                 <option value="Regular">Regular Membership</option>
                             </select>
@@ -489,36 +516,38 @@ if (empty($userID)) {
                     <h4 class="card-title">Membership Information</h4><br>
                         <div class="row">
                             <div class="col-6">
-                                <label for="share-capital" class="form-label">Share Capital:</label>
-                                <input type="text" class="form-control" id="share-capital" value="5,000" readonly>
+                                <label for="regular-share-capital" class="form-label amount-label">Share Capital:</label>
+                                <input type="number" class="form-control editable-field" id="regular-share-capital" name="share-capital" min="5000" value="5000" required>
+                                <small class="text-muted">Minimum: 5,000</small>
                             </div>
                             <div class="col-6">
-                                <label for="savings" class="form-label">Savings:</label>
-                                <input type="text" class="form-control" id="savings" value="1,000" readonly>
+                                <label for="regular-savings" class="form-label amount-label">Savings:</label>
+                                <input type="number" class="form-control editable-field" id="regular-savings" name="savings" min="1000" value="1000" required>
+                                <small class="text-muted">Minimum: 1,000</small>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mt-2">
                             <div class="col-6">
-                                <label for="insurance-18-64" class="form-label">Insurance (18-64 years old):</label>
-                                <input type="text" class="form-control" id="insurance-18-64" value="450.00 PHP" readonly>
+                                <label class="form-label amount-label">Insurance (18-64 years old):</label>
+                                <input type="text" class="form-control" value="450.00 PHP" readonly>
                             </div>
                             <div class="col-6">
-                                <label for="insurance-65-75" class="form-label">Insurance (65-75 years old):</label>
-                                <input type="text" class="form-control" id="insurance-65-75" value="550.00 PHP" readonly>
+                                <label class="form-label amount-label">Insurance (65-75 years old):</label>
+                                <input type="text" class="form-control" value="550.00 PHP" readonly>
                             </div>
-                            <div class="col-6">
-                                <label for="membership-fee" class="form-label">Membership Fee:</label>
-                                <input type="text" class="form-control" id="membership-fee" value="300" readonly>
+                            <div class="col-6 mt-2">
+                                <label class="form-label amount-label">Membership Fee:</label>
+                                <input type="text" class="form-control" value="300.00 PHP" readonly>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12" id="total-display">
+                        <div class="row mt-3">
+                            <div class="col-12" id="regular-total-display">
                                 <?php if ($userAge >= 65 && $userAge <= 75): ?>
-                                    <label for="total-65-75" class="form-label">Total Amount Due:</label>
-                                    <input type="text" class="form-control" id="total-65-75" value="6,850 Pesos" readonly>
+                                    <label class="form-label amount-label">Estimated Total:</label>
+                                    <input type="text" class="form-control bg-light" id="regular-total-65-75" value="6,850 Pesos" readonly>
                                 <?php else: ?>
-                                    <label for="total-18-64" class="form-label">Total Amount Due:</label>
-                                    <input type="text" class="form-control" id="total-18-64" value="6,750 Pesos" readonly>
+                                    <label class="form-label amount-label">Estimated Total:</label>
+                                    <input type="text" class="form-control bg-light" id="regular-total-18-64" value="6,750 Pesos" readonly>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -527,36 +556,38 @@ if (empty($userID)) {
                     <h4 class="card-title">Membership Information</h4><br>
                         <div class="row">
                             <div class="col-6">
-                                <label for="share-capital" class="form-label">Share Capital:</label>
-                                <input type="text" class="form-control" id="share-capital" value="1,000" readonly>
+                                <label for="associate-share-capital" class="form-label amount-label">Share Capital:</label>
+                                <input type="number" class="form-control editable-field" id="associate-share-capital" name="share-capital" min="1000" max="4999" value="1000" required>
+                                <small class="text-muted">Range: 1,000-4,999</small>
                             </div>
                             <div class="col-6">
-                                <label for="savings" class="form-label">Savings:</label>
-                                <input type="text" class="form-control" id="savings" value="1,000" readonly>
+                                <label for="associate-savings" class="form-label amount-label">Savings:</label>
+                                <input type="number" class="form-control editable-field" id="associate-savings" name="savings" min="1000" value="1000" required>
+                                <small class="text-muted">Minimum: 1,000</small>
                             </div>
                         </div>
-                        <div class="row">
+                        <div class="row mt-2">
                             <div class="col-6">
-                                <label for="insurance-18-64" class="form-label">Insurance (18-64 years old):</label>
-                                <input type="text" class="form-control" id="insurance-18-64" value="450.00 PHP" readonly>
+                                <label class="form-label amount-label">Insurance (18-64 years old):</label>
+                                <input type="text" class="form-control" value="450.00 PHP" readonly>
                             </div>
                             <div class="col-6">
-                                <label for="insurance-65-75" class="form-label">Insurance (65-75 years old):</label>
-                                <input type="text" class="form-control" id="insurance-65-75" value="550.00 PHP" readonly>
+                                <label class="form-label amount-label">Insurance (65-75 years old):</label>
+                                <input type="text" class="form-control" value="550.00 PHP" readonly>
                             </div>
-                            <div class="col-6">
-                                <label for="membership-fee" class="form-label">Membership Fee:</label>
-                                <input type="text" class="form-control" id="membership-fee" value="300" readonly>
+                            <div class="col-6 mt-2">
+                                <label class="form-label amount-label">Membership Fee:</label>
+                                <input type="text" class="form-control" value="300.00 PHP" readonly>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-12" id="total-display">
+                        <div class="row mt-3">
+                            <div class="col-12" id="associate-total-display">
                                 <?php if ($userAge >= 65 && $userAge <= 75): ?>
-                                    <label for="total-65-75" class="form-label">Total Amount Due:</label>
-                                    <input type="text" class="form-control" id="total-65-75" value="2,850 Pesos" readonly>
+                                    <label class="form-label amount-label">Estimated Total:</label>
+                                    <input type="text" class="form-control bg-light" id="associate-total-65-75" value="2,850 Pesos" readonly>
                                 <?php else: ?>
-                                    <label for="total-18-64" class="form-label">Total Amount Due:</label>
-                                    <input type="text" class="form-control" id="total-18-64" value="2,750 Pesos" readonly>
+                                    <label class="form-label amount-label">Estimated Total:</label>
+                                    <input type="text" class="form-control bg-light" id="associate-total-18-64" value="2,750 Pesos" readonly>
                                 <?php endif; ?>
                             </div>
                         </div>
@@ -571,7 +602,7 @@ if (empty($userID)) {
                     <div class="d-flex justify-content-center gap-4 mt-5">
                         <!-- Hidden field to store member ID -->
                         <input type="hidden" name="member-id" value="<?php echo htmlspecialchars($userID); ?>"> 
-                        <button type="button" name="previousBtn" class="btn btn-previous px-5 py-2" style="background-color: #E9ECEF; border: none; border-radius: 5px; color: #666; width: 160px;"><a href="videoseminar.php?member-id=2" style="text-decoration:none; color:grey;">Previous</a></button>
+                        <button type="button" name="previousBtn" class="btn btn-previous px-5 py-2" style="background-color: #E9ECEF; border: none; border-radius: 5px; color: #666; width: 160px;"><a href="videoseminar.php?member-id=<?php echo htmlspecialchars($userID); ?>" style="text-decoration:none; color:grey;">Previous</a></button>
                         <button type="submit" name="nextBtn" class="btn btn-next px-5 py-2" style="background-color: #0F4332; border: none; border-radius: 5px; color: white; width: 160px;">Next</button>
                     </div>
                     </form>
@@ -682,99 +713,108 @@ if (empty($userID)) {
         }
     });
 
-    // Function to handle checklist redirection
-    function continueToNextStep() {
-        window.location.href = "member-application.php";
-    }
-
-    // Optional: Add event listener for mobile menu
+    // Membership Type Selection Handler
     document.addEventListener('DOMContentLoaded', function() {
-        const navbarToggler = document.querySelector('.navbar-toggler');
-        const navbarCollapse = document.querySelector('.navbar-collapse');
-
-        if (navbarToggler && navbarCollapse) {
-            navbarToggler.addEventListener('click', function() {
-                navbarCollapse.classList.toggle('show');
-            });
-
-            // Close mobile menu when clicking outside
-            document.addEventListener('click', function(event) {
-                if (!navbarCollapse.contains(event.target) && !navbarToggler.contains(event.target)) {
-                    navbarCollapse.classList.remove('show');
-                }
-            });
-
-            // Close mobile menu when clicking on a link
-            const mobileNavLinks = navbarCollapse.querySelectorAll('.nav-link');
-            mobileNavLinks.forEach(link => {
-                link.addEventListener('click', function() {
-                    navbarCollapse.classList.remove('show');
-                });
-            });
-        }
-    });
-
-    // Optional: Add scroll to top functionality
-    window.addEventListener('scroll', function() {
-        const scrollToTop = document.querySelector('.scroll-to-top');
-        if (scrollToTop) {
-            if (window.pageYOffset > 100) {
-                scrollToTop.style.display = 'block';
+        const membershipTypeSelect = document.getElementById('membership-type');
+        const regularDetails = document.getElementById('regular-membership-details');
+        const associateDetails = document.getElementById('associate-membership-details');
+        const userAge = <?php echo $userAge ?? 0; ?>;
+        
+        function updateMembershipDetails() {
+            const selectedType = membershipTypeSelect.value;
+            
+            if (selectedType === 'Regular') {
+                regularDetails.style.display = 'block';
+                associateDetails.style.display = 'none';
+                
+                // Update regular membership total when values change
+                document.getElementById('regular-share-capital').addEventListener('input', updateRegularTotal);
+                document.getElementById('regular-savings').addEventListener('input', updateRegularTotal);
+                
+                // Initial calculation
+                updateRegularTotal();
             } else {
-                scrollToTop.style.display = 'none';
+                regularDetails.style.display = 'none';
+                associateDetails.style.display = 'block';
+                
+                // Update associate membership total when values change
+                document.getElementById('associate-share-capital').addEventListener('input', updateAssociateTotal);
+                document.getElementById('associate-savings').addEventListener('input', updateAssociateTotal);
+                
+                // Initial calculation
+                updateAssociateTotal();
             }
         }
-    });
-
-    document.addEventListener('DOMContentLoaded', () => {
-    const associateMembershipDetails = document.getElementById('associate-membership-details');
-    const regularMembershipDetails = document.getElementById('regular-membership-details');
-    const membershipTypeSelect = document.getElementById('membership-type');
-    
-    // Get user's age from PHP
-    const userAge = <?php echo $userAge ?? 0; ?>;
-    
-    function updateMembershipDetails(selectedType) {
-        // Hide both sections initially
-        associateMembershipDetails.style.display = 'none';
-        regularMembershipDetails.style.display = 'none';
         
-        const isOlder = userAge >= 65 && userAge <= 75;
-        const details = selectedType === 'associate' ? associateMembershipDetails : regularMembershipDetails;
-        
-        if (details) {
-            details.style.display = 'block';
+        function updateRegularTotal() {
+            const shareCapital = parseFloat(document.getElementById('regular-share-capital').value) || 5000;
+            const savings = parseFloat(document.getElementById('regular-savings').value) || 1000;
+            const insurance = (userAge >= 65 && userAge <= 75) ? 550 : 450;
+            const membershipFee = 300;
+            const total = shareCapital + savings + insurance + membershipFee;
             
-            // Update the visible total based on age
-            const total1864 = details.querySelector('#total-18-64');
-            const total6575 = details.querySelector('#total-65-75');
-            
-            if (isOlder) {
-                total1864.parentElement.style.display = 'none';
-                total6575.parentElement.style.display = 'block';
+            if (userAge >= 65 && userAge <= 75) {
+                document.getElementById('regular-total-65-75').value = total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
             } else {
-                total1864.parentElement.style.display = 'block';
-                total6575.parentElement.style.display = 'none';
+                document.getElementById('regular-total-18-64').value = total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
             }
         }
-    }
-    
-    membershipTypeSelect.addEventListener('change', (e) => {
-        updateMembershipDetails(e.target.value.toLowerCase());
+        
+        function updateAssociateTotal() {
+            const shareCapital = parseFloat(document.getElementById('associate-share-capital').value) || 1000;
+            const savings = parseFloat(document.getElementById('associate-savings').value) || 1000;
+            const insurance = (userAge >= 65 && userAge <= 75) ? 550 : 450;
+            const membershipFee = 300;
+            const total = shareCapital + savings + insurance + membershipFee;
+            
+            if (userAge >= 65 && userAge <= 75) {
+                document.getElementById('associate-total-65-75').value = total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
+            } else {
+                document.getElementById('associate-total-18-64').value = total.toLocaleString('en-PH', { style: 'currency', currency: 'PHP' });
+            }
+        }
+        
+        // Initialize and set up event listeners
+        membershipTypeSelect.addEventListener('change', updateMembershipDetails);
+        updateMembershipDetails();
+        
+        // Form validation
+        document.getElementById('membershipForm').addEventListener('submit', function(e) {
+            const selectedType = membershipTypeSelect.value;
+            const shareCapitalInput = selectedType === 'Regular' ? 
+                document.getElementById('regular-share-capital') : 
+                document.getElementById('associate-share-capital');
+            const shareCapital = parseFloat(shareCapitalInput.value) || 0;
+            
+            const savingsInput = selectedType === 'Regular' ? 
+                document.getElementById('regular-savings') : 
+                document.getElementById('associate-savings');
+            const savings = parseFloat(savingsInput.value) || 0;
+            
+            if (selectedType === 'Regular' && shareCapital < 5000) {
+                alert('Regular membership requires minimum share capital of ₱5,000');
+                e.preventDefault();
+                shareCapitalInput.focus();
+                return false;
+            }
+            
+            if (selectedType === 'Associate' && (shareCapital < 1000 || shareCapital > 4999)) {
+                alert('Associate membership share capital must be between ₱1,000 and ₱4,999');
+                e.preventDefault();
+                shareCapitalInput.focus();
+                return false;
+            }
+            
+            if (savings < 1000) {
+                alert('Minimum savings amount is ₱1,000');
+                e.preventDefault();
+                savingsInput.focus();
+                return false;
+            }
+            
+            return true;
+        });
     });
-    
-    // Initial update
-    updateMembershipDetails(membershipTypeSelect.value.toLowerCase());
-});
-
-    document.getElementById('previous-btn').addEventListener('click', () => {
-      // Add your previous button logic here
-    });
-
-    document.getElementById('next-btn').addEventListener('click', () => {
-      // Add your next button logic here
-    });
-   
-</script>
+    </script>
 </body>
 </html>
