@@ -166,14 +166,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             <ul class="nav">
                 <li class="nav-item">
                 <a class="nav-link" href="index.php">
-                    <i class="fa-solid fa-gauge"></i>
-                    <span class="menu-title">Dashboard</span>
+                    <i class="fa-solid fa-house"></i>
+                    <span class="menu-title">Home</span>
                 </a>
                 </li>
                 <li class="nav-item">
                 <a class="nav-link" href="home.php">
-                    <i class="fa-solid fa-house"></i>
-                    <span class="menu-title">Home</span>
+                    <i class="fa-solid fa-gauge"></i>
+                    <span class="menu-title">Dashboard</span>
                 </a>
                 </li>
                 <li class="nav-item">
@@ -181,6 +181,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     <i class="fa-brands fa-slack"></i>
                     <span class="menu-title">Services</span>
                 </a>
+                <li class="nav-item">
+                    <a class="nav-link" href="appointments.php">
+                    <i class="fa-solid fa-calendar"></i>
+                    <span class="menu-title">Appointments</span>
+                    </a>
+                </li>
                 </li>
                 <li class="nav-item">
                 <a class="nav-link" href="inbox.php">

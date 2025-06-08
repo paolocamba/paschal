@@ -81,22 +81,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['send_reply'])) {
     }
 }
 
+// Mark message as read when viewed
+if (isset($_GET['view_message'])) {
+    $message_id = $_GET['view_message'];
+    $update_sql = "UPDATE messages SET is_read = 1 WHERE message_id = '$message_id'";
+    $conn->query($update_sql);
+}
+
 // Fetch messages for the current user
+// Base query
 $messages_sql = "SELECT m.*, 
                 u1.first_name as sender_first_name, u1.last_name as sender_last_name, u1.uploadID as sender_image,
                 u2.first_name as receiver_first_name, u2.last_name as receiver_last_name, u2.uploadID as receiver_image
                 FROM messages m
                 JOIN users u1 ON m.sender_id = u1.user_id
                 JOIN users u2 ON m.receiver_id = u2.user_id
-                WHERE m.sender_id = '$id' OR m.receiver_id = '$id'
-                ORDER BY m.sent_at DESC";
+                WHERE (m.sender_id = '$id' OR m.receiver_id = '$id')";
+
+// Add search condition if search term exists
+if (isset($_GET['search']) && !empty($_GET['search'])) {
+    $search_term = $conn->real_escape_string($_GET['search']);
+    $messages_sql .= " AND (
+        CONCAT(u1.first_name, ' ', u1.last_name) LIKE '%$search_term%' OR
+        CONCAT(u2.first_name, ' ', u2.last_name) LIKE '%$search_term%' OR
+        m.message LIKE '%$search_term%'
+    )";
+}
+
+$messages_sql .= " ORDER BY m.sent_at DESC";
 $messages_result = $conn->query($messages_sql);
 
-// Fetch admin users for the message modal
-$admin_sql = "SELECT user_id, CONCAT(first_name, ' ', last_name) as full_name, user_type 
-              FROM users 
-              WHERE user_type IN ('Admin', 'Medical Officer', 'Loan Officer', 'Membership Officer')";
-$admin_result = $conn->query($admin_sql);
 
 // Function to fetch thread messages
 function fetchThreadMessages($conn, $thread_id) {
@@ -111,11 +125,16 @@ function fetchThreadMessages($conn, $thread_id) {
     return $conn->query($thread_sql);
 }
 
-// Mark message as read when viewing
-if (isset($_GET['thread_id'])) {
-    $thread_id = $_GET['thread_id'];
-    $conn->query("UPDATE messages SET is_read = 1 WHERE message_id = '$thread_id' AND receiver_id = '$id'");
-}
+// Fetch all members for the message modal (admin can message any member)
+$members_sql = "SELECT user_id, CONCAT(first_name, ' ', last_name) as full_name, user_type 
+                FROM users 
+                WHERE user_type = 'Member'";
+$members_result = $conn->query($members_sql);
+
+// Fetch unread message count for badge
+$unread_sql = "SELECT COUNT(*) as unread_count FROM messages WHERE receiver_id = '$id' AND is_read = 0";
+$unread_result = $conn->query($unread_sql);
+$unread_count = $unread_result->fetch_assoc()['unread_count'];
 ?>
 
 <!DOCTYPE html>
@@ -124,7 +143,7 @@ if (isset($_GET['thread_id'])) {
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Inbox | Member</title>
+    <title>Inbox | Admin</title>
       <!-- plugins:css -->
       <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -226,6 +245,34 @@ if (isset($_GET['thread_id'])) {
             font-size: 0.8rem;
             color: #6c757d;
         }
+        .unread-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            font-size: 10px;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button {
+            padding: 0.375rem 0.75rem;
+            border: 1px solid #dee2e6;
+            margin-left: -1px;
+            color: #00563B;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button.current {
+            background: #00563B;
+            color: white !important;
+            border-color: #00563B;
+        }
+        .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+            background: #00563B;
+            color: white !important;
+            border-color: #00563B;
+        }
+        .dataTables_filter input {
+            border: 1px solid #ced4da;
+            border-radius: 0.25rem;
+            padding: 0.375rem 0.75rem;
+        }
+
     </style>
   </head>
   <body>
@@ -254,6 +301,49 @@ if (isset($_GET['thread_id'])) {
             </li>-->
           </ul>
           <ul class="navbar-nav navbar-nav-right">
+            <li class="nav-item dropdown">
+              <a class="nav-link count-indicator dropdown-toggle" id="messageDropdown" href="#" data-toggle="dropdown" aria-expanded="false">
+                <i class="fas fa-envelope"></i>
+                <?php if ($unread_count > 0): ?>
+                  <span class="count bg-danger unread-badge"><?php echo $unread_count; ?></span>
+                <?php endif; ?>
+              </a>
+              <div class="dropdown-menu dropdown-menu-right navbar-dropdown preview-list" aria-labelledby="messageDropdown">
+                <p class="mb-0 font-weight-normal float-left dropdown-header">Messages</p>
+                <?php 
+                // Fetch recent messages for dropdown
+                $recent_sql = "SELECT m.*, u.first_name, u.last_name 
+                               FROM messages m 
+                               JOIN users u ON m.sender_id = u.user_id 
+                               WHERE m.receiver_id = '$id' 
+                               ORDER BY m.sent_at DESC LIMIT 3";
+                $recent_result = $conn->query($recent_sql);
+                
+                if ($recent_result->num_rows > 0): 
+                    while($recent = $recent_result->fetch_assoc()): 
+                ?>
+                <a class="dropdown-item preview-item" href="inbox.php?view_message=<?php echo $recent['message_id']; ?>">
+                  <div class="preview-thumbnail">
+                    <img src="../dist/assets/images/user/<?php echo $uploadID; ?>" alt="image" class="profile-pic">
+                  </div>
+                  <div class="preview-item-content flex-grow">
+                    <h6 class="preview-subject ellipsis font-weight-normal"><?php echo $recent['first_name'] . ' ' . $recent['last_name']; ?></h6>
+                    <p class="font-weight-light small-text text-muted mb-0">
+                      <?php echo substr($recent['message'], 0, 30) . (strlen($recent['message']) > 30 ? '...' : ''); ?>
+                    </p>
+                  </div>
+                </a>
+                <?php endwhile; ?>
+                <?php else: ?>
+                <a class="dropdown-item preview-item">
+                  <div class="preview-item-content flex-grow">
+                    <h6 class="preview-subject font-weight-normal">No new messages</h6>
+                  </div>
+                </a>
+                <?php endif; ?>
+                <a href="inbox.php" class="dropdown-item text-center text-primary small">View All</a>
+              </div>
+            </li>
             
             <li class="nav-item nav-profile dropdown">
               <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
@@ -283,40 +373,94 @@ if (isset($_GET['thread_id'])) {
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
             <ul class="nav">
                 <li class="nav-item">
-                <a class="nav-link" href="index.php">
-                    <i class="fa-solid fa-house"></i>
-                    <span class="menu-title">Home</span>
-                </a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="home.php">
-                    <i class="fa-solid fa-gauge"></i>
-                    <span class="menu-title">Dashboard</span>
-                </a>
-                </li>
-                <li class="nav-item">
-                <a class="nav-link" href="services.php">
-                    <i class="fa-brands fa-slack"></i>
-                    <span class="menu-title">Services</span>
-                </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="appointments.php">
-                    <i class="fa-solid fa-calendar"></i>
-                    <span class="menu-title">Appointments</span>
+                    <a class="nav-link" href="index.php">
+                        <i class="fa-solid fa-gauge"></i>
+                        <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" href="inbox.php">
-                    <i class="fa-solid fa-comment"></i>
-                    <span class="menu-title">Inbox</span>
-                </a>
+                    <a class="nav-link" href="member.php">
+                        <i class="fas fa-users"></i>
+                        <span class="menu-title">Members</span>
+                    </a>
                 </li>
                 <li class="nav-item">
-                <a class="nav-link" href="settings.php">
-                    <i class="fas fa-gear"></i>
-                    <span class="menu-title">Settings</span>
-                </a>
+                    <a class="nav-link" href="loans.php">
+                        <i class="fas fa-money-bill"></i>
+                        <span class="menu-title">Loans</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="land_appraisal.php">
+                        <i class="fa-solid fa-landmark"></i>
+                        <span class="menu-title">Land Appraisal</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="appointment.php">
+                        <i class="fas fa-regular fa-calendar"></i>
+                        <span class="menu-title">Appointments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="transaction.php">
+                        <i class="fas fa-right-left"></i>
+                        <span class="menu-title">Transaction</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="announcement.php">
+                        <i class="fas fa-bullhorn"></i>
+                        <span class="menu-title">Announcement</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="inbox.php">
+                        <i class="fa-solid fa-comment"></i>
+                        <span class="menu-title">Inbox</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="events.php">
+                        <i class="fas fa-calendar-check"></i>
+                        <span class="menu-title">Events</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="savings.php">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                        <span class="menu-title">Savings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="sharecapital.php">
+                        <i class="fa-solid fa-coins"></i>
+                        <span class="menu-title">Share Capital</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="services.php">
+                        <i class="fa-brands fa-slack"></i>
+                        <span class="menu-title">Services</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="location.php">
+                        <i class="fa-solid fa-location-dot"></i>
+                        <span class="menu-title">Location</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="users.php">
+                        <i class="fa-solid fa-users"></i>
+                        <span class="menu-title">Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="settings.php">
+                        <i class="fas fa-gear"></i>
+                        <span class="menu-title">Settings</span>
+                    </a>
                 </li>
             </ul>
         </nav>
@@ -327,13 +471,12 @@ if (isset($_GET['thread_id'])) {
               <div class="col-md-12 grid-margin">
                 <div class="row">
                   <div class="col-12 col-xl-8 mb-4 mb-xl-0">
-                     <!-- <h3 class="font-weight-bold">Welcome</h3>
-                 <h6 class="font-weight-normal mb-0">All systems are running smoothly! You have <span class="text-primary">3 unread alerts!</span></h6> -->
+                    <h3 class="font-weight-bold">Inbox</h3>
+                    <h6 class="font-weight-normal mb-0">You have <span class="text-primary"><?php echo $unread_count; ?> unread messages</span></h6>
                   </div>
                   <div class="col-12 col-xl-4">
                     <div class="justify-content-end d-flex">
                       <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
-                        
                         
                       </div>
                     </div>
@@ -360,20 +503,42 @@ if (isset($_GET['thread_id'])) {
                 </div>
             <?php endif; ?>
 
+                            
+    <div class="table-responsive">
+        
             <div class="row">
                 <div class="col-md-12 grid-margin stretch-card">
                     <div class="card">
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                <p class="card-title mb-0">Messages</p>
+                                <p class="card-title mb-0">Messages <?php if(isset($_GET['search']) && !empty($_GET['search'])): ?>
+                                    <span class="text-muted small">(filtered by "<?php echo htmlspecialchars($_GET['search']); ?>")</span>
+                                    <?php endif; ?>
+                                </p>
                                 <div class="ml-auto">
                                     <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#sendMessageModal">
                                         <i class="fas fa-plus"></i> New Message
                                     </button>
                                 </div>
                             </div>
-                            
-                            <div class="table-responsive">
+<div class="mb-3">
+    <form method="GET" action="" class="form-inline" id="searchForm">
+        <div class="input-group mb-2 mr-sm-2">
+            <input type="text" name="search" id="searchInput" class="form-control"
+                value="<?php echo isset($_GET['search']) ? htmlspecialchars($_GET['search']) : ''; ?>"
+                placeholder="Search by name or message...">
+            <?php if (isset($_GET['search']) && !empty($_GET['search'])): ?>
+                <div class="input-group-append">
+                    <a href="inbox.php" class="btn btn-outline-secondary" id="clearButton" style="padding:10px;">&times;</a>
+                </div>
+            <?php endif; ?>
+        </div>
+        <button type="submit" class="btn btn-primary mb-2 mr-3">
+            <i class="fa-solid fa-magnifying-glass"></i>
+        </button>
+    </form>
+</div>
+
     <table class="table table-striped table-borderless">
         <thead>
             <tr>
@@ -502,9 +667,9 @@ if (isset($_GET['thread_id'])) {
                                     <label for="recipient">Recipient</label>
                                     <select class="form-control" id="recipient" name="recipient" required>
                                         <option value="">Select Recipient</option>
-                                        <?php while($admin = $admin_result->fetch_assoc()): ?>
-                                            <option value="<?php echo $admin['user_id']; ?>">
-                                                <?php echo htmlspecialchars($admin['full_name']); ?> (<?php echo $admin['user_type']; ?>)
+                                        <?php while($member = $members_result->fetch_assoc()): ?>
+                                            <option value="<?php echo $member['user_id']; ?>">
+                                                <?php echo htmlspecialchars($member['full_name']); ?> (<?php echo $member['user_type']; ?>)
                                             </option>
                                         <?php endwhile; ?>
                                     </select>
@@ -515,8 +680,8 @@ if (isset($_GET['thread_id'])) {
                                         <option value="General Query">General Query</option>
                                         <option value="Membership">Membership</option>
                                         <option value="Loan">Loan</option>
-                                        <option value="Services">Services</option>
                                         <option value="Medical">Medical</option>
+                                        <option value="Other">Other</option>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -533,7 +698,7 @@ if (isset($_GET['thread_id'])) {
                 </div>
             </div>
 
-<!-- View Message Modal -->
+            <!-- View Message Modal -->
     <div class="modal fade" id="viewMessageModal" tabindex="-1" role="dialog" aria-labelledby="viewMessageModalLabel" aria-hidden="true">
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
@@ -678,7 +843,7 @@ if (isset($_GET['thread_id'])) {
     <script src="../dist/assets/js/jquery.cookie.js" type="text/javascript"></script>
     <script src="../dist/assets/js/dashboard.js"></script>
     
-    <script>
+<script>
 $(document).ready(function() {
     // View message modal handler
     $('.view-message').click(function() {
@@ -765,5 +930,3 @@ $(document).ready(function() {
     });
 });
 </script>
-  </body>
-</html>

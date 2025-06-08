@@ -217,6 +217,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Announcement</span>
                     </a>
                 </li>
+                                <li class="nav-item">
+                    <a class="nav-link" href="inbox.php">
+                        <i class="fa-solid fa-comment"></i>
+                        <span class="menu-title">Inbox</span>
+                    </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="events.php">
                         <i class="fas fa-calendar-check"></i>

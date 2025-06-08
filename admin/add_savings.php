@@ -169,7 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
 
     } catch (Exception $e) {
-        mysqli_rollback($conn);
+        mysqli_rollback(mysql: $conn);
         header("Location: savings.php?error=" . urlencode($e->getMessage()));
         exit();
     }
