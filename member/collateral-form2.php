@@ -206,6 +206,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     --light-bg: #f3f4f9;
                     }
 
+                    .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+
 
                     .container {
                     max-width: 1200px;
@@ -1163,13 +1168,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         }
 
         // Validate income to expense ratio
-        if (financials.netFamilyIncome < (financials.totalExpenses * INCOME_TO_EXPENSE_RATIO)) {
+        if (financials.totalIncome < (financials.totalExpenses * INCOME_TO_EXPENSE_RATIO)) {
             e.preventDefault();
             Swal.fire({
                 title: 'Insufficient Income',
-                text: `Your net family income (₱${financials.netFamilyIncome.toFixed(2)}) 
-                       is not sufficiently higher than your expenses (₱${financials.totalExpenses.toFixed(2)}). 
-                       We recommend reducing expenses or increasing income before applying.`,
+                text: `Your total family income (₱${financials.totalIncome.toFixed(2)}) 
+                    is not sufficiently higher than your expenses (₱${financials.totalExpenses.toFixed(2)}). 
+                    We recommend reducing expenses or increasing income before applying.`,
                 icon: 'warning',
                 confirmButtonText: 'OK'
             });

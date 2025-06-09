@@ -57,7 +57,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Members | Membership Officer</title>
+    <title>Members | Admin</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -140,10 +140,27 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
-                    .navbar {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
+            .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+
+        .table-responsive {
+            overflow-x: auto; /* Enables horizontal scrolling */
+            position: relative; /* Needed for sticky positioning */
         }
+
+        th:last-child, td:last-child { 
+            position: sticky;
+            right: 0;
+            background: white; /* Keeps background color when scrolling */
+            z-index: 2; /* Ensures it stays above other columns */
+        }
+
+        th:last-child {
+            z-index: 3; /* Keeps header on top */
+        }
+
             .nav-link i {
                 margin-right: 10px;
             }
@@ -163,6 +180,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             .page-item.active .page-link {
                 background-color: #00563B !important;
             }
+            /* Customize modal backdrop color and opacity */
+.modal-backdrop {
+    background-color: rgba(0, 0, 0, 0.2); /* Modify the opacity (0.2) as you like */
+}
+
         </style>
        <nav class="sidebar sidebar-offcanvas" id="sidebar">
       <ul class="nav">
@@ -176,7 +198,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         <li class="nav-item">
           <a class="nav-link" href="member.php">
             <i class="fa-solid fa-users"></i>
-            <span class="menu-title">Membership Application</span>
+            <span class="menu-title">Members</span>
           </a>
         </li>
         <li class="nav-item">
@@ -193,7 +215,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         </li>
 
       </ul>
-    </nav>
+        </nav>
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
@@ -237,652 +259,977 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 ?>
 
 
-<?php
-            include '../connection/config.php';
+  <?php
+include '../connection/config.php';
 
-            // Fetch the search query and page number
-            $search = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : '';
-            $page = isset($_GET['page']) && (int) $_GET['page'] > 0 ? (int) $_GET['page'] : 1;
-            $limit = 10;
-            $offset = ($page - 1) * $limit;
+// Fetch the search query and page number
+$search = isset($_GET['search']) ? htmlspecialchars(trim($_GET['search'])) : '';
+$page = isset($_GET['page']) && (int) $_GET['page'] > 0 ? (int) $_GET['page'] : 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
 
-            try {
-                // Modified query to correctly calculate totals
-                    $sql = "SELECT 
-                    u.id, 
-                    u.user_id,
-                    u.first_name, 
-                    u.last_name, 
-                    u.middle_name, 
-                    u.email, 
-                    u.birthday, 
-                    u.gender, 
-                    u.age, 
-                    u.mobile, 
-                    u.street, 
-                    u.barangay, 
-                    u.municipality, 
-                    u.province, 
-                    u.membership_type,
-                    u.membership_status, 
-                    u.tin_number, 
-                    u.tin_id_image, 
-                    u.certificate_no,
-                    COALESCE(SUM(CASE 
-                        WHEN a.description = 'Savings Deposit' THEN a.savings 
-                        ELSE 0 
-                    END), 0) as savings,
-                    COALESCE(SUM(CASE 
-                        WHEN a.description = 'Share Capital Deposit' THEN a.share_capital 
-                        ELSE 0 
-                    END), 0) as share_capital,
-                    COALESCE(MAX(CASE 
-                        WHEN a.description = 'Membership Payment' THEN a.membership_fee 
-                        ELSE 0 
-                    END), 0) as membership_fee,
-                    COALESCE(MAX(CASE 
-                        WHEN a.description = 'Membership Payment' THEN a.insurance 
-                        ELSE 0 
-                    END), 0) as insurance,
-                    COALESCE(SUM(a.total_amount), 0) as total_amount
-                FROM users u
-                LEFT JOIN appointments a ON u.user_id = a.user_id AND a.status = 'Approved'
-                WHERE (
-                    u.first_name LIKE ? OR 
-                    u.last_name LIKE ? OR 
-                    u.middle_name LIKE ? OR
-                    u.email LIKE ? OR 
-                    u.mobile LIKE ? OR
-                    u.street LIKE ? OR
-                    u.barangay LIKE ? OR
-                    u.municipality LIKE ? OR
-                    u.province LIKE ? OR
-                    u.membership_type LIKE ? OR
-                    u.tin_number LIKE ? OR
-                    u.certificate_no LIKE ? OR
-                    CONVERT(a.savings, CHAR) LIKE ? OR
-                    CONVERT(a.share_capital, CHAR) LIKE ?
-                ) 
-                AND u.user_type = 'Member'
-                GROUP BY 
-                    u.id, 
-                    u.user_id,
-                    u.first_name, 
-                    u.last_name, 
-                    u.middle_name, 
-                    u.email, 
-                    u.birthday, 
-                    u.gender, 
-                    u.age, 
-                    u.mobile, 
-                    u.street, 
-                    u.barangay, 
-                    u.municipality, 
-                    u.province, 
-                    u.membership_type,
-                    u.membership_status, 
-                    u.tin_number, 
-                    u.tin_id_image, 
-                    u.certificate_no
-                LIMIT ? OFFSET ?";
+try {
+    // Modified query to correctly calculate totals
+    $sql = "SELECT 
+            u.id, 
+            u.user_id,
+            u.first_name, 
+            u.last_name, 
+            u.middle_name, 
+            u.email, 
+            u.birthday, 
+            u.gender, 
+            u.age, 
+            u.mobile, 
+            u.street, 
+            u.barangay, 
+            u.municipality, 
+            u.province, 
+            u.membership_type,
+            u.membership_status, 
+            u.tin_number, 
+            u.tin_id_image, 
+            u.certificate_no,
+            u.savings,  
+            u.share_capital,
+            u.created_at, -- ADDED
+
+            COALESCE(MAX(CASE 
+                WHEN a.description = 'Membership Payment' THEN a.membership_fee 
+                ELSE 0 
+            END), 0) as membership_fee,
+            COALESCE(MAX(CASE 
+                WHEN a.description = 'Membership Payment' THEN a.insurance 
+                ELSE 0 
+            END), 0) as insurance,
+            COALESCE(SUM(a.total_amount), 0) as total_amount
+        FROM users u
+        LEFT JOIN appointments a ON u.user_id = a.user_id AND a.status = 'Approved'
+        WHERE (
+            u.first_name LIKE ? OR 
+            u.last_name LIKE ? OR 
+            u.middle_name LIKE ? OR
+            u.email LIKE ? OR 
+            u.mobile LIKE ? OR
+            u.street LIKE ? OR
+            u.barangay LIKE ? OR
+            u.municipality LIKE ? OR
+            u.province LIKE ? OR
+            u.membership_type LIKE ? OR
+            u.tin_number LIKE ? OR
+            u.certificate_no LIKE ? OR
+            CONVERT(a.savings, CHAR) LIKE ? OR
+            CONVERT(a.share_capital, CHAR) LIKE ?
+        ) 
+        AND u.user_type = 'Member'
+        GROUP BY 
+            u.id, 
+            u.user_id,
+            u.first_name, 
+            u.last_name, 
+            u.middle_name, 
+            u.email, 
+            u.birthday, 
+            u.gender, 
+            u.age, 
+            u.mobile, 
+            u.street, 
+            u.barangay, 
+            u.municipality, 
+            u.province, 
+            u.membership_type,
+            u.membership_status, 
+            u.tin_number, 
+            u.tin_id_image, 
+            u.certificate_no,
+            u.created_at -- ADDED
+        LIMIT ? OFFSET ?";
+
+    $stmt = $conn->prepare($sql);
+    $search_param = "%" . $search . "%";
+
+    // Bind all search parameters
+    $stmt->bind_param(
+        "ssssssssssssssii",
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param,
+        $limit, $offset
+    );
+
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    $count_sql = "SELECT COUNT(DISTINCT u.id) as total 
+        FROM users u
+        LEFT JOIN appointments a ON u.user_id = a.user_id
+        WHERE (
+            u.first_name LIKE ? OR 
+            u.last_name LIKE ? OR 
+            u.middle_name LIKE ? OR
+            u.email LIKE ? OR 
+            u.mobile LIKE ? OR
+            u.street LIKE ? OR
+            u.barangay LIKE ? OR
+            u.municipality LIKE ? OR
+            u.province LIKE ? OR
+            u.membership_type LIKE ? OR
+            u.tin_number LIKE ? OR
+            u.certificate_no LIKE ? OR
+            CONVERT(a.savings, CHAR) LIKE ? OR
+            CONVERT(a.share_capital, CHAR) LIKE ?
+        ) 
+        AND u.user_type = 'Member'";
+
+    $count_stmt = $conn->prepare($count_sql);
+    $count_stmt->bind_param(
+        "ssssssssssssss",
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param, $search_param, $search_param,
+        $search_param, $search_param
+    );
+
+    $count_stmt->execute();
+    $count_result = $count_stmt->get_result();
+    $total_rows = $count_result->fetch_assoc()['total'];
+    $total_pages = ceil($total_rows / $limit);
+
+} catch (Exception $e) {
+    echo "Error: " . $e->getMessage();
+    exit;
+}
+?>
 
             
-                
 
-                $stmt = $conn->prepare($sql);
-                $search_param = "%" . $search . "%";
-                
-                // Bind all search parameters
-                $stmt->bind_param(
-                    "ssssssssssssssii",
-                    $search_param, // first_name
-                    $search_param, // last_name
-                    $search_param, // middle_name
-                    $search_param, // email
-                    $search_param, // mobile
-                    $search_param, // street
-                    $search_param, // barangay
-                    $search_param, // municipality
-                    $search_param, // province
-                    $search_param, // membership_type
-                    $search_param, // tin_number
-                    $search_param, // certificate_no
-                    $search_param, // savings amount
-                    $search_param, // share_capital amount
-                    $limit,
-                    $offset
-                );
-                
-                $stmt->execute();
-                $result = $stmt->get_result();
+<!-- Previous PHP and HTML code remains the same until the table section -->
 
-                $count_sql = "SELECT COUNT(DISTINCT u.id) as total 
-                FROM users u
-                LEFT JOIN appointments a ON u.user_id = a.user_id
-                WHERE (
-                    u.first_name LIKE ? OR 
-                    u.last_name LIKE ? OR 
-                    u.middle_name LIKE ? OR
-                    u.email LIKE ? OR 
-                    u.mobile LIKE ? OR
-                    u.street LIKE ? OR
-                    u.barangay LIKE ? OR
-                    u.municipality LIKE ? OR
-                    u.province LIKE ? OR
-                    u.membership_type LIKE ? OR
-                    u.tin_number LIKE ? OR
-                    u.certificate_no LIKE ? OR
-                    CONVERT(a.savings, CHAR) LIKE ? OR
-                    CONVERT(a.share_capital, CHAR) LIKE ?
-                ) 
-                AND u.user_type = 'Member'";
+<div class="row">
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <p class="card-title mb-0">Members</p>
+                    <div class="ml-auto">
+                        <button class="btn btn-primary mb-3" style="background-color: #03C03C;" onclick="window.location.href='generate_allmem_pdf.php'">
+                            Generate Members Data
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <form method="GET" action="" class="form-inline" id="searchForm">
+                        <div class="input-group mb-2 mr-sm-2">
+                            <input type="text" name="search" id="searchInput" class="form-control"
+                                value="<?php echo htmlspecialchars($search); ?>"
+                                placeholder="Search Members">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" id="clearButton"
+                                    style="padding:10px;">&times;</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2 mr-3"><i
+                                class="fa-solid fa-magnifying-glass"></i></button>
+                    </form>
+                </div>
 
-                $count_stmt = $conn->prepare($count_sql);
-                $count_stmt->bind_param(
-                    "ssssssssssssss",
-                    $search_param, // first_name
-                    $search_param, // last_name
-                    $search_param, // middle_name
-                    $search_param, // email
-                    $search_param, // mobile
-                    $search_param, // street
-                    $search_param, // barangay
-                    $search_param, // municipality
-                    $search_param, // province
-                    $search_param, // membership_type
-                    $search_param, // tin_number
-                    $search_param, // certificate_no
-                    $search_param, // savings amount
-                    $search_param  // share_capital amount
-                );
-                
-                $count_stmt->execute();
-                $count_result = $count_stmt->get_result();
-                $total_rows = $count_result->fetch_assoc()['total'];
-                $total_pages = ceil($total_rows / $limit);
+                <!-- Tab Navigation -->
+                <ul class="nav nav-tabs" id="memberTabs" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab" aria-controls="active" aria-selected="true">
+                            Active Members
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="pending-tab" data-toggle="tab" href="#pending" role="tab" aria-controls="pending" aria-selected="false">
+                            Membership Applications
+                        </a>
+                    </li>
+                </ul>
 
-            } catch (Exception $e) {
-                echo "Error: " . $e->getMessage();
-                exit;
-            }
-            ?>
-                <div class="row">
-                    <div class="col-md-12 grid-margin stretch-card">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                    <p class="card-title mb-0">Members</p>
-                                    <div class="ml-auto">
-                                        <button class="btn btn-primary mb-3" style="background-color: #03C03C;" onclick="window.location.href='generate_allmem_pdf.php'">
-                                            Generate Members Data
-                                        </button>
+                <!-- Tab Content -->
+                <div class="tab-content" id="memberTabsContent">
+                    <!-- Active Members Tab -->
+                    <div class="tab-pane fade show active" id="active" role="tabpanel" aria-labelledby="active-tab">
+                        <div class="table-responsive mt-3">
+                            <table class="table table-striped table-borderless">
+                                <thead>
+                                    <tr>
+                                        <th>First Name</th>
+                                        <th>Last Name</th>
+                                        <th>Certificate No.</th>
+                                        <th>Email</th>
+                                        <th>Mobile</th>
+                                        <th>Membership Type</th>
+                                        <th>Savings</th>
+                                        <th>Share Capital</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php 
+                                    // Reset result pointer to loop through results again
+                                    $result->data_seek(0);
+                                    $active_members_found = false;
+                                    ?>
+                                    <?php while ($row = $result->fetch_assoc()): ?>
+                                        <?php if ($row['membership_status'] == 'Active'): ?>
+                                            <?php $active_members_found = true; ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($row['first_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['last_name']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['certificate_no']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['mobile']); ?></td>
+                                                <td><?php echo htmlspecialchars($row['membership_type']); ?></td>
+                                                <td>₱<?php echo number_format(htmlspecialchars($row['savings']), 2); ?></td>
+                                                <td>₱<?php echo number_format(htmlspecialchars($row['share_capital']), 2); ?></td>
+                                                <td>
+                                                    <!-- View Button -->
+                                                    <button class="btn btn-primary btn-sm" data-toggle="modal"
+                                                        data-target="#viewMemberModal<?php echo $row['id']; ?>">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                    <!-- Edit Button -->
+                                                    <button class="btn btn-warning btn-sm" data-toggle="modal"
+                                                        data-target="#editMemberModal<?php echo $row['id']; ?>">
+                                                        <i class="fa-solid fa-edit"></i>
+                                                    </button>
+                                                    <!-- PDF Button -->
+                                                    <a href="generate_members_pdf.php?id=<?php echo $row['id']; ?>" 
+                                                    class="btn btn-success btn-sm">
+                                                        <i class="fa-solid fa-file-pdf"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+
+                                            <!-- View Member Modal -->
+    <div class="modal fade" id="viewMemberModal<?php echo $row['id']; ?>" tabindex="-1" role="dialog" aria-labelledby="viewMemberModalLabel<?php echo $row['id']; ?>" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+            <div class="modal-content shadow rounded-4">
+
+                <!-- Header -->
+                <div class="modal-header bg-success text-white rounded-top">
+                    <h5 class="modal-title" id="viewMemberModalLabel<?php echo $row['id']; ?>">Member Details</h5>
+                    <!-- Close button with data-dismiss -->
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body bg-light">
+                    <div class="container-fluid">
+
+                        <!-- Summary Card -->
+                        <div class="card mb-4 border-0 shadow-sm">
+                            <div class="card-body text-center">
+                                <h6 class="text-success fw-bold mb-3">Identity Summary</h6>
+                                <div class="row justify-content-center g-3">
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold">Email</small>
+                                        <div class="border rounded p-2"><?php echo htmlspecialchars($row['email']); ?></div>
                                     </div>
-
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold">Certificate No.</small>
+                                        <div class="border rounded p-2"><?php echo 'PMPC-' . str_pad($row['certificate_no'], 4, '0', STR_PAD_LEFT); ?></div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <small class="text-muted fw-bold">TIN Number</small>
+                                        <div class="border rounded p-2"><?php echo htmlspecialchars($row['tin_number']); ?></div>
+                                    </div>
                                 </div>
-                                <div class="mb-3">
-                                    <form method="GET" action="" class="form-inline" id="searchForm">
-                                        <div class="input-group mb-2 mr-sm-2">
-                                            <input type="text" name="search" id="searchInput" class="form-control"
-                                                value="<?php echo htmlspecialchars($search); ?>"
-                                                placeholder="Search Members">
-                                            <div class="input-group-append">
-                                                <button type="button" class="btn btn-outline-secondary" id="clearButton"
-                                                    style="padding:10px;">&times;</button>
+                            </div>
+                        </div>
+
+                        <!-- Information Cards -->
+                        <div class="row g-4">
+                            <!-- Personal Information -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Personal Info</h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="fw-bold">First Name</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['first_name']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Last Name</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['last_name']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Middle Name</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['middle_name']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Gender</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['gender']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Birthday</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['birthday']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Mobile</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['mobile']); ?></div>
                                             </div>
                                         </div>
-                                        <button type="submit" class="btn btn-primary mb-2 mr-3"><i
-                                                class="fa-solid fa-magnifying-glass"></i></button>
-                                    </form>
+                                    </div>
                                 </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-borderless">
-                                        <thead>
-                                            <tr>
-                                                <th>First Name</th>
-                                                <th>Last Name</th>
-                                                <th>Middle Name</th>
-                                                <th>Certificate No.</th>
-                                                <th>Email</th>
-                                                <th>Birthday</th>
-                                                <th>Gender</th>
-                                                <th>Age</th>
-                                                <th>Mobile</th>
-                                                <th>Street</th>
-                                                <th>Barangay</th>
-                                                <th>Municipality</th>
-                                                <th>Province</th>
-                                                <th>Membership Type</th>
-                                                <th>Membership Status</th>
-                                                <th>Savings</th>
-                                                <th>Share Capital</th>
-                                                <th>Membership Fee</th>
-                                                <th>Insurance</th>
-                                                <th>Total Amount</th>
-                                                <th>TIN Number</th>
-                                                <th>TIN ID</th>
-                                                <th>Actions</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php if ($result->num_rows > 0): ?>
-                                                <?php while ($row = $result->fetch_assoc()): ?>
-                                                    <tr>
-                                                        <td><?php echo htmlspecialchars($row['first_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['last_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['middle_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['certificate_no']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['birthday']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['gender']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['age']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['mobile']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['street']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['barangay']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['municipality']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['province']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['membership_type']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['membership_status']); ?></td>
-                                                        <td>₱<?php echo number_format(htmlspecialchars($row['savings']), 2); ?></td>
-                                                        <td>₱<?php echo number_format(htmlspecialchars($row['share_capital']), 2); ?></td>
-                                                        <td>₱<?php echo number_format(htmlspecialchars($row['membership_fee']), 2); ?></td>
-                                                        <td>₱<?php echo number_format(htmlspecialchars($row['insurance']), 2); ?></td>
-                                                        <td>₱<?php echo number_format(htmlspecialchars($row['total_amount']), 2); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['tin_number']); ?></td>
-                                                        <td>
-                                                            <?php if (!empty($row['tin_id_image'])): ?>
-                                                                <img src="../dist/assets/images/tin_id/<?php echo htmlspecialchars($row['tin_id_image']); ?>" alt="TIN ID" style="max-width: 100px; max-height: 100px;">
-                                                            <?php else: ?>
-                                                                No Image
-                                                            <?php endif; ?>
-                                                        </td>
-                                                        <td>
-                                                            <!-- View Button for the View Modal -->
-                                                            <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                                data-target="#viewMemberModal<?php echo $row['id']; ?>">
-                                                                <i class="fa-solid fa-eye"></i>
-                                                            </button>
-                                                            <!-- Edit Button for the Edit Modal -->
-                                                            <button class="btn btn-warning btn-sm" data-toggle="modal"
-                                                                data-target="#editMemberModal<?php echo $row['id']; ?>">
-                                                                <i class="fa-solid fa-edit"></i>
-                                                            </button>
-                                                            <!-- PDF Generation Button -->
-                                                            <a href="generate_members_pdf.php?id=<?php echo $row['id']; ?>" 
-                                                            class="btn btn-success btn-sm">
-                                                                <i class="fa-solid fa-file-pdf"></i>
-                                                            </a>
-                                                        </td>
-                                                    </tr>
+                            </div>
 
-                                                    <!-- View Member Modal (Updated with TIN ID Image) -->
-                                                    <div class="modal fade" id="viewMemberModal<?php echo $row['id']; ?>" 
-                                                        tabindex="-1" aria-labelledby="viewMemberModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog modal-xl">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="viewMemberModalLabel">View Member Details</h5>
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                        <span aria-hidden="true">&times;</span>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <div class="container-fluid">
-                                                                        <div class="row">
-                                                                            <!-- Member Details Column -->
-                                                                            <div class="col-md-8">
-                                                                                <div class="row">
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            <label for="first_name">First Name</label>
-                                                                                            <input type="text" class="form-control" name="first_name"
-                                                                                                value="<?php echo $row['first_name']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="last_name">Last Name</label>
-                                                                                            <input type="text" class="form-control" name="last_name"
-                                                                                                value="<?php echo $row['last_name']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="middle_name">Middle Name</label>
-                                                                                            <input type="text" class="form-control" name="middle_name"
-                                                                                                value="<?php echo $row['middle_name']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="email">Email</label>
-                                                                                            <input type="email" class="form-control" name="email"
-                                                                                                value="<?php echo $row['email']; ?>" readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            <label for="birthday">Birthday</label>
-                                                                                            <input type="date" class="form-control" name="birthday"
-                                                                                                value="<?php echo $row['birthday']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="gender">Gender</label>
-                                                                                            <input type="text" class="form-control" name="gender"
-                                                                                                value="<?php echo $row['gender']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="age">Age</label>
-                                                                                            <input type="number" class="form-control" name="age"
-                                                                                                value="<?php echo $row['age']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="mobile">Mobile</label>
-                                                                                            <input type="text" class="form-control" name="mobile"
-                                                                                                value="<?php echo $row['mobile']; ?>" readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                                <div class="row">
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            <label for="street">Street</label>
-                                                                                            <input type="text" class="form-control" name="street"
-                                                                                                value="<?php echo $row['street']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="barangay">Barangay</label>
-                                                                                            <input type="text" class="form-control" name="barangay"
-                                                                                                value="<?php echo $row['barangay']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="municipality">Municipality</label>
-                                                                                            <input type="text" class="form-control" name="municipality"
-                                                                                                value="<?php echo $row['municipality']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="province">Province</label>
-                                                                                            <input type="text" class="form-control" name="province"
-                                                                                                value="<?php echo $row['province']; ?>" readonly>
-                                                                                        </div>
-                                                                                       
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <div class="form-group">
-                                                                                            <label for="membership_type">Membership Type</label>
-                                                                                            <input type="text" class="form-control" name="membership_type"
-                                                                                                value="<?php echo $row['membership_type']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="savings">Savings</label>
-                                                                                            <input type="number" class="form-control" name="savings"
-                                                                                                value="<?php echo $row['savings']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="share_capital">Share Capital</label>
-                                                                                            <input type="number" class="form-control" name="share_capital"
-                                                                                                value="<?php echo $row['share_capital']; ?>" readonly>
-                                                                                        </div>
-                                                                                        
-                                                                                        <div class="form-group">
-                                                                                            <label for="tin_number">TIN Number</label>
-                                                                                            <input type="text" class="form-control" name="tin_number"
-                                                                                                value="<?php echo $row['tin_number']; ?>" readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    <div class="col-md-6">
-                                                                                        <!-- Add these fields to the existing modal -->
-                                                                                        <div class="form-group">
-                                                                                            <label for="membership_status">Membership Status</label>
-                                                                                            <input type="text" class="form-control" name="membership_status"
-                                                                                                value="<?php echo $row['membership_status']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="membership_fee">Membership Fee</label>
-                                                                                            <input type="text" class="form-control" name="membership_fee"
-                                                                                                value="₱<?php echo $row['membership_fee']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="insurance">Insurance</label>
-                                                                                            <input type="text" class="form-control" name="insurance"
-                                                                                                value="₱<?php echo $row['insurance']; ?>" readonly>
-                                                                                        </div>
-                                                                                        <div class="form-group">
-                                                                                            <label for="total_amount">Total Amount</label>
-                                                                                            <input type="text" class="form-control" name="total_amount"
-                                                                                                value="₱<?php echo $row['total_amount']; ?>" readonly>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                            
-                                                                            <!-- TIN ID Image Column -->
-                                                                            <div class="col-md-4">
-                                                                                <div class="form-group">
-                                                                                    <label for="tin_id_image">TIN ID Image</label>
-                                                                                    <div class="tin-id-container" style="
-                                                                                        border: 2px solid #ddd;
-                                                                                        border-radius: 8px;
-                                                                                        overflow: hidden;
-                                                                                        max-height: 400px;
-                                                                                        display: flex;
-                                                                                        justify-content: center;
-                                                                                        align-items: center;
-                                                                                        background-color: #f8f9fa;
-                                                                                    ">
-                                                                                        <?php if (!empty($row['tin_id_image'])): ?>
-                                                                                            <img src="../dist/assets/images/tin_id/<?php echo htmlspecialchars($row['tin_id_image']); ?>" 
-                                                                                                alt="TIN ID Image" 
-                                                                                                class="img-fluid" 
-                                                                                                style="
-                                                                                                    max-width: 100%;
-                                                                                                    max-height: 400px;
-                                                                                                    object-fit: contain;
-                                                                                                    padding: 10px;
-                                                                                                ">
-                                                                                        <?php else: ?>
-                                                                                            <p class="text-muted text-center p-3">No TIN ID image uploaded</p>
-                                                                                        <?php endif; ?>
-                                                                                    </div>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div class="modal-footer">
-                                                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                            <!-- Membership Info -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Membership Info</h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="fw-bold">Type</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['membership_type']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Status</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['membership_status']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Savings</small>
+                                                <div class="border rounded p-2">₱<?php echo number_format($row['savings'], 2); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Share Capital</small>
+                                                <div class="border rounded p-2">₱<?php echo number_format($row['share_capital'], 2); ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <!-- Address -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Address</h6>
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <small class="fw-bold">Street</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['street']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Barangay</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['barangay']); ?></div>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Municipality</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['municipality']); ?></div>
+                                            </div>
+                                            <div class="col-12">
+                                                <small class="fw-bold">Province</small>
+                                                <div class="border rounded p-2"><?php echo htmlspecialchars($row['province']); ?></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
-                                                    <!-- Edit Member Modal (Editable) -->
-                                                    <div class="modal fade" id="editMemberModal<?php echo $row['id']; ?>"
-                                                        tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog modal-lg">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="editMemberModalLabel">Edit
-                                                                        Member Details</h5>
-                                                                    <button type="button" class="close" data-dismiss="modal"
-                                                                        aria-label="Close">
-                                                                        <span aria-hidden="true">&times;</span>
-                                                                    </button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <form action="update_member.php" method="POST">
-                                                                        <input type="hidden" name="id"
-                                                                            value="<?php echo $row['id']; ?>">
-                                                                        <div class="row">
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label for="first_name">First Name</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="first_name"
-                                                                                        value="<?php echo $row['first_name']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="last_name">Last Name</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="last_name"
-                                                                                        value="<?php echo $row['last_name']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="middle_name">Middle Name</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="middle_name"
-                                                                                        value="<?php echo $row['middle_name']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="email">Email</label>
-                                                                                    <input type="email" class="form-control"
-                                                                                        name="email"
-                                                                                        value="<?php echo $row['email']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                            </div>
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label for="birthday">Birthday</label>
-                                                                                    <input type="date" class="form-control"
-                                                                                        name="birthday"
-                                                                                        value="<?php echo $row['birthday']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="gender">Gender</label>
-                                                                                    <select class="form-control" name="gender"
-                                                                                        required>
-                                                                                        <option value="male" <?php echo ($row['gender'] == 'male') ? 'selected' : ''; ?>>male</option>
-                                                                                        <option value="female" <?php echo ($row['gender'] == 'female') ? 'selected' : ''; ?>>female</option>
-                                                                                        <option value="other" <?php echo ($row['gender'] == 'other') ? 'selected' : ''; ?>>other</option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="age">Age</label>
-                                                                                    <input type="number" class="form-control"
-                                                                                        name="age"
-                                                                                        value="<?php echo $row['age']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="mobile">Mobile</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="mobile"
-                                                                                        value="<?php echo $row['mobile']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="row">
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label for="street">Street</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="street"
-                                                                                        value="<?php echo $row['street']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="barangay">Barangay</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="barangay"
-                                                                                        value="<?php echo $row['barangay']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label
-                                                                                        for="municipality">Municipality</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="municipality"
-                                                                                        value="<?php echo $row['municipality']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="province">Province</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="province"
-                                                                                        value="<?php echo $row['province']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                
-                                                                                
-                                                                            </div>
-                                                                            <div class="col-md-6">
-                                                                                <div class="form-group">
-                                                                                    <label for="membership_type">Membership
-                                                                                        Type</label>
-                                                                                    <select class="form-control"
-                                                                                        name="membership_type" required>
-                                                                                        <option value="Regular" <?php echo ($row['membership_type'] == 'Regular') ? 'selected' : ''; ?>>Regular
-                                                                                        </option>
-                                                                                        <option value="Associate" <?php echo ($row['membership_type'] == 'Associate') ? 'selected' : ''; ?>>Associate
-                                                                                        </option>
-                                                                                    </select>
-                                                                                </div>
-                                                                                
-                                                                                <div class="form-group">
-                                                                                    <label for="tin_number">TIN Number</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="tin_number"
-                                                                                        value="<?php echo $row['tin_number']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                                <div class="form-group">
-                                                                                    <label for="certificate_no">Certificate Number</label>
-                                                                                    <input type="text" class="form-control"
-                                                                                        name="certificate_no"
-                                                                                        value="<?php echo $row['certificate_no']; ?>"
-                                                                                        required>
-                                                                                </div>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div class="modal-footer">
-                                                                            <button type="submit" class="btn btn-primary">Save
-                                                                                Changes</button>
-                                                                            <button type="button" class="btn btn-secondary"
-                                                                                data-dismiss="modal">Close</button>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                         
-                                                <?php endwhile; ?>
+                            <!-- TIN ID Image -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body text-center">
+                                        <h6 class="text-success fw-bold mb-3">TIN ID Image</h6>
+                                        <div class="bg-white border rounded-3 p-2" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                                            <?php if (!empty($row['tin_id_image'])): ?>
+                                                <img src="../dist/assets/images/tin_id/<?php echo htmlspecialchars($row['tin_id_image']); ?>" alt="TIN ID Image" class="img-fluid rounded" style="max-height: 220px; object-fit: contain;">
+                                            <?php else: ?>
+                                                <p class="text-muted small">No Image Available</p>
                                             <?php endif; ?>
-                                        </tbody>
-                                    </table>
-
-
+                                        </div>
+                                    </div>
                                 </div>
-                                <br>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                                            <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page - 1; ?>"
-                                                aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
-                                            </a>
-                                        </li>
-                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
-                                                <a class="page-link"
-                                                    href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                                            </li>
-                                        <?php endfor; ?>
-                                        <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
-                                            <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page + 1; ?>"
-                                                aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </nav>
+                            </div>
+
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 4 JS -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+
+
+<!-- Edit Member Modal -->
+<div class="modal fade" id="editMemberModal<?php echo $row['id']; ?>" tabindex="-1" aria-labelledby="editMemberModalLabel<?php echo $row['id']; ?>" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow rounded-4">
+
+            <!-- Header -->
+            <div class="modal-header bg-success text-white rounded-top">
+                <h5 class="modal-title" id="editMemberModalLabel<?php echo $row['id']; ?>">Edit Member Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body bg-light">
+                <div class="container-fluid">
+                    <form action="update_member.php" method="POST">
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+
+                        <div class="row g-4">
+                            <!-- Personal Information -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Personal Info</h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="fw-bold">First Name</small>
+                                                <input type="text" class="form-control" name="first_name" value="<?php echo htmlspecialchars($row['first_name']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Last Name</small>
+                                                <input type="text" class="form-control" name="last_name" value="<?php echo htmlspecialchars($row['last_name']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Middle Name</small>
+                                                <input type="text" class="form-control" name="middle_name" value="<?php echo htmlspecialchars($row['middle_name']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Email</small>
+                                                <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($row['email']); ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Other Personal Information -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Other Personal Info</h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="fw-bold">Birthday</small>
+                                                <input type="date" class="form-control" name="birthday" value="<?php echo htmlspecialchars($row['birthday']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Gender</small>
+                                                <select class="form-control" name="gender" required>
+                                                    <option value="male" <?php echo ($row['gender'] == 'male') ? 'selected' : ''; ?>>Male</option>
+                                                    <option value="female" <?php echo ($row['gender'] == 'female') ? 'selected' : ''; ?>>Female</option>
+                                                    <option value="other" <?php echo ($row['gender'] == 'other') ? 'selected' : ''; ?>>Other</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Age</small>
+                                                <input type="number" class="form-control" name="age" value="<?php echo htmlspecialchars($row['age']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Mobile</small>
+                                                <input type="text" class="form-control" name="mobile" value="<?php echo htmlspecialchars($row['mobile']); ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Address -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Address</h6>
+                                        <div class="row g-2">
+                                            <div class="col-12">
+                                                <small class="fw-bold">Street</small>
+                                                <input type="text" class="form-control" name="street" value="<?php echo htmlspecialchars($row['street']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Barangay</small>
+                                                <input type="text" class="form-control" name="barangay" value="<?php echo htmlspecialchars($row['barangay']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Municipality</small>
+                                                <input type="text" class="form-control" name="municipality" value="<?php echo htmlspecialchars($row['municipality']); ?>" required>
+                                            </div>
+                                            <div class="col-12">
+                                                <small class="fw-bold">Province</small>
+                                                <input type="text" class="form-control" name="province" value="<?php echo htmlspecialchars($row['province']); ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Membership Info -->
+                            <div class="col-md-6">
+                                <div class="card border-0 shadow-sm h-100">
+                                    <div class="card-body">
+                                        <h6 class="text-success fw-bold mb-3">Membership Info</h6>
+                                        <div class="row g-2">
+                                            <div class="col-6">
+                                                <small class="fw-bold">Membership Type</small>
+                                                <select class="form-control" name="membership_type" required>
+                                                    <option value="Regular" <?php echo ($row['membership_type'] == 'Regular') ? 'selected' : ''; ?>>Regular</option>
+                                                    <option value="Associate" <?php echo ($row['membership_type'] == 'Associate') ? 'selected' : ''; ?>>Associate</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">TIN Number</small>
+                                                <input type="text" class="form-control" name="tin_number" value="<?php echo htmlspecialchars($row['tin_number']); ?>" required>
+                                            </div>
+                                            <div class="col-6">
+                                                <small class="fw-bold">Certificate No.</small>
+                                                <input type="text" class="form-control" name="certificate_no" value="<?php echo htmlspecialchars($row['certificate_no']); ?>" required>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <!-- Footer with submit button -->
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" id="triggerPasswordModal<?php echo $row['id']; ?>">Save Changes</button>
+                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        </div>
+                    </form>
+
+                    <!-- Password Confirmation Modal -->
+                    <div class="modal fade" id="confirmPasswordModal<?php echo $row['id']; ?>" tabindex="-1" aria-labelledby="confirmPasswordLabel<?php echo $row['id']; ?>" aria-hidden="true">
+                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                            <div class="modal-content shadow rounded-4">
+                                <div class="modal-header bg-warning text-dark rounded-top">
+                                    <h5 class="modal-title" id="confirmPasswordLabel<?php echo $row['id']; ?>">Confirm Your Password</h5>
+                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                        <span>&times;</span>
+                                    </button>
+                                </div>
+                                <div class="modal-body">
+                                    <input type="password" id="confirmPasswordInput<?php echo $row['id']; ?>" class="form-control mb-2" placeholder="Enter password">
+                                    <div id="passwordError<?php echo $row['id']; ?>" class="text-danger small" style="display: none;">Incorrect password</div>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" id="confirmPasswordBtn<?php echo $row['id']; ?>" class="btn btn-success">Confirm</button>
+                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
 
+                    <!-- Inline Script for Modal Logic -->
+                    <script>
+                    document.addEventListener("DOMContentLoaded", function () {
+                        const id = <?php echo json_encode($row['id']); ?>;
+                        const triggerBtn = document.getElementById("triggerPasswordModal" + id);
+                        const confirmBtn = document.getElementById("confirmPasswordBtn" + id);
+                        const passwordInput = document.getElementById("confirmPasswordInput" + id);
+                        const passwordError = document.getElementById("passwordError" + id);
+                        const confirmModal = $("#confirmPasswordModal" + id);
+                        const editForm = document.querySelector("#editMemberModal" + id + " form");
+
+                        triggerBtn.addEventListener("click", function () {
+                            passwordInput.value = "";
+                            passwordError.style.display = "none";
+                            confirmModal.modal("show");
+                        });
+
+                        confirmBtn.addEventListener("click", function () {
+                            const password = passwordInput.value;
+
+                            fetch("verify_password.php", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/x-www-form-urlencoded"
+                                },
+                                body: "password=" + encodeURIComponent(password)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.success) {
+                                    confirmModal.modal("hide");
+                                    editForm.submit();
+                                } else {
+                                    passwordError.style.display = "block";
+                                }
+                            });
+                        });
+                    });
+                    </script>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<!-- Bootstrap 4 JS -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+                                        <?php endif; ?>
+                                    <?php endwhile; ?>
+                                    <?php if (!$active_members_found): ?>
+                                        <tr>
+                                            <td colspan="9" class="text-center">No active members found</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+<!-- Pending Applications Tab -->
+<div class="tab-pane fade" id="pending" role="tabpanel" aria-labelledby="pending-tab">
+    <div class="table-responsive mt-3">
+        <table class="table table-striped table-borderless">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Mobile</th>
+                    <th>Membership Type</th>
+                    <th>Application Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php 
+                // Reset result pointer to loop through results again
+                $result->data_seek(0);
+                $pending_members_found = false;
+                ?>
+                <?php while ($row = $result->fetch_assoc()): ?>
+                    <?php if ($row['membership_status'] == 'Pending'): ?>
+                        <?php $pending_members_found = true; ?>
+                        <tr>
+                            <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['middle_name'] . ' ' . $row['last_name']); ?></td>
+                            <td><?php echo htmlspecialchars($row['email']); ?></td>
+                            <td><?php echo htmlspecialchars($row['mobile']); ?></td>
+                            <td><?php echo htmlspecialchars($row['membership_type']); ?></td>
+                            <td><?php echo htmlspecialchars($row['created_at']); ?></td>
+                            <td>
+                                                                <!-- View Button with unique modal ID -->
+                                                                <button class="btn btn-primary btn-sm" data-toggle="modal"
+                                    data-target="#viewPendingModal<?php echo $row['id']; ?>">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+
+ <!-- View Pending Member Modal with unique ID -->
+<div class="modal fade" id="viewPendingModal<?php echo $row['id']; ?>" tabindex="-1" role="dialog" aria-labelledby="viewPendingModalLabel<?php echo $row['id']; ?>" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content shadow rounded-4">
+            <!-- Header -->
+            <div class="modal-header bg-warning text-white rounded-top">
+                <h5 class="modal-title" id="viewPendingModalLabel<?php echo $row['id']; ?>">Membership Application</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            <!-- Body -->
+            <div class="modal-body bg-light">
+                <div class="container-fluid">
+                    <?php
+                    // Fetch additional application data from member_applications table
+                    $app_sql = "SELECT * FROM member_applications WHERE user_id = ?";
+                    $app_stmt = $conn->prepare($app_sql);
+                    $app_stmt->bind_param("s", $row['user_id']);
+                    $app_stmt->execute();
+                    $app_result = $app_stmt->get_result();
+                    $app_data = $app_result->fetch_assoc();
+                    ?>
+
+                    <?php
+                    // Fetch payment breakdown from appointments table
+                    $pay_sql = "SELECT share_capital, savings, membership_fee, insurance, total_amount FROM appointments WHERE user_id = ?";
+                    $pay_stmt = $conn->prepare($pay_sql);
+                    $pay_stmt->bind_param("s", $row['user_id']);
+                    $pay_stmt->execute();
+                    $pay_result = $pay_stmt->get_result();
+                    $pay_data = $pay_result->fetch_assoc();
+                    ?>
+
+                    <!-- Checklist Card -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body">
+                            <h6 class="text-warning fw-bold mb-3 text-center">Approval Checklist</h6>
+                            <ul class="list-group list-group-flush">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-file-alt text-muted mr-2"></i> Sign Up Form</span>
+                                    <?php if ($app_data['fillupform']): ?>
+                                        <span class="badge badge-success">Completed</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-secondary">Pending</span>
+                                    <?php endif; ?>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-play-circle text-muted mr-2"></i> Video Seminar</span>
+                                    <?php if ($app_data['watchvideoseminar']): ?>
+                                        <span class="badge badge-success">Completed</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-secondary">Pending</span>
+                                    <?php endif; ?>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span><i class="fas fa-money-bill-wave text-muted mr-2"></i> Payment</span>
+                                    <?php if ($app_data['payment_status'] === 'Completed'): ?>
+                                        <span class="badge badge-success">Completed</span>
+                                    <?php else: ?>
+                                        <span class="badge badge-secondary">Pending</span>
+                                    <?php endif; ?>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Summary Card -->
+                    <div class="card mb-4 border-0 shadow-sm">
+                        <div class="card-body text-center">
+                            <h6 class="text-warning fw-bold mb-3">Application Summary</h6>
+                            <div class="row justify-content-center g-3">
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold">Email</small>
+                                    <div class="border rounded p-2"><?php echo htmlspecialchars($row['email']); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold">TIN Number</small>
+                                    <div class="border rounded p-2"><?php echo htmlspecialchars($row['tin_number']); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold">Application Status</small>
+                                    <div class="border rounded p-2"><?php echo htmlspecialchars($app_data['status']); ?></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <small class="text-muted fw-bold">Payment Status</small>
+                                    <div class="border rounded p-2"><?php echo htmlspecialchars($app_data['payment_status']); ?></div>
+                                </div>
+                            </div>
+
+                            <?php if ($pay_data): ?>
+    <div class="row mt-4">
+        <div class="col-12">
+            <h6 class="text-warning fw-bold mb-2 text-center">Need to Pay Breakdown</h6>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Share Capital</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['share_capital'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Savings</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['savings'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Membership Fee</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['membership_fee'], 2); ?></div>
+        </div>
+        <div class="col-md-6">
+            <small class="text-muted fw-bold">Insurance</small>
+            <div class="border rounded p-2">₱<?php echo number_format($pay_data['insurance'], 2); ?></div>
+        </div>
+        <div class="col-md-12">
+            <small class="text-muted fw-bold">Total Amount</small>
+            <div class="border rounded p-2 bg-light text-dark fw-bold">₱<?php echo number_format($pay_data['total_amount'], 2); ?></div>
+        </div>
+    </div>
+<?php endif; ?>
+
+                        </div>
+                    </div>
+
+                    <!-- Information Cards -->
+                    <div class="row g-4">
+                        <!-- Personal Information -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="text-warning fw-bold mb-3">Personal Info</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <small class="fw-bold">First Name</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['first_name']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Last Name</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['last_name']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Middle Name</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['middle_name']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Gender</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['gender']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Birthday</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['birthday']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Mobile</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['mobile']); ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Membership Info -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="text-warning fw-bold mb-3">Membership Info</h6>
+                                    <div class="row g-2">
+                                        <div class="col-6">
+                                            <small class="fw-bold">Type</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['membership_type']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Status</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['membership_status']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Application Date</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['created_at']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Payment Appointment</small>
+                                            <div class="border rounded p-2">
+                                                <?php 
+                                                if (!empty($app_data['appointment_date'])) {
+                                                    $appointment_date = new DateTime($app_data['appointment_date']);
+                                                    echo htmlspecialchars($appointment_date->format('Y-m-d H:i:s'));
+                                                } else {
+                                                    echo "No appointment scheduled";
+                                                }
+                                                ?>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Address -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body">
+                                    <h6 class="text-warning fw-bold mb-3">Address</h6>
+                                    <div class="row g-2">
+                                        <div class="col-12">
+                                            <small class="fw-bold">Street</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['street']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Barangay</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['barangay']); ?></div>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="fw-bold">Municipality</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['municipality']); ?></div>
+                                        </div>
+                                        <div class="col-12">
+                                            <small class="fw-bold">Province</small>
+                                            <div class="border rounded p-2"><?php echo htmlspecialchars($row['province']); ?></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TIN ID Image -->
+                        <div class="col-md-6">
+                            <div class="card border-0 shadow-sm h-100">
+                                <div class="card-body text-center">
+                                    <h6 class="text-warning fw-bold mb-3">TIN ID Image</h6>
+                                    <div class="bg-white border rounded-3 p-2" style="height: 250px; display: flex; align-items: center; justify-content: center;">
+                                        <?php if (!empty($row['tin_id_image'])): ?>
+                                            <img src="../dist/assets/images/tin_id/<?php echo htmlspecialchars($row['tin_id_image']); ?>" alt="TIN ID Image" class="img-fluid rounded" style="max-height: 220px; object-fit: contain;">
+                                        <?php else: ?>
+                                            <p class="text-muted small">No Image Available</p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="row mt-4">
+                        <div class="col-12 text-center">
+                            <form action="process_membership.php" method="POST" class="d-inline">
+                                <input type="hidden" name="user_id" value="<?php echo $row['user_id']; ?>">
+                                <button type="submit" name="approve" class="btn btn-success mr-2">
+                                    <i class="fas fa-check"></i> Approve Application
+                                </button>
+                                <button type="submit" name="reject" class="btn btn-danger">
+                                    <i class="fas fa-times"></i> Reject Application
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endif; ?>
+                <?php endwhile; ?>
+                <?php if (!$pending_members_found): ?>
+                    <tr>
+                        <td colspan="7" class="text-center">No pending membership applications found</td>
+                    </tr>
+                <?php endif; ?>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+                <!-- Pagination -->
+                <br>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
+                            <a class="page-link"
+                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page - 1; ?>"
+                                aria-label="Previous">
+                                <span aria-hidden="true">&laquo;</span>
+                            </a>
+                        </li>
+                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                                <a class="page-link"
+                                    href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                            </li>
+                        <?php endfor; ?>
+                        <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
+                            <a class="page-link"
+                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page + 1; ?>"
+                                aria-label="Next">
+                                <span aria-hidden="true">&raquo;</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
 
                 <br><br><br><br><br><br><br>
 
@@ -905,6 +1252,9 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- plugins:js -->
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             var searchForm = document.getElementById('searchForm');
@@ -916,7 +1266,20 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 searchForm.submit(); // Submit the form to reload all records
             });
         });
+        $(document).ready(function () {
+            // Disable past dates
+            var today = new Date().toISOString().split('T')[0];
+            $('#announcementDate').attr('min', today);
 
+            // Capture the day of the selected date
+            $('#announcementDate').change(function () {
+                var selectedDate = $(this).val();
+                var dateObj = new Date(selectedDate);
+                var options = { weekday: 'long' }; // Get full weekday name
+                var dayOfWeek = dateObj.toLocaleDateString('en-PH', options);
+                $('#announcementDay').val(dayOfWeek); // Set the day value in the hidden input
+            });
+        });
     </script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>

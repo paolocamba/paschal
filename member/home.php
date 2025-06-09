@@ -57,7 +57,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Home | Member</title>
+  <title>Dashboard | Member</title>
   
   <!-- plugins:css -->
   <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
@@ -1199,7 +1199,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                   application_date,
                   Status 
                   FROM loanapplication
-                  WHERE userID = ?";
+                  WHERE userID = ? AND reference3_contact_no IS NOT NULL";
 
               $loans_stmt = $conn->prepare($loans_sql);
               $loans_stmt->bind_param("i", $user_id);

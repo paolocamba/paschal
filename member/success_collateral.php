@@ -209,6 +209,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </div>
                 </div>
                 <style>
+
+                    .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+                    
                     .gradient-header {
                         background: linear-gradient(120deg, #20B2AA 0%, #90EE90 100%);
                         padding: 2rem;

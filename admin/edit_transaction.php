@@ -570,6 +570,32 @@ try {
 
             echo "User's share capital updated successfully.<br>";
 
+            // Check if the user's share capital is 5000 or more and update membership_type
+            $check_capital_sql = "SELECT share_capital FROM users WHERE user_id = ?";
+            $stmt_check_capital = $conn->prepare($check_capital_sql);
+            if (!$stmt_check_capital) {
+                throw new Exception("Prepare check capital failed: " . $conn->error);
+            }
+            $stmt_check_capital->bind_param("i", $user_id);
+            $stmt_check_capital->execute();
+            $result_capital = $stmt_check_capital->get_result();
+
+            if ($result_capital->num_rows > 0) {
+                $row_capital = $result_capital->fetch_assoc();
+                if ($row_capital['share_capital'] >= 5000) {
+                    $update_type_sql = "UPDATE users SET membership_type = 'Regular' WHERE user_id = ?";
+                    $stmt_type = $conn->prepare($update_type_sql);
+                    if (!$stmt_type) {
+                        throw new Exception("Prepare update membership type failed: " . $conn->error);
+                    }
+                    $stmt_type->bind_param("i", $user_id);
+                    if (!$stmt_type->execute()) {
+                        throw new Exception("Failed to update membership type: " . $stmt_type->error);
+                    }
+                    echo "Membership type updated to Regular.<br>";
+                }
+            }
+
             // Get initials of the logged-in user
             if (!isset($_SESSION['user_id'])) {
                 throw new Exception("Logged-in user ID not found in session");

@@ -145,6 +145,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+            .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+                    
             .nav-link i {
                 margin-right: 10px;
             }

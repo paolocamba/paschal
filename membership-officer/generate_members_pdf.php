@@ -14,14 +14,18 @@ try {
 
     // Fetch single member's data
     $sql = "SELECT 
-                u.id, u.first_name, u.last_name, u.middle_name, u.email, 
-                u.birthday, u.gender, u.age, u.mobile, u.street, u.barangay, 
-                u.municipality, u.province, u.membership_type, 
-                u.tin_number, u.tin_id_image, u.certificate_no,
-                COALESCE((SELECT SUM(Amount) FROM savings WHERE MemberID = u.user_id), 0) as savings,
-                COALESCE((SELECT SUM(Amount) FROM share_capital WHERE MemberID = u.user_id), 0) as share_capital
-            FROM users u
-            WHERE u.user_type = 'Member' AND u.id = ?";
+    u.id, u.user_id, u.first_name, u.last_name, u.middle_name, u.email, 
+    u.birthday, u.gender, u.age, u.mobile, u.street, u.barangay, 
+    u.municipality, u.province, u.membership_type, u.membership_status,
+    u.tin_number, u.tin_id_image, u.certificate_no,
+    COALESCE(a.savings, 0) as savings,
+    COALESCE(a.share_capital, 0) as share_capital,
+    COALESCE(a.membership_fee, 0) as membership_fee,
+    COALESCE(a.insurance, 0) as insurance,
+    COALESCE(a.total_amount, 0) as total_amount
+    FROM users u
+    LEFT JOIN appointments a ON u.user_id = a.user_id
+    WHERE u.user_type = 'Member' AND u.id = ?";
             
     $stmt = $conn->prepare($sql);
     $stmt->bind_param("i", $member_id);
@@ -146,6 +150,23 @@ try {
                 <tr>
                     <td><strong>Share Capital:</strong></td>
                     <td>₱' . number_format(floatval($row['share_capital']), 2) . '</td>
+                </tr>
+                 <tr>
+                    <td><strong>Membership Status:</strong></td>
+                    <td>' . htmlspecialchars($row['membership_status']) . '</td>
+                </tr>
+                <tr>
+                    <td><strong>Membership Fee:</strong></td>
+                    <td>' . htmlspecialchars($row['membership_fee']) . '</td>
+                </tr>
+
+                <tr>
+                    <td><strong>Insurance:</strong></td>
+                    <td>' . htmlspecialchars($row['insurance']) . '</td>
+                </tr>
+               <tr>
+                    <td><strong>Total Amount:</strong></td>
+                    <td>' . htmlspecialchars($row['total_amount']) . '</td>
                 </tr>
                 
             </table>

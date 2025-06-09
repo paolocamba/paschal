@@ -58,7 +58,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Land Appraisal | Loan Officer</title>
+    <title>Land Appraisal | Admin</title>
       <!-- plugins:css -->
       <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -135,10 +135,27 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
-                    .navbar {
-            padding-top: 0 !important;
-            margin-top: 0 !important;
-        }
+            .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+                    
+            .table-responsive {
+                overflow-x: auto; /* Enables horizontal scrolling */
+                position: relative; /* Needed for sticky positioning */
+            }
+
+            th:last-child, td:last-child { 
+                position: sticky;
+                right: 0;
+                background: white; /* Keeps background color when scrolling */
+                z-index: 2; /* Ensures it stays above other columns */
+            }
+
+            th:last-child {
+                z-index: 3; /* Keeps header on top */
+            }
+
             .nav-link i {
                 margin-right: 10px;
             }
@@ -160,13 +177,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             }
             .btn-info{
                 background-color: #03C03C !important;
-                border-color: #03C03C !important ;
             }
             .btn-info:hover{
                 background-color: #00563B !important;
             }
         </style>
-        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+                <nav class="sidebar sidebar-offcanvas" id="sidebar">
             <ul class="nav">
                 <li class="nav-item">
                     <a class="nav-link" href="index.php">
@@ -315,14 +331,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <th>Loan ID</th>
                                             <th>MemberID</th>
                                             <th>Applicant Name</th>
+                                            <th>Loanable Amount</th>
                                             <th>Square Meters</th>
                                             <th>Type of Land</th>
                                             <th>Location</th>
                                             <th>Final Zonal Value</th>
                                             <th>EMV per sqm</th>
                                             <th>Total Value</th>
-                                            <th>Loanable Amount</th>
-                                            <th>Loan Status</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -333,14 +348,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                     <td><?php echo htmlspecialchars($row['LoanID']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['MemberID']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                                                    <td><?php echo number_format($row['loanable_amount'], 2); ?></td>
                                                     <td><?php echo htmlspecialchars($row['square_meters']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['type_of_land']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['location']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['location_name']); ?></td>
                                                     <td><?php echo number_format($row['final_zonal_value'], 2); ?></td>
                                                     <td><?php echo number_format($row['EMV_per_sqm'], 2); ?></td>
                                                     <td><?php echo number_format($row['total_value'], 2); ?></td>
-                                                    <td><?php echo number_format($row['loanable_amount'], 2); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['ApprovalStatus']); ?></td>
                                                     <td>
                                                         <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewModal<?php echo $row['LoanID']; ?>">
                                                             <i class="fa-solid fa-eye"></i>
@@ -372,11 +386,18 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                 <p><strong>Loan ID:</strong> <?php echo htmlspecialchars($row['LoanID']); ?></p>
                                                                                 <p><strong>Square Meters:</strong> <?php echo htmlspecialchars($row['square_meters']); ?></p>
                                                                                 <p><strong>Type of Land:</strong> <?php echo htmlspecialchars($row['type_of_land']); ?></p>
-                                                                                <p><strong>Location:</strong> <?php echo htmlspecialchars($row['location']); ?></p>
+                                                                                <p><strong>Location:</strong> <?php echo htmlspecialchars($row['location_name']); ?></p>
                                                                                 <p><strong>Final Zonal Value:</strong> ₱<?php echo number_format($row['final_zonal_value'], 2); ?></p>
                                                                                 <p><strong>EMV per sqm:</strong> ₱<?php echo number_format($row['EMV_per_sqm'], 2); ?></p>
                                                                                 <p><strong>Total Value:</strong> ₱<?php echo number_format($row['total_value'], 2); ?></p>
                                                                                 <p><strong>Loanable Amount:</strong> ₱<?php echo number_format($row['loanable_amount'], 2); ?></p>
+                                                                                <p><strong>Validation Status:</strong> 
+                                                                                <?php if (!empty($row['validated_date'])): ?>
+                                                                                    <span class="text-success">Validated on <?php echo htmlspecialchars($row['validated_date']); ?></span>
+                                                                                <?php else: ?>
+                                                                                    <span class="text-danger">Not yet validated by Liaison Officer</span>
+                                                                                <?php endif; ?>
+                                                                            </p>
                                                                             </div>
                                                                         </div>
                                                                     </div>
@@ -394,39 +415,67 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                 </div>
                                                                                 <div class="d-flex justify-content-between mb-2">
                                                                                     <span><i class="fas fa-hospital me-2"></i>Hospital:</span>
-                                                                                    <span class="badge <?php echo $row['hospital'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
-                                                                                        <?php echo htmlspecialchars($row['hospital']); ?>
+                                                                                    <span class="badge <?php echo $row['has_hospital'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
+                                                                                        <?php echo htmlspecialchars($row['has_hospital']); ?>
                                                                                     </span>
                                                                                 </div>
                                                                                 <div class="d-flex justify-content-between mb-2">
                                                                                     <span><i class="fas fa-school me-2"></i>School:</span>
-                                                                                    <span class="badge <?php echo $row['school'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
-                                                                                        <?php echo htmlspecialchars($row['school']); ?>
+                                                                                    <span class="badge <?php echo $row['has_school'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
+                                                                                        <?php echo htmlspecialchars($row['has_school']); ?>
                                                                                     </span>
                                                                                 </div>
                                                                                 <div class="d-flex justify-content-between mb-2">
                                                                                     <span><i class="fas fa-shopping-cart me-2"></i>Market:</span>
-                                                                                    <span class="badge <?php echo $row['market'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
-                                                                                        <?php echo htmlspecialchars($row['market']); ?>
+                                                                                    <span class="badge <?php echo $row['has_market'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
+                                                                                        <?php echo htmlspecialchars($row['has_market']); ?>
                                                                                     </span>
                                                                                 </div>
                                                                                 <div class="d-flex justify-content-between">
                                                                                     <span><i class="fas fa-church me-2"></i>Church:</span>
-                                                                                    <span class="badge <?php echo $row['church'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
-                                                                                        <?php echo htmlspecialchars($row['church']); ?>
+                                                                                    <span class="badge <?php echo $row['has_church'] === 'Yes' ? 'badge-success' : 'badge-danger'; ?>" style="color:white !important;">
+                                                                                        <?php echo htmlspecialchars($row['has_church']); ?>
                                                                                     </span>
                                                                                 </div>
                                                                             </div>
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <?php if($row['image_path']): ?>
+                                                                <?php
+                                                                // Create an array of all image paths
+                                                                $property_images = [];
+                                                                if (!empty($row['image_path1'])) $property_images[] = $row['image_path1'];
+                                                                if (!empty($row['image_path2'])) $property_images[] = $row['image_path2'];
+                                                                if (!empty($row['image_path3'])) $property_images[] = $row['image_path3'];
+
+                                                                // Only show the section if there are any images
+                                                                if (!empty($property_images)): ?>
                                                                     <div class="card shadow-sm">
                                                                         <div class="card-header bg-light">
-                                                                            <h6 class="mb-0"><i class="fas fa-image me-2"></i>Property Image</h6>
+                                                                            <h6 class="mb-0"><i class="fas fa-images me-2"></i>Property Images</h6>
                                                                         </div>
                                                                         <div class="card-body">
-                                                                            <img src="<?php echo htmlspecialchars($row['image_path']); ?>" class="img-fluid rounded" alt="Property Image">
+                                                                            <div class="row">
+                                                                                <?php foreach ($property_images as $image_path): ?>
+                                                                                    <div class="col-md-4 mb-3">
+                                                                                        <div class="property-image-container">
+                                                                                            <img src="<?php echo htmlspecialchars($image_path); ?>" 
+                                                                                                class="img-fluid rounded" 
+                                                                                                alt="Property Image"
+                                                                                                style="max-height: 200px; width: 100%; object-fit: cover;">
+                                                                                            <div class="image-actions mt-2 text-center">
+                                                                                                <a href="<?php echo htmlspecialchars($image_path); ?>" 
+                                                                                                class="btn btn-sm btn-primary" 
+                                                                                                target="_blank"
+                                                                                                data-bs-toggle="tooltip" 
+                                                                                                title="View Full Image">
+                                                                                                    <i class="fas fa-expand"></i>
+                                                                                                </a>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                <?php endforeach; ?>
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 <?php endif; ?>

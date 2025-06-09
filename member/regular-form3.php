@@ -206,6 +206,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         --light-bg: #f3f4f9;
                     }
 
+                    .navbar {
+                        padding-top: 0 !important;
+                        margin-top: 0 !important;
+                    }
+
 
                     .container {
                         max-width: 1200px;
