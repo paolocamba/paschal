@@ -226,6 +226,16 @@ if (isset($_GET['thread_id'])) {
             font-size: 0.8rem;
             color: #6c757d;
         }
+              th:last-child, td:last-child { 
+          position: sticky;
+          right: 0;
+          background: white;
+          z-index: 2;
+      }
+
+      th:last-child {
+          z-index: 3;
+      }
     </style>
   </head>
   <body>

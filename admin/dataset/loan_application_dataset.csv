@@ -1,6 +1,0 @@
-LoanID,MemberID,AmountRequested,LoanTerm,LoanType,ModeOfPayment,number_of_dependents,self_income_amount,self_other_income_amount,spouse_income_amount,spouse_other_income_amount,total_expenses,net_family_income,monthly_income,Status,loanable_amount,DateOfLoan,comaker_name
-64,9,5500.00,3,Collateral,Quarterly,1,150000.00,40000.00,559999.00,0.00,7000.00,749999.00,10000000.00,Approved,500000.00,2024-12-30,"Maria Thompson"
-68,8,5400.00,12,Regular,Monthly,1,100000.00,50000.00,50000.00,0.00,2050.00,200000.00,1000000.00,Approved,23400.00,2024-12-29,"Maria Carry"
-69,10,9000.00,6,Regular,Monthly,1,100000.00,100000.00,50000.00,50000.00,2500.00,300000.00,100000.00,"In Progress",0.00,2024-12-30,"Sam Tom"
-72,12,30000.00,12,Collateral,Monthly,1,130000.00,30000.00,12000.00,0.00,50000.00,172000.00,150000.00,Approved,0.00,2025-01-15,Tin
-73,12,30000.00,12,Collateral,Monthly,,,,,,,,,"In Progress",0.00,2025-01-15,

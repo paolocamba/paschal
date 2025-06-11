@@ -272,6 +272,16 @@ $unread_count = $unread_result->fetch_assoc()['unread_count'];
             border-radius: 0.25rem;
             padding: 0.375rem 0.75rem;
         }
+                      th:last-child, td:last-child { 
+          position: sticky;
+          right: 0;
+          background: white;
+          z-index: 2;
+      }
+
+      th:last-child {
+          z-index: 3;
+      }
 
     </style>
   </head>

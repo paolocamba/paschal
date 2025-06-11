@@ -101,6 +101,9 @@ if (isset($_POST['submit'])) {
                         case 'Liaison Officer':
                             header('Location: liaison-officer/index.php');
                             break;
+                        case 'Cashier':
+                            header('Location: cashier/index.php');
+                            break;
                         default:
                             $error[] = 'Invalid user type!';
                             break;

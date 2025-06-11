@@ -56,7 +56,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Settings | Medical Officer</title>
+    <title>Settings | Admin</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -156,17 +156,16 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
-
                 <li class="nav-item">
-                    <a class="nav-link" href="medical.php">
-                        <i class="fa-brands fa-slack"></i>
-                        <span class="menu-title">Medical Records</span>
+                    <a class="nav-link" href="appointment.php">
+                        <i class="fas fa-regular fa-calendar"></i>
+                        <span class="menu-title">Appointments</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="inbox.php">
-                        <i class="fa-solid fa-comment"></i>
-                        <span class="menu-title">Inbox</span>
+                    <a class="nav-link" href="transaction.php">
+                        <i class="fas fa-right-left"></i>
+                        <span class="menu-title">Transaction</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -175,9 +174,15 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Settings</span>
                     </a>
                 </li>
-
             </ul>
         </nav>
+
+        <style>
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+    </style>
         <!-- partial -->
         <div class="main-panel">
             <div class="content-wrapper">
@@ -200,6 +205,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </div>
                 </div>
                 <?php
+
                 // Check if the "success" parameter is set in the URL
                 if (isset($_GET['success']) && $_GET['success'] == 1) {
                     // Use SweetAlert to show a success message
