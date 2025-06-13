@@ -11,8 +11,7 @@ include '../connection/config.php';
 
 $user_id = $_SESSION['user_id'];
 
-// Update user information
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_profile'])) {
     // Collect form data
     $first_name = $_POST['first_name'] ?? '';
     $last_name = $_POST['last_name'] ?? '';
@@ -48,8 +47,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $user_id
     );
 
-    if (!$stmt->execute()) {
-        echo "Error updating profile information: " . $stmt->error;
+    if ($stmt->execute()) {
+        $_SESSION['success'] = "Profile updated successfully";
+    } else {
+        $_SESSION['error'] = "Error updating profile information: " . $stmt->error;
     }
     $stmt->close();
 
@@ -63,65 +64,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $unique_filename = uniqid() . '_' . $file_name;
         $upload_file = $upload_dir . $unique_filename;
 
-        // Move the uploaded file to the destination directory
-        if (move_uploaded_file($file_tmp, $upload_file)) {
+        // Validate file type and size
+        $allowed_types = ['image/jpeg', 'image/png', 'image/gif'];
+        $max_size = 2 * 1024 * 1024; // 2MB
+        
+        if (!in_array($_FILES['uploadID']['type'], $allowed_types)) {
+            $_SESSION['error'] = "Invalid file type. Only JPG, PNG, and GIF are allowed";
+        } elseif ($_FILES['uploadID']['size'] > $max_size) {
+            $_SESSION['error'] = "File too large. Maximum size is 2MB";
+        } elseif (move_uploaded_file($file_tmp, $upload_file)) {
             // Update the database with the new profile image
             $sql = "UPDATE users SET uploadID = ? WHERE user_id = ?";
             $stmt = $conn->prepare($sql);
             $stmt->bind_param("si", $unique_filename, $user_id);
             
-            if (!$stmt->execute()) {
-                echo "Error updating profile image: " . $stmt->error;
+            if ($stmt->execute()) {
+                $_SESSION['success'] = "Profile picture updated successfully";
+                $_SESSION['uploadID'] = $unique_filename; // Update session variable
+            } else {
+                $_SESSION['error'] = "Error updating profile image: " . $stmt->error;
             }
             $stmt->close();
         } else {
-            echo "Error uploading file.";
+            $_SESSION['error'] = "Error uploading file";
         }
     }
 
-    // Handle password change
-    if (!empty($_POST['old_password']) && !empty($_POST['new_password']) && !empty($_POST['confirm_password'])) {
-        $old_password = $_POST['old_password'];
-        $new_password = $_POST['new_password'];
-        $confirm_password = $_POST['confirm_password'];
-
-        if ($new_password === $confirm_password) {
-            // Verify the old password
-            $sql = "SELECT password FROM users WHERE user_id = ?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $user_id);
-            $stmt->execute();
-            $result = $stmt->get_result();
-
-            if ($result && $result->num_rows > 0) {
-                $row = $result->fetch_assoc();
-                $hashed_password = $row['password'];
-
-                // Check if the old password is correct
-                if (password_verify($old_password, $hashed_password)) {
-                    // Hash the new password and update it
-                    $new_hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
-                    $sql = "UPDATE users SET password = ? WHERE user_id = ?";
-                    $stmt = $conn->prepare($sql);
-                    $stmt->bind_param("si", $new_hashed_password, $user_id);
-                    
-                    if (!$stmt->execute()) {
-                        echo "Error updating password: " . $stmt->error;
-                    } else {
-                        echo "Password updated successfully.";
-                    }
-                } else {
-                    echo "Old password is incorrect.";
-                }
-            }
-            $stmt->close();
-        } else {
-            echo "New passwords do not match.";
-        }
-    }
-
-    // Redirect to the profile page
-    header("Location: settings.php?success=1");
+    header("Location: settings.php");
     exit();
 }
 

@@ -322,6 +322,12 @@ if (isset($_GET['thread_id'])) {
                     <span class="menu-title">Inbox</span>
                 </a>
                 </li>
+                                <li class="nav-item">
+                <a class="nav-link" href="reports.php">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span class="menu-title">Reports</span>
+                </a>
+                </li>
                 <li class="nav-item">
                 <a class="nav-link" href="settings.php">
                     <i class="fas fa-gear"></i>

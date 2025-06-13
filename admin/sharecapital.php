@@ -491,19 +491,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                             <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                                             <td>
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                                    data-target="#editShareCapitalModal<?php echo $row['ShareCapitalID']; ?>">
-                                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                                    data-target="#viewShareCapitalModal<?php echo $row['ShareCapitalID']; ?>">
+                                                                    <i class="fa-solid fa-eye"></i>
                                                                 </button>
                                                             </td>
                                                         </tr>
 
-                                                        <!-- Edit Share Capital Modal -->
-                                                        <div class="modal fade" id="editShareCapitalModal<?php echo $row['ShareCapitalID']; ?>"
-                                                            tabindex="-1" aria-labelledby="editShareCapitalModalLabel" aria-hidden="true">
+                                                        <!-- View Share Capital Modal -->
+                                                        <div class="modal fade" id="viewShareCapitalModal<?php echo $row['ShareCapitalID']; ?>"
+                                                            tabindex="-1" aria-labelledby="viewShareCapitalModalLabel" aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header">
-                                                                        <h5 class="modal-title" id="editShareCapitalModalLabel">Edit Share Capital Status</h5>
+                                                                        <h5 class="modal-title" id="viewShareCapitalModalLabel">View Share Capital Transaction</h5>
                                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                             <span aria-hidden="true">&times;</span>
                                                                         </button>
@@ -529,23 +529,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                     readonly>
                                                                             </div>
 
+                                                                            
+                                                                            <div class="mb-3">
+                                                                                <label for="status" class="form-label">Status</label>
+                                                                                <input type="text" class="form-control" id="status" name="Status" 
+                                                                                    value="<?php echo htmlspecialchars($row['Status']); ?>" disabled>
+                                                                            </div>
                                                                             <div class="mb-3">
                                                                                 <label class="form-label">Notes</label>
                                                                                 <textarea class="form-control" readonly><?php echo htmlspecialchars($row['Notes']); ?></textarea>
                                                                             </div>
 
-                                                                            <div class="mb-3">
-                                                                                <label for="status" class="form-label">Status</label>
-                                                                                <select class="form-control" id="status" name="Status" required>
-                                                                                    <option value="In Progress" <?php echo ($row['Status'] == 'In Progress') ? 'selected' : ''; ?>>In Progress</option>
-                                                                                    <option value="Approved" <?php echo ($row['Status'] == 'Approved') ? 'selected' : ''; ?>>Approved</option>
-                                                                                    <option value="Disapproved" <?php echo ($row['Status'] == 'Disapproved') ? 'selected' : ''; ?>>Disapproved</option>
-                                                                                </select>
-                                                                            </div>
-
                                                                             <div class="modal-footer">
                                                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                                                <button type="submit" class="btn btn-primary">Save Changes</button>
                                                                             </div>
                                                                         </form>
                                                                     </div>

@@ -193,6 +193,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Inbox</span>
                     </a>
                 </li>
+                                <li class="nav-item">
+                <a class="nav-link" href="reports.php">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span class="menu-title">Reports</span>
+                </a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="settings.php">
                         <i class="fas fa-gear"></i>

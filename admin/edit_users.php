@@ -2,32 +2,47 @@
 include '../connection/config.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $id = (int)$_POST['id'];
-    $first_name = $_POST['first_name'];
-    $last_name = $_POST['last_name'];
-    $email = $_POST['email'];
-    $username = $_POST['username'];
-    $street = $_POST['street'];
-    $barangay = $_POST['barangay'];
-    $municipality = $_POST['municipality'];
-    $province = $_POST['province'];
-    $mobile = $_POST['mobile'];
-    $user_type = $_POST['user_type']; // Add this line
-
-    $sql = "UPDATE users SET first_name = ?, last_name = ?, email = ?, username = ?, street = ?, barangay = ?, municipality = ?, province = ?, mobile = ?, user_type = ? WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("ssssssssssi", $first_name, $last_name, $email, $username, $street, $barangay, $municipality, $province, $mobile, $user_type, $id); // Bind user_type
-
-    if ($stmt->execute()) {
-        // Redirect back to the page where the user list is displayed
-        header("Location: users.php?success=2");
-    } else {
-        echo "Error: " . $stmt->error;
+    // Validate input
+    if (!isset($_POST['id']) || !isset($_POST['user_type'])) {
+        header("Location: users.php?error=3"); // Missing parameters
+        exit();
     }
 
-    $stmt->close();
-    $conn->close();
+    $id = (int)$_POST['id'];
+    $user_type = $_POST['user_type'];
+
+    try {
+        // Update only the user_type
+        $sql = "UPDATE users SET user_type = ? WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        
+        if ($stmt === false) {
+            throw new Exception("Prepare failed: " . $conn->error);
+        }
+
+        if (!$stmt->bind_param("si", $user_type, $id)) {
+            throw new Exception("Bind failed: " . $stmt->error);
+        }
+
+        if (!$stmt->execute()) {
+            throw new Exception("Execute failed: " . $stmt->error);
+        }
+
+        header("Location: users.php?success=1");
+        exit();
+        
+    } catch (Exception $e) {
+        error_log("User edit error: " . $e->getMessage());
+        header("Location: users.php?error=1");
+        exit();
+    } finally {
+        if (isset($stmt)) {
+            $stmt->close();
+        }
+        $conn->close();
+    }
 } else {
-    echo "Invalid request method.";
+    header("Location: users.php?error=2");
+    exit();
 }
 ?>

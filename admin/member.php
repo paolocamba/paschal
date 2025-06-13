@@ -305,6 +305,21 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 <?php
 
+                // Check if the "rejected" parameter is set in the URL
+                if (isset($_GET['rejected']) && $_GET['rejected'] == 1) {
+                    // Use SweetAlert to show a success message
+                    echo '<script>
+                    document.addEventListener("DOMContentLoaded", function() {
+                        Swal.fire({
+                            icon: "success",
+                            title: "Membership Application Rejected",
+                            showConfirmButton: false,
+                            timer: 1500 // Close after 1.5 seconds
+                        });
+                    });
+                    </script>';
+                }
+
                 // Check if the "success" parameter is set in the URL
                 if (isset($_GET['success']) && $_GET['success'] == 1) {
                     // Use SweetAlert to show a success message
@@ -965,6 +980,7 @@ try {
                     <th>Mobile</th>
                     <th>Membership Type</th>
                     <th>Application Date</th>
+                    <th>Status</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -983,6 +999,7 @@ try {
                             <td><?php echo htmlspecialchars($row['mobile']); ?></td>
                             <td><?php echo htmlspecialchars($row['membership_type']); ?></td>
                             <td><?php echo htmlspecialchars($row['created_at']); ?></td>
+                            <td><?php echo htmlspecialchars($row['membership_status']); ?></td>
                             <td>
                                                                 <!-- View Button with unique modal ID -->
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
@@ -1234,11 +1251,8 @@ try {
                     <!-- Action Buttons -->
                     <div class="row mt-4">
                         <div class="col-12 text-center">
-                            <form action="process_membership.php" method="POST" class="d-inline">
+                            <form action="reject_membership.php" method="POST" class="d-inline">
                                 <input type="hidden" name="user_id" value="<?php echo $row['user_id']; ?>">
-                                <button type="submit" name="approve" class="btn btn-success mr-2">
-                                    <i class="fas fa-check"></i> Approve Application
-                                </button>
                                 <button type="submit" name="reject" class="btn btn-danger">
                                     <i class="fas fa-times"></i> Reject Application
                                 </button>

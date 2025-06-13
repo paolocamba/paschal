@@ -552,6 +552,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
               <span class="menu-title">Inbox</span>
             </a>
           </li>
+                          <li class="nav-item">
+                <a class="nav-link" href="reports.php">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span class="menu-title">Reports</span>
+                </a>
+                </li>
           <li class="nav-item">
             <a class="nav-link" href="settings.php">
               <i class="fas fa-gear"></i>
@@ -603,9 +609,20 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
         $savings_result = $stmt->get_result();
         $total_savings = $savings_result->fetch_assoc()['total_savings'];
 
+                  // Get the account opening date (you'll need to add this to your users table)
+        $account_info_query = "SELECT account_opening_date FROM users WHERE user_id = ?";
+        $stmt = $conn->prepare($account_info_query);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $account_info_result = $stmt->get_result();
+        $account_info = $account_info_result->fetch_assoc();
+        $opening_date = new DateTime($account_info['account_opening_date']);
+        $current_date = new DateTime();
+        $days_since_opening = $opening_date->diff($current_date)->days;
+
         // Calculate savings with interest (1.5% annual rate)
         $savings_interest_rate = 0.015;
-        $total_savings_with_interest = $total_savings * (1 + $savings_interest_rate);
+        $total_savings_with_interest = $total_savings * exp($savings_interest_rate * ($days_since_opening / 365));
 
 
           // Calculate savings percentage this month
@@ -634,7 +651,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           
           // Calculate share capital with interest (5% annual rate)
           $share_capital_interest_rate = 0.05;
-          $total_share_capital_with_interest = $total_share_capital * (1 + $share_capital_interest_rate);
+          $total_share_capital_with_interest = $total_share_capital * exp($share_capital_interest_rate * ($days_since_opening / 365));
 
           // Calculate share capital percentage this month
           $monthly_share_query = "SELECT COALESCE(SUM(amount), 0) as monthly_share 
@@ -649,6 +666,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           $monthly_result = $stmt->get_result();
           $monthly_share = $monthly_result->fetch_assoc()['monthly_share'];
           $share_percentage = ($total_share_capital > 0) ? ($monthly_share / $total_share_capital) * 100 : 0;
+
+        // Update the user's balance with the interest (you might want to run this periodically, like monthly)
+        $update_savings_query = "UPDATE users SET savings = ? WHERE user_id = ?";
+        $stmt = $conn->prepare($update_savings_query);
+        $stmt->bind_param("di", $total_savings_with_interest, $user_id);
+        $stmt->execute();
+
+        $update_share_query = "UPDATE users SET share_capital = ? WHERE user_id = ?";
+        $stmt = $conn->prepare($update_share_query);
+        $stmt->bind_param("di", $total_share_capital_with_interest, $user_id);
+        $stmt->execute();
 
           // Get active services
           $services_query = "SELECT service_name 
@@ -958,7 +986,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           
           
           $savingsStmt = $conn->prepare($savingsSql);
-          $savingsStmt->bind_param("s", $loggedInUserId);
+          $savingsStmt->bind_param("i", $loggedInUserId);
           $savingsStmt->execute();
           $savingsResult = $savingsStmt->get_result();
           
@@ -994,6 +1022,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 <div class="mb-3">
                     <p><strong>Member No.:</strong> <?php echo htmlspecialchars($loggedInUserId); ?></p>
                     <p><strong>Name:</strong> <?php echo htmlspecialchars($fullName); ?></p>
+                    <p><strong>Current Balance:</strong> ₱<?php echo number_format($total_savings_with_interest, 2); ?></p>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered text-center">
@@ -1010,38 +1039,66 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         </thead>
                         <tbody>
                             <?php 
-                            $totalBalance = 0;
+                            // Start with zero balance for historical records
+                            $running_balance = 0;
+                            $current_date = new DateTime();
+                            $savings_interest_rate = 0.015; // 1.5% annual rate
+                            
+                            // Reset pointer to beginning of result set
+                            $savingsResult->data_seek(0);
+                            
+                            // First, calculate all transactions to get historical balances
+                            $transactions = [];
                             while ($row = $savingsResult->fetch_assoc()) {
                                 $type = $row['Type'];
                                 $amount = $row['Amount'];
+                                $transaction_date = new DateTime($row['TransactionDate']);
+                                $days_since_transaction = $transaction_date->diff($current_date)->days;
                                 $received = 0;
                                 $withdrawn = 0;
                                 $interest = 0;
 
                                 if ($type === 'Deposit') {
-                                    $interest = $amount * 0.0135;
+                                    $interest = $amount * $savings_interest_rate * ($days_since_transaction / 365);
                                     $received = $amount;
-                                    $totalBalance += $received + $interest;
+                                    $running_balance += $received + $interest;
                                 } elseif ($type === 'Withdrawal') {
                                     $withdrawn = $amount;
-                                    $totalBalance -= $withdrawn;
+                                    $running_balance -= $withdrawn;
                                 }
 
-                                $date = date('M. d, Y', strtotime($row['TransactionDate']));
-                                $controlNumber = htmlspecialchars($row['control_number']);
-                                $cashierInitial = htmlspecialchars($row['signature']);
+                                $transactions[] = [
+                                    'date' => date('M. d, Y', strtotime($row['TransactionDate'])),
+                                    'control_number' => htmlspecialchars($row['control_number']),
+                                    'received' => $received,
+                                    'interest' => $interest,
+                                    'withdrawn' => $withdrawn,
+                                    'balance' => $running_balance,
+                                    'signature' => htmlspecialchars($row['signature'])
+                                ];
+                            }
+                            
+                            // Now display the transactions in chronological order
+                            foreach ($transactions as $transaction) {
                             ?>
                                 <tr>
-                                    <td><?php echo $date; ?></td>
-                                    <td><?php echo $controlNumber; ?></td>
-                                    <td>₱<?php echo number_format($received, 2); ?></td>
-                                    <td>₱<?php echo number_format($interest, 2); ?></td>
-                                    <td>₱<?php echo number_format($withdrawn, 2); ?></td>
-                                    <td>₱<?php echo number_format($totalBalance, 2); ?></td>
-                                    <td><?php echo $cashierInitial; ?></td>
+                                    <td><?php echo $transaction['date']; ?></td>
+                                    <td><?php echo $transaction['control_number']; ?></td>
+                                    <td>₱<?php echo number_format($transaction['received'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['interest'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['withdrawn'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['balance'], 2); ?></td>
+                                    <td><?php echo $transaction['signature']; ?></td>
                                 </tr>
                             <?php } ?>
                         </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-end"><strong>Current Balance:</strong></td>
+                                <td><strong>₱<?php echo number_format($total_savings_with_interest, 2); ?></strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
                     </table>
                 </div>
             </div>
@@ -1053,60 +1110,88 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 </div>
 
 
-              <!-- Share Capital Passbook Modal -->
-              <div class="modal fade" id="shareCapitalPassModal" tabindex="-1" aria-labelledby="shareCapitalPassModalLabel" aria-hidden="true">
-                  <div class="modal-dialog modal-lg">
-                      <div class="modal-content">
-                          <div class="modal-header">
-                              <h5 class="modal-title" id="shareCapitalPassModalLabel">Share Capital Passbook</h5>
-                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                          </div>
-                          <div class="modal-body">
-                              <div class="mb-3">
-                                  <p><strong>Member No.:</strong> <?php echo htmlspecialchars($loggedInUserId); ?></p>
-                                  <p><strong>Name:</strong> <?php echo htmlspecialchars($fullName); ?></p>
-                              </div>
-                              <div class="table-responsive">
-                                  <table class="table table-bordered text-center">
-                                      <thead>
-                                          <tr>
-                                              <th>Date</th>
-                                              <th>OR/CV No.</th>
-                                              <th>Received (DR)</th>
-                                              <th>Dividend</th>
-                                              <th>Withdrawn (CR)</th>
-                                              <th>Balance</th>
-                                              <th>Cashier's Initial</th>
-                                          </tr>
-                                      </thead>
-                                      <tbody>
-                                          <?php 
-                                          $totalBalance = 0;
-                                          while ($row = $shareCapitalResult->fetch_assoc()) { 
-                                              $dividend = $row['Amount'] * 0.05;
-                                              $currentAmount = $row['Amount'] + $dividend;
-                                              $totalBalance += $currentAmount;
-                                          ?>
-                                              <tr>
-                                                  <td><?php echo date('M. d, Y', strtotime($row['TransactionDate'])); ?></td>
-                                                  <td><?php echo htmlspecialchars($row['control_number'] ?? 'N/A'); ?></td>
-                                                  <td>₱<?php echo number_format($row['Amount'], 2); ?></td>
-                                                  <td>₱<?php echo number_format($dividend, 2); ?></td>
-                                                  <td>₱0.00</td>
-                                                  <td>₱<?php echo number_format($totalBalance, 2); ?></td>
-                                                  <td><?php echo htmlspecialchars($row['signature'] ?? 'N/A'); ?></td>
-                                              </tr>
-                                          <?php } ?>
-                                      </tbody>
-                                  </table>
-                              </div>
-                          </div>
-                          <div class="modal-footer">
-                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                          </div>
-                      </div>
-                  </div>
-              </div>
+<!-- Share Capital Passbook Modal -->
+<div class="modal fade" id="shareCapitalPassModal" tabindex="-1" aria-labelledby="shareCapitalPassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="shareCapitalPassModalLabel">Share Capital Passbook</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <p><strong>Member No.:</strong> <?php echo htmlspecialchars($loggedInUserId); ?></p>
+                    <p><strong>Name:</strong> <?php echo htmlspecialchars($fullName); ?></p>
+                    <p><strong>Current Balance:</strong> ₱<?php echo number_format($total_share_capital_with_interest, 2); ?></p>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered text-center">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>OR/CV No.</th>
+                                <th>Received (DR)</th>
+                                <th>Dividend</th>
+                                <th>Withdrawn (CR)</th>
+                                <th>Balance</th>
+                                <th>Cashier's Initial</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $running_balance = 0;
+                            $current_date = new DateTime();
+                            $share_capital_interest_rate = 0.05;
+                            
+                            $shareCapitalResult->data_seek(0);
+                            $transactions = [];
+                            
+                            while ($row = $shareCapitalResult->fetch_assoc()) { 
+                                $transaction_date = new DateTime($row['TransactionDate']);
+                                $days_since_transaction = $transaction_date->diff($current_date)->days;
+                                $dividend = $row['Amount'] * $share_capital_interest_rate * ($days_since_transaction / 365);
+                                $running_balance += $row['Amount'] + $dividend;
+                                
+                                $transactions[] = [
+                                    'date' => date('M. d, Y', strtotime($row['TransactionDate'])),
+                                    'control_number' => htmlspecialchars($row['control_number'] ?? 'N/A'),
+                                    'received' => $row['Amount'],
+                                    'dividend' => $dividend,
+                                    'withdrawn' => 0,
+                                    'balance' => $running_balance,
+                                    'signature' => htmlspecialchars($row['signature'] ?? 'N/A')
+                                ];
+                            }
+                            
+                            foreach ($transactions as $transaction) {
+                            ?>
+                                <tr>
+                                    <td><?php echo $transaction['date']; ?></td>
+                                    <td><?php echo $transaction['control_number']; ?></td>
+                                    <td>₱<?php echo number_format($transaction['received'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['dividend'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['withdrawn'], 2); ?></td>
+                                    <td>₱<?php echo number_format($transaction['balance'], 2); ?></td>
+                                    <td><?php echo $transaction['signature']; ?></td>
+                                </tr>
+                            <?php } ?>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="5" class="text-end"><strong>Current Balance:</strong></td>
+                                <td><strong>₱<?php echo number_format($total_share_capital_with_interest, 2); ?></strong></td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
               
               <?php
               // Get user_id from session
@@ -1274,29 +1359,34 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                           </tr>
                                       </thead>
                                       <tbody>
-                                          <?php while($loans = $loans_result->fetch_assoc()): ?>
-                                              <tr>
-                                                  <td><?php echo htmlspecialchars($loans['LoanID']); ?></td>
-                                                  <td>₱<?php echo number_format($loans['AmountRequested'], 2); ?></td>
-                                                  <td><?php echo htmlspecialchars($loans['LoanType']); ?></td>
-                                                  <td><?php echo htmlspecialchars($loans['LoanTerm']); ?></td>
-                                                  <td><?php echo htmlspecialchars($loans['ModeOfPayment']); ?></td>
-                                                  <td><?php echo date('M d, Y', strtotime($loans['DateOfLoan'])); ?></td>
-                                                  <td><?php echo date('M d, Y', strtotime($loans['application_date'])); ?></td>
-                                                  <td><?php echo htmlspecialchars($loans['Status']); ?></td>
-                                                  <td>
-                                                  <?php if ($loans['Status'] == 'In Progress'): ?>
-                                                      <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelLoanModal" data-loan-id="<?php echo $loans['LoanID']; ?>">
-                                                          Cancel Loan
-                                                      </button>
-                                                  <?php elseif ($loans['Status'] == 'Cancelled'): ?>
-                                                      <span class="badge bg-danger">Cancelled</span>
-                                                  <?php else: ?>
-                                                      <span class="text-muted">N/A</span>
-                                                  <?php endif; ?>
-                                                  </td>
-                                              </tr>
-                                          <?php endwhile; ?>
+                                        <?php while($loans = $loans_result->fetch_assoc()): ?>
+                                            <tr>
+                                                <td><?php echo htmlspecialchars($loans['LoanID']); ?></td>
+                                                <td>₱<?php echo number_format($loans['AmountRequested'], 2); ?></td>
+                                                <td><?php echo htmlspecialchars($loans['LoanType']); ?></td>
+                                                <td><?php echo htmlspecialchars($loans['LoanTerm']); ?></td>
+                                                <td><?php echo htmlspecialchars($loans['ModeOfPayment']); ?></td>
+                                                <td><?php echo date('M d, Y', strtotime($loans['DateOfLoan'])); ?></td>
+                                                <td><?php echo date('M d, Y', strtotime($loans['application_date'])); ?></td>
+                                                <td><?php echo htmlspecialchars($loans['Status']); ?></td>
+                                                <td>
+
+
+                                                    <!-- Always show View button -->
+                                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewModal<?php echo $loans['LoanID']; ?>">
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </button>
+                                                    <?php if ($loans['Status'] == 'In Progress'): ?>
+                                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelLoanModal" data-loan-id="<?php echo $loans['LoanID']; ?>">
+                                                            Cancel Loan
+                                                        </button>
+                                                    <?php elseif ($loans['Status'] == 'Cancelled'): ?>
+                                                        <span class="badge bg-danger">Cancelled</span>
+                                                    <?php endif; ?>
+                                                </td>
+                                            </tr>
+                                        <?php endwhile; ?>
+
                                       </tbody>
                                   </table>
                               </div>
@@ -1334,6 +1424,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             </div>
                         </div>
                     </div>
+
 
                     <!-- Active Loans -->
                     <div class="card mb-4">

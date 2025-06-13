@@ -382,7 +382,7 @@ $unread_count = $unread_result->fetch_assoc()['unread_count'];
         <li class="nav-item">
           <a class="nav-link" href="member.php">
             <i class="fa-solid fa-users"></i>
-            <span class="menu-title">Membership Application</span>
+            <span class="menu-title">Members</span>
           </a>
         </li>
         <li class="nav-item">

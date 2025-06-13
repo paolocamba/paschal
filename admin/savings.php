@@ -502,19 +502,19 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                             <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                                             <td>
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                                    data-target="#editSavingsModal<?php echo $row['SavingsID']; ?>">
-                                                                    <i class="fa-solid fa-pen-to-square"></i>
+                                                                    data-target="#viewSavingsModal<?php echo $row['SavingsID']; ?>">
+                                                                    <i class="fa-solid fa-eye"></i>
                                                                 </button>
                                                             </td>
                                                         </tr>
 
-                                                        <!-- Edit Savings Modal -->
-                                                        <div class="modal fade" id="editSavingsModal<?php echo $row['SavingsID']; ?>"
-                                                            tabindex="-1" aria-labelledby="editSavingsModalLabel" aria-hidden="true">
+                                                        <!-- View Savings Modal -->
+                                                        <div class="modal fade" id="viewSavingsModal<?php echo $row['SavingsID']; ?>"
+                                                            tabindex="-1" aria-labelledby="viewSavingsModalLabel" aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header">
-                                                                        <h5 class="modal-title" id="editSavingsModalLabel">Edit Savings Status</h5>
+                                                                        <h5 class="modal-title" id="viewSavingsModalLabel">View Savings Transaction</h5>
                                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                             <span aria-hidden="true">&times;</span>
                                                                         </button>
@@ -551,11 +551,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                                                                             <div class="mb-3">
                                                                                 <label for="status" class="form-label">Status</label>
-                                                                                <select class="form-control" id="status" name="Status" required>
-                                                                                    <option value="In Progress" <?php echo ($row['Status'] == 'In Progress') ? 'selected' : ''; ?>>In Progress</option>
-                                                                                    <option value="Approved" <?php echo ($row['Status'] == 'Approved') ? 'selected' : ''; ?>>Approved</option>
-                                                                                    <option value="Disapproved" <?php echo ($row['Status'] == 'Disapproved') ? 'selected' : ''; ?>>Disapproved</option>
-                                                                                </select>
+                                                                                <input type="text" class="form-control" id="status" name="Status" 
+                                                                                    value="<?php echo htmlspecialchars($row['Status']); ?>" disabled>
                                                                             </div>
 
                                                                             <div class="mb-3">
@@ -565,7 +562,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                                                                             <div class="modal-footer">
                                                                                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                                                <button type="submit" class="btn btn-primary">Save Changes</button>
                                                                             </div>
                                                                         </form>
                                                                     </div>

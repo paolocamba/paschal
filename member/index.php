@@ -73,6 +73,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     crossorigin="anonymous" referrerpolicy="no-referrer" />
   <!-- endinject -->
   <!-- Plugin css for this page -->
+   <!-- Bootstrap CSS -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Bootstrap Icons -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+
   <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
   <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
   <link rel="stylesheet" type="text/css" href="../dist/assets/js/select.dataTables.min.css">
@@ -197,6 +203,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 </a>
                 </li>
                 <li class="nav-item">
+                <a class="nav-link" href="reports.php">
+                    <i class="fa-solid fa-file-lines"></i>
+                    <span class="menu-title">Reports</span>
+                </a>
+                </li>
+                <li class="nav-item">
                 <a class="nav-link" href="settings.php">
                     <i class="fas fa-gear"></i>
                     <span class="menu-title">Settings</span>
@@ -213,8 +225,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             <div class="row">
               <div class="col-12 col-xl-8 mb-4 mb-xl-0">
                 <h3 class="font-weight-bold">Welcome <?php echo htmlspecialchars($_SESSION['full_name']); ?></h3>
-                <h3 class="font-weight-bold"> <?php echo htmlspecialchars($_SESSION['membership_type']); ?> <span
-                    class="text-primary"></span></h3>
+                <p class="text-muted mb-0">Glad to see you back.</p>
               </div>
               <div class="col-12 col-xl-4">
                 <div class="justify-content-end d-flex">
@@ -254,41 +265,79 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             <?php
             $user_id = $_SESSION['user_id'];
 
-            // Query to count active loans and loan applications for the logged-in user
-            $status_sql = "
-                SELECT 
-                    (SELECT COUNT(*) 
-                    FROM `credit_history` 
-                    WHERE `ApprovalStatus` = 'Approved' AND `MemberID` = '$user_id') as active_loans_count,
-                    (SELECT COUNT(*) 
-                    FROM `loanapplication` 
-                    WHERE `userID` = '$user_id') as total_loan_applications_count
-            ";
+$status_sql = "
+    SELECT 
+        CONCAT('PMPC', certificate_no) AS formatted_certificate_no,
+        membership_type
+    FROM users
+    WHERE id = '$user_id'
+";
 
-            $result = mysqli_query($conn, $status_sql);
-            $row = mysqli_fetch_assoc($result);
-            ?>
-            <div class="col-md-6 grid-margin transparent">
-                <div class="row">
-                    <div class="col-md-6 mb-4 stretch-card transparent">
-                        <div class="card" style="background: rgb(1, 120, 36);">
-                            <div class="card-body">
-                                <p class="mb-4 text-white">Total Number of Active Loans</p>
-                                <p class="fs-30 mb-2 text-white"><?php echo $row['active_loans_count']; ?></p>
-                            </div>
-                        </div>
+
+        $result = mysqli_query($conn, $status_sql);
+      $row = mysqli_fetch_assoc($result);
+      ?>
+<div class="col-md-6 grid-margin">
+    <div class="row h-100">
+        <!-- Certificate Number Card -->
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card premium-card text-white w-100 h-100">
+                <div class="card-body d-flex flex-column justify-content-between align-items-start">
+                    <div class="icon-wrapper mb-3">
+                        <i class="bi bi-award-fill fs-2"></i>
                     </div>
-                    <div class="col-md-6 mb-4 stretch-card transparent">
-                        <div class="card" style="background: rgb(1, 120, 36)">
-                            <div class="card-body">
-                                <p class="mb-4 text-white">Total Number of Loan Applications</p>
-                                <p class="fs-30 mb-2 text-white"><?php echo $row['total_loan_applications_count']; ?></p>
-                            </div>
-                        </div>
+                    <div>
+                        <h6 class="card-title fw-light text-uppercase" style="letter-spacing: 1px;">Certificate Number</h6>
+                        <p class="display-6 fw-bold mb-0"><?php echo $row['formatted_certificate_no']; ?></p>
                     </div>
                 </div>
-         
-          </div>
+            </div>
+        </div>
+
+        <!-- Membership Type Card -->
+        <div class="col-md-6 mb-4 d-flex">
+            <div class="card premium-card text-white w-100 h-100">
+                <div class="card-body d-flex flex-column justify-content-between align-items-start">
+                    <div class="icon-wrapper mb-3">
+                        <i class="bi bi-person-badge-fill fs-2"></i>
+                    </div>
+                    <div>
+                        <h6 class="card-title fw-light text-uppercase" style="letter-spacing: 1px;">Membership Type</h6>
+                        <p class="display-6 fw-bold mb-0"><?php echo $row['membership_type']; ?></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<style>
+.premium-card {
+    background: linear-gradient(135deg, #0b3d2e, #1f8a57);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+    border-radius: 1.5rem;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    backdrop-filter: blur(5px);
+    position: relative;
+    overflow: hidden;
+}
+
+.premium-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 25px rgba(0, 0, 0, 0.35);
+}
+
+.premium-card .icon-wrapper {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 0.75rem;
+    border-radius: 50%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+</style>
+
+
+
           <style>
 
             

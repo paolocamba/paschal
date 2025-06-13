@@ -335,76 +335,56 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                    
              ?>
 
-              <!-- Add Users Modal -->
-                <div class="modal fade" id="usersModal" tabindex="-1" role="dialog" aria-labelledby="usersModalLabel" aria-hidden="true">
-                    <div class="modal-dialog lg" role="document">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="usersModalLabel">Add Users</h5>
-                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                    <span aria-hidden="true">&times;</span>
-                                </button>
-                            </div>
-                            <form action="add_users.php" method="POST">
-                                <div class="modal-body">
-                                    <div class="form-group">
-                                        <label for="first_name">First Name</label>
-                                        <input type="text" class="form-control" name="first_name" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="last_name">Last Name</label>
-                                        <input type="text" class="form-control" name="last_name" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Email</label>
-                                        <input type="text" class="form-control" name="email" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="username">Username</label>
-                                        <input type="text" class="form-control" name="username" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="street">Street</label>
-                                        <input type="text" class="form-control" name="street" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="barangay">Barangay</label>
-                                        <input type="text" class="form-control" name="barangay" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="municipality">Municipality</label>
-                                        <input type="text" class="form-control" name="municipality" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="province">Province</label>
-                                        <input type="text" class="form-control" name="province" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="mobile">Mobile</label>
-                                        <input type="number" class="form-control" name="mobile" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="password">Password</label>
-                                        <input type="password" class="form-control" name="password" required>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="user_type">User Type</label>
-                                        <select class="form-control" name="user_type" required>
-                                            <option value="Membership Officer">Membership Officer</option>
-                                            <option value="Loan Officer">Loan Officer</option>
-                                            <option value="Liaison Officer">Liaison Officer</option>
-                                            <option value="Liaison Officer">Cashier</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                    <button type="submit" class="btn btn-primary">Add User</button>
-                                </div>
-                            </form>
-                        </div>
+              <!-- Add Staff Modal -->
+<div class="modal fade" id="usersModal" tabindex="-1" role="dialog" aria-labelledby="usersModalLabel" aria-hidden="true">
+    <div class="modal-dialog lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="usersModalLabel">Add Staff</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form action="add_staff.php" method="POST">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="member_email">Select Member</label>
+                        <select class="form-control select2" name="member_email" id="member_select" required>
+                            <option value="">Select a member...</option>
+                            <?php
+                            // Fetch existing members (user_type = 'Member')
+                            $member_sql = "SELECT id, email, CONCAT(first_name, ' ', last_name) AS full_name 
+                                          FROM users 
+                                          WHERE user_type = 'Member' 
+                                          ORDER BY full_name";
+                            $member_result = $conn->query($member_sql);
+                            
+                            if ($member_result->num_rows > 0) {
+                                while($member = $member_result->fetch_assoc()) {
+                                    echo '<option value="'.$member['email'].'">'.$member['full_name'].' ('.$member['email'].')</option>';
+                                }
+                            }
+                            ?>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="user_type">Staff Role</label>
+                        <select class="form-control" name="user_type" required>
+                            <option value="Membership Officer">Membership Officer</option>
+                            <option value="Loan Officer">Loan Officer</option>
+                            <option value="Liaison Officer">Liaison Officer</option>
+                            <option value="Cashier">Cashier</option>
+                        </select>
                     </div>
                 </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="submit" class="btn btn-primary">Assign Staff Role</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
             <?php
                 include '../connection/config.php';
 
@@ -459,133 +439,88 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 ?>
 
                 <div class="row">
-                    <div class="col-md-12 grid-margin stretch-card">
-                        <div class="card">
-                            <div class="card-body">
-                                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                    <p class="card-title mb-0">Users List</p>
-                                    <div class="ml-auto">
-                                        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#usersModal"><i class="fa-solid fa-plus"></i></button>
-                                    </div>
-                                </div>
-                                <div class="mb-3">
-                                        <form method="GET" action="" class="form-inline" id="searchForm">
-                                            <div class="input-group mb-2 mr-sm-2">
-                                                <input type="text" name="search" id="searchInput" class="form-control" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search User">
-                                                <div class="input-group-append">
-                                                    <button type="button" class="btn btn-outline-secondary" id="clearButton" style="padding:10px;">&times;</button>
+    <div class="col-md-12 grid-margin stretch-card">
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
+                    <p class="card-title mb-0">Staff List</p>
+                    <div class="ml-auto">
+                        <button class="btn btn-primary mb-3" data-toggle="modal" data-target="#usersModal"><i class="fa-solid fa-plus"></i></button>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <form method="GET" action="" class="form-inline" id="searchForm">
+                        <div class="input-group mb-2 mr-sm-2">
+                            <input type="text" name="search" id="searchInput" class="form-control" value="<?php echo htmlspecialchars($search); ?>" placeholder="Search Staff">
+                            <div class="input-group-append">
+                                <button type="button" class="btn btn-outline-secondary" id="clearButton" style="padding:10px;">&times;</button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary mb-2">Search</button>
+                    </form>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-striped table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Full Name</th>
+                                <th>Email</th>
+                                <th>Role</th>
+                                <th>Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($result->num_rows > 0): ?>
+                                <?php while($row = $result->fetch_assoc()): ?>
+                                    <tr>
+                                        <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['email']); ?></td>
+                                        <td><?php echo htmlspecialchars($row['user_type']); ?></td>
+                                        <td>
+                                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal<?php echo $row['id']; ?>"><i class="fa-solid fa-pen-to-square"></i></button>
+                                            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal<?php echo $row['id']; ?>"><i class="fa-solid fa-trash"></i></button>
+                                        </td>
+                                    </tr>
+                                    <!-- Edit Modal -->
+                                    <div class="modal fade" id="editModal<?php echo $row['id']; ?>" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
+                                        <div class="modal-dialog" role="document">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title" id="editModalLabel">Edit User Role</h5>
+                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                        <span aria-hidden="true">&times;</span>
+                                                    </button>
                                                 </div>
-                                            </div>
-                                            <button type="submit" class="btn btn-primary mb-2">Search</button>
-                                        </form>
-                                </div>
-                                <div class="table-responsive">
-                                    <table class="table table-striped table-borderless">
-                                        <thead>
-                                            <tr>
-                                                <th>First Name</th>
-                                                <th>Last Name</th>
-                                                <th>Email</th>
-                                                <th>Username</th>
-                                                <th>Street</th>
-                                                <th>Barangay</th>
-                                                <th>Municipality</th>
-                                                <th>Province</th>
-                                                <th>Phone Number</th>
-                                                <th>Role</th>
-                                                <th>Created At</th>
-                                                <th>Action</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php if ($result->num_rows > 0): ?>
-                                                <?php while($row = $result->fetch_assoc()): ?>
-                                                    <tr>
-                                                        <td><?php echo htmlspecialchars($row['first_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['last_name']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['email']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['username']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['street']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['barangay']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['municipality']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['province']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['mobile']); ?></td>
-                                                        
-                                                        <td><?php echo htmlspecialchars($row['user_type']); ?></td>
-                                                        <td><?php echo htmlspecialchars($row['created_at']); ?></td>
-                                                        <td>
-                                                            <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editModal<?php echo $row['id']; ?>"><i class="fa-solid fa-pen-to-square"></i></button>
-                                                            <button class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal<?php echo $row['id']; ?>"><i class="fa-solid fa-trash"></i></button>
-                                                           
-                                                        </td>
-                                                    </tr>
-                                                <!-- Edit Modal -->
-                                                    <div class="modal fade" id="editModal<?php echo $row['id']; ?>" tabindex="-1" role="dialog" aria-labelledby="editModalLabel" aria-hidden="true">
-                                                        <div class="modal-dialog" role="document">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title" id="editModalLabel">Edit Users</h5>
-                                                                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                                                        <span aria-hidden="true">&times;</span>
-                                                                    </button>
-                                                                </div>
-                                                                <form action="edit_users.php" method="POST">
-                                                                    <div class="modal-body">
-                                                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                                                        <div class="form-group">
-                                                                            <label for="first_name">First Name</label>
-                                                                            <input type="text" class="form-control" name="first_name" value="<?php echo htmlspecialchars($row['first_name']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="last_name">Last Name</label>
-                                                                            <input type="text" class="form-control" name="last_name" value="<?php echo htmlspecialchars($row['last_name']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="email">Email</label>
-                                                                            <input type="email" class="form-control" name="email" value="<?php echo htmlspecialchars($row['email']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="username">Username</label>
-                                                                            <input type="text" class="form-control" name="username" value="<?php echo htmlspecialchars($row['username']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="street">Street</label>
-                                                                            <input type="text" class="form-control" name="street" value="<?php echo htmlspecialchars($row['street']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="barangay">Barangay</label>
-                                                                            <input type="text" class="form-control" name="barangay" value="<?php echo htmlspecialchars($row['barangay']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="municipality">Municipality</label>
-                                                                            <input type="text" class="form-control" name="municipality" value="<?php echo htmlspecialchars($row['municipality']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="province">Province</label>
-                                                                            <input type="text" class="form-control" name="province" value="<?php echo htmlspecialchars($row['province']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="mobile">Phone Number</label>
-                                                                            <input type="text" class="form-control" name="mobile" value="<?php echo htmlspecialchars($row['mobile']); ?>" required>
-                                                                        </div>
-                                                                        <div class="form-group">
-                                                                            <label for="user_type">User Type</label>
-                                                                            <select class="form-control" name="user_type" required>
-                                                                                <option value="Membership Officer" <?php echo ($row['user_type'] == 'Membership Officer') ? 'selected' : ''; ?>>Membership Officer</option>
-                                                                                <option value="Loan Officer" <?php echo ($row['user_type'] == 'Loan Officer') ? 'selected' : ''; ?>>Loan Officer</option>
-                                                                                <option value="Liaison Officer" <?php echo ($row['user_type'] == 'Liaison Officer') ? 'selected' : ''; ?>>Liaison Officer</option>
-                                                                                
-                                                                            </select>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div class="modal-footer">
-                                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                                        <button type="submit" class="btn btn-primary">Save changes</button>
-                                                                    </div>
-                                                                </form>
-                                                            </div>
+                                                <form action="edit_users.php" method="POST">
+                                                    <div class="modal-body">
+                                                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                                                        <div class="form-group">
+                                                            <label>Full Name</label>
+                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?>" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label>Email</label>
+                                                            <input type="text" class="form-control" value="<?php echo htmlspecialchars($row['email']); ?>" readonly>
+                                                        </div>
+                                                        <div class="form-group">
+                                                            <label for="user_type">User Role</label>
+                                                            <select class="form-control" name="user_type" required>
+                                                                <option value="Member">Member (Remove Staff Access)</option>
+                                                                <option value="Membership Officer" <?php echo ($row['user_type'] == 'Membership Officer') ? 'selected' : ''; ?>>Membership Officer</option>
+                                                                <option value="Loan Officer" <?php echo ($row['user_type'] == 'Loan Officer') ? 'selected' : ''; ?>>Loan Officer</option>
+                                                                <option value="Liaison Officer" <?php echo ($row['user_type'] == 'Liaison Officer') ? 'selected' : ''; ?>>Liaison Officer</option>
+                                                                <option value="Cashier" <?php echo ($row['user_type'] == 'Cashier') ? 'selected' : ''; ?>>Cashier</option>
+                                                            </select>
                                                         </div>
                                                     </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                                        <button type="submit" class="btn btn-primary">Save changes</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
 
 
                                                     <!-- Delete Modal -->
@@ -613,46 +548,44 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                     </div>
                                                    
 
-                                                    
-                                                <?php endwhile; ?>
-                                            <?php else: ?>
-                                                <tr>
-                                                    <td colspan="4">No users found</td>
-                                                </tr>
-                                            <?php endif; ?>
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <br>
-                                <nav aria-label="Page navigation">
-                                    <ul class="pagination justify-content-center">
-                                        <li class="page-item <?php echo ($page <= 1) ? 'disabled' : ''; ?>">
-                                            <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page - 1; ?>"
-                                                aria-label="Previous">
-                                                <span aria-hidden="true">&laquo; </span>
-                                            </a>
-                                        </li>
-                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                                            <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
-                                                <a class="page-link"
-                                                    href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $i; ?>"
-                                                    style="background:color:#00563B !important;"><?php echo $i; ?></a>
-                                            </li>
-                                        <?php endfor; ?>
-                                        <li class="page-item <?php echo ($page >= $total_pages) ? 'disabled' : ''; ?>">
-                                            <a class="page-link"
-                                                href="?search=<?php echo htmlspecialchars($search); ?>&page=<?php echo $page + 1; ?>"
-                                                aria-label="Next">
-                                                <span aria-hidden="true"> &raquo;</span>
-                                            </a>
-                                        </li>
-                                    </ul>
-                                </nav>
-                            </div>
-                        </div>
-                    </div>
+                                                                                 <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr>
+                                    <td colspan="4" class="text-center">No staff members found</td>
+                                </tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
                 </div>
+                <?php if ($total_pages > 1): ?>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            <?php if ($page > 1): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?php echo $page - 1; ?>&search=<?php echo urlencode($search); ?>" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                <li class="page-item <?php echo ($i == $page) ? 'active' : ''; ?>">
+                                    <a class="page-link" href="?page=<?php echo $i; ?>&search=<?php echo urlencode($search); ?>"><?php echo $i; ?></a>
+                                </li>
+                            <?php endfor; ?>
+                            <?php if ($page < $total_pages): ?>
+                                <li class="page-item">
+                                    <a class="page-link" href="?page=<?php echo $page + 1; ?>&search=<?php echo urlencode($search); ?>" aria-label="Next">
+                                        <span aria-hidden="true">&raquo;</span>
+                                    </a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </nav>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+</div>
             <style>
             .custom-file-input-wrapper {
                 position: relative;
@@ -728,6 +661,15 @@ $(document).ready(function() {
         }
     }
 </script>
+<script>
+$(document).ready(function() {
+    $('.select2').select2({
+        placeholder: "Select a member...",
+        allowClear: true
+    });
+});
+</script>
+
 <!-- Bootstrap JS -->
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 <!-- Add SweetAlert script -->
