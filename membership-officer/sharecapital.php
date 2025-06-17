@@ -57,7 +57,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>Savings | Admin</title>
+    <title>Share Capital | Admin</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -139,11 +139,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- partial -->
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
-        <style>
-                    .navbar {
+                <style>
+        .navbar {
             padding-top: 0 !important;
             margin-top: 0 !important;
         }
+
                        .table-responsive {
                 overflow-x: auto; /* Enables horizontal scrolling */
                 position: relative; /* Needed for sticky positioning */
@@ -180,12 +181,18 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 background-color: #00563B !important;
             }
         </style>
-        <nav class="sidebar sidebar-offcanvas" id="sidebar">
+       <nav class="sidebar sidebar-offcanvas" id="sidebar">
             <ul class="nav">
                 <li class="nav-item">
                     <a class="nav-link" href="index.php">
                         <i class="fa-solid fa-gauge"></i>
                         <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+                                <li class="nav-item">
+                    <a class="nav-link" href="appointment.php">
+                        <i class="fas fa-regular fa-calendar"></i>
+                        <span class="menu-title">Appointments</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -195,45 +202,9 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="loans.php">
-                        <i class="fas fa-money-bill"></i>
-                        <span class="menu-title">Loans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="land_appraisal.php">
-                        <i class="fa-solid fa-landmark"></i>
-                        <span class="menu-title">Land Appraisal</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="appointment.php">
-                        <i class="fas fa-regular fa-calendar"></i>
-                        <span class="menu-title">Appointments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="transaction.php">
-                        <i class="fas fa-right-left"></i>
-                        <span class="menu-title">Transaction</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="announcement.php">
-                        <i class="fas fa-bullhorn"></i>
-                        <span class="menu-title">Announcement</span>
-                    </a>
-                </li>
-                                <li class="nav-item">
                     <a class="nav-link" href="inbox.php">
                         <i class="fa-solid fa-comment"></i>
                         <span class="menu-title">Inbox</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="events.php">
-                        <i class="fas fa-calendar-check"></i>
-                        <span class="menu-title">Events</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -246,24 +217,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     <a class="nav-link" href="sharecapital.php">
                         <i class="fa-solid fa-coins"></i>
                         <span class="menu-title">Share Capital</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="services.php">
-                        <i class="fa-brands fa-slack"></i>
-                        <span class="menu-title">Services</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="location.php">
-                        <i class="fa-solid fa-location-dot"></i>
-                        <span class="menu-title">Location</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="users.php">
-                        <i class="fa-solid fa-users"></i>
-                        <span class="menu-title">Users</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -306,7 +259,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 document.addEventListener("DOMContentLoaded", function() {
                     Swal.fire({
                         icon: "success",
-                        title: "Savings Added Successfully",
+                        title: "Share Capital Added Successfully",
                         showConfirmButton: false,
                         timer: 1500 // Close after 1.5 seconds
                     });
@@ -319,7 +272,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     document.addEventListener("DOMContentLoaded", function() {
                         Swal.fire({
                             icon: "success",
-                            title: "Savings Updated Successfully",
+                            title: "Share Capital Updated Successfully",
                             showConfirmButton: false,
                             timer: 1500 // Close after 1.5 seconds
                         });
@@ -330,17 +283,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 ?>
                 <!-- Savings Modal -->
-                <div class="modal fade" id="savingsModal" tabindex="-1" aria-labelledby="savingsModalLabel" aria-hidden="true">
+                <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
                     <div class="modal-dialog">
                         <div class="modal-content">
                             <div class="modal-header">
-                                <h5 class="modal-title" id="savingsModalLabel">New Savings Entry</h5>
+                                <h5 class="modal-title" id="shareModalLabel">New Share Capital Entry</h5>
                                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                     <span aria-hidden="true">&times;</span>
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form action="add_savings.php" method="POST">
+                                <form action="add_sharecapital.php" method="POST">
                                     <div class="mb-3">
                                         <label for="memberID" class="form-label">Member Name</label>
                                         <select class="form-control" id="memberID" name="MemberID" required>
@@ -359,16 +312,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             ?>
                                         </select>
                                     </div>
-
-                                    <div class="mb-3">
-                                        <label for="type" class="form-label">Transaction Type</label>
-                                        <select class="form-control" id="type" name="Type" required>
-                                            <option value="">Select Type</option>
-                                            <option value="Deposit">Deposit</option>
-                                            <option value="Withdrawal">Withdrawal</option>
-                                        </select>
-                                    </div>
-
                                     
                                     <div class="mb-3">
                                         <label for="amount" class="form-label">Amount</label>
@@ -393,7 +336,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-primary">Save Savings</button>
+                                        <button type="submit" class="btn btn-primary">Save Share Capital</button>
                                     </div>
                                 </form>
                             </div>
@@ -412,17 +355,16 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                     try {
                         // Query to fetch savings data with user information
-                        $sql = "SELECT s.*, u.first_name, u.last_name, u.email 
-                        FROM savings s
-                        JOIN users u ON s.MemberID = u.user_id
-                        WHERE s.SavingsID LIKE ? 
-                        OR u.first_name LIKE ? 
-                        OR u.last_name LIKE ?
-                        OR s.Amount LIKE ?
-                        OR s.Status LIKE ?
-                        ORDER BY s.TransactionDate DESC
-                        LIMIT ? OFFSET ?";
-                
+                        $sql = "SELECT sc.*, u.first_name, u.last_name, u.email 
+                                FROM share_capital sc
+                                JOIN users u ON sc.MemberID = u.user_id
+                                WHERE sc.ShareCapitalID LIKE ? 
+                                OR u.first_name LIKE ? 
+                                OR u.last_name LIKE ?
+                                OR sc.Amount LIKE ?
+                                OR sc.Status LIKE ?
+                                ORDER BY sc.TransactionDate DESC
+                                LIMIT ? OFFSET ?";
                         $stmt = $conn->prepare($sql);
                         $search_param = "%" . $search . "%";
                         $stmt->bind_param("sssssii", $search_param, $search_param, $search_param, $search_param, $search_param, $limit, $offset);
@@ -431,13 +373,13 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                         // Count query for pagination
                         $count_sql = "SELECT COUNT(*) as total 
-                                    FROM savings s
-                                    JOIN users u ON s.MemberID = u.user_id
-                                    WHERE s.SavingsID LIKE ? 
+                                    FROM share_capital sc
+                                    JOIN users u ON sc.MemberID = u.user_id
+                                    WHERE sc.ShareCapitalID LIKE ? 
                                         OR u.first_name LIKE ? 
                                         OR u.last_name LIKE ?
-                                        OR s.Amount LIKE ?
-                                        OR s.Status LIKE ?";
+                                        OR sc.Amount LIKE ?
+                                        OR sc.Status LIKE ?";
                         $count_stmt = $conn->prepare($count_sql);
                         $count_stmt->bind_param("sssss", $search_param, $search_param, $search_param, $search_param, $search_param);
                         $count_stmt->execute();
@@ -456,10 +398,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="card">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
-                                        <p class="card-title mb-0">Savings</p>
+                                        <p class="card-title mb-0">Share Capital</p>
                                         <div class="ml-auto">
                                             <button class="btn btn-primary mb-3" data-toggle="modal"
-                                                data-target="#savingsModal">Create Savings Transaction</button>
+                                                data-target="#shareModal">Add Share Capital</button>
                                         </div>
                                     </div>
                                     <div class="mb-3">
@@ -483,7 +425,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                 <tr>
                                                     <th>Member Name</th>
                                                     <th>Amount</th>
-                                                    <th>Transaction Type</th>
                                                     <th>Status</th>
                                                     <th>Transaction Date</th>
                                                     <th>Notes</th>
@@ -496,33 +437,33 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                         <tr>
                                                             <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                                             <td>₱<?php echo htmlspecialchars($row['Amount']); ?></td>
-                                                            <td><?php echo htmlspecialchars($row['Type']); ?></td>
+                                                            
                                                             <td><?php echo htmlspecialchars($row['Status']); ?></td>
                                                             <td><?php echo date('F d, Y h:i A', strtotime($row['TransactionDate'])); ?></td>
                                                             <td><?php echo htmlspecialchars($row['Notes']); ?></td>
                                                             <td>
                                                                 <button class="btn btn-primary btn-sm" data-toggle="modal"
-                                                                    data-target="#viewSavingsModal<?php echo $row['SavingsID']; ?>">
+                                                                    data-target="#viewShareCapitalModal<?php echo $row['ShareCapitalID']; ?>">
                                                                     <i class="fa-solid fa-eye"></i>
                                                                 </button>
                                                             </td>
                                                         </tr>
 
-                                                        <!-- View Savings Modal -->
-                                                        <div class="modal fade" id="viewSavingsModal<?php echo $row['SavingsID']; ?>"
-                                                            tabindex="-1" aria-labelledby="viewSavingsModalLabel" aria-hidden="true">
+                                                        <!-- View Share Capital Modal -->
+                                                        <div class="modal fade" id="viewShareCapitalModal<?php echo $row['ShareCapitalID']; ?>"
+                                                            tabindex="-1" aria-labelledby="viewShareCapitalModalLabel" aria-hidden="true">
                                                             <div class="modal-dialog">
                                                                 <div class="modal-content">
                                                                     <div class="modal-header">
-                                                                        <h5 class="modal-title" id="viewSavingsModalLabel">View Savings Transaction</h5>
+                                                                        <h5 class="modal-title" id="viewShareCapitalModalLabel">View Share Capital Transaction</h5>
                                                                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                                                                             <span aria-hidden="true">&times;</span>
                                                                         </button>
                                                                     </div>
                                                                     <div class="modal-body">
-                                                                        <form action="edit_savings.php" method="POST">
-                                                                            <input type="hidden" name="SavingsID" 
-                                                                                value="<?php echo $row['SavingsID']; ?>">
+                                                                        <form action="edit_sharecapital.php" method="POST">
+                                                                            <input type="hidden" name="ShareCapitalID" 
+                                                                                value="<?php echo $row['ShareCapitalID']; ?>">
                                                                             <input type="hidden" name="MemberID" 
                                                                                 value="<?php echo $row['MemberID']; ?>">
                                                                             
@@ -540,21 +481,12 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                                                     readonly>
                                                                             </div>
 
-                                                                            <div class="mb-3">
-                                                                                <label class="form-label">Transaction Type</label>
-                                                                                <input type="text" class="form-control" 
-                                                                                    value="<?php echo htmlspecialchars($row['Type']); ?>" 
-                                                                                    readonly>
-                                                                            </div>
-
-
-
+                                                                            
                                                                             <div class="mb-3">
                                                                                 <label for="status" class="form-label">Status</label>
                                                                                 <input type="text" class="form-control" id="status" name="Status" 
                                                                                     value="<?php echo htmlspecialchars($row['Status']); ?>" disabled>
                                                                             </div>
-
                                                                             <div class="mb-3">
                                                                                 <label class="form-label">Notes</label>
                                                                                 <textarea class="form-control" readonly><?php echo htmlspecialchars($row['Notes']); ?></textarea>
@@ -571,7 +503,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                                     <?php endwhile; ?>
                                                 <?php else: ?>
                                                     <tr>
-                                                        <td colspan="8">No savings found</td>
+                                                        <td colspan="7">No share capital found</td>
                                                     </tr>
                                                 <?php endif; ?>
                                             </tbody>

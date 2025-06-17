@@ -370,35 +370,52 @@ $unread_count = $unread_result->fetch_assoc()['unread_count'];
       <!-- partial -->
       <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
-        <nav class="sidebar sidebar-offcanvas" id="sidebar">
-      <ul class="nav">
-        <li class="nav-item">
-          <a class="nav-link" href="index.php">
-            <i class="fa-solid fa-gauge"></i>
-            <span class="menu-title">Dashboard</span>
-          </a>
-        </li>
+     <nav class="sidebar sidebar-offcanvas" id="sidebar">
+            <ul class="nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="index.php">
+                        <i class="fa-solid fa-gauge"></i>
+                        <span class="menu-title">Dashboard</span>
+                    </a>
+                </li>
+                                <li class="nav-item">
+                    <a class="nav-link" href="appointment.php">
+                        <i class="fas fa-regular fa-calendar"></i>
+                        <span class="menu-title">Appointments</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="member.php">
+                        <i class="fas fa-users"></i>
+                        <span class="menu-title">Members</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="inbox.php">
+                        <i class="fa-solid fa-comment"></i>
+                        <span class="menu-title">Inbox</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="savings.php">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                        <span class="menu-title">Savings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="sharecapital.php">
+                        <i class="fa-solid fa-coins"></i>
+                        <span class="menu-title">Share Capital</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="settings.php">
+                        <i class="fas fa-gear"></i>
+                        <span class="menu-title">Settings</span>
+                    </a>
+                </li>
 
-        <li class="nav-item">
-          <a class="nav-link" href="member.php">
-            <i class="fa-solid fa-users"></i>
-            <span class="menu-title">Members</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="inbox.php">
-            <i class="fa-solid fa-comment"></i>
-            <span class="menu-title">Inbox</span>
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="settings.php">
-            <i class="fas fa-gear"></i>
-            <span class="menu-title">Settings</span>
-          </a>
-        </li>
-
-      </ul>
+            </ul>
         </nav>
         <!-- partial -->
         <div class="main-panel">

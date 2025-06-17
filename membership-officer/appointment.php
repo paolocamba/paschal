@@ -393,16 +393,34 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                         <span class="menu-title">Dashboard</span>
                     </a>
                 </li>
-                <li class="nav-item">
+                                <li class="nav-item">
                     <a class="nav-link" href="appointment.php">
                         <i class="fas fa-regular fa-calendar"></i>
                         <span class="menu-title">Appointments</span>
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="transaction.php">
-                        <i class="fas fa-right-left"></i>
-                        <span class="menu-title">Transaction</span>
+                    <a class="nav-link" href="member.php">
+                        <i class="fas fa-users"></i>
+                        <span class="menu-title">Members</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="inbox.php">
+                        <i class="fa-solid fa-comment"></i>
+                        <span class="menu-title">Inbox</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="savings.php">
+                        <i class="fa-solid fa-piggy-bank"></i>
+                        <span class="menu-title">Savings</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="sharecapital.php">
+                        <i class="fa-solid fa-coins"></i>
+                        <span class="menu-title">Share Capital</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -411,6 +429,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                         <span class="menu-title">Settings</span>
                     </a>
                 </li>
+
             </ul>
         </nav>
         <!-- partial -->
