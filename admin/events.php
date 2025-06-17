@@ -171,41 +171,11 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           
         </style>
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
-            <ul class="nav">
+                        <ul class="nav">
                 <li class="nav-item">
                     <a class="nav-link" href="index.php">
                         <i class="fa-solid fa-gauge"></i>
                         <span class="menu-title">Dashboard</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="member.php">
-                        <i class="fas fa-users"></i>
-                        <span class="menu-title">Members</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="loans.php">
-                        <i class="fas fa-money-bill"></i>
-                        <span class="menu-title">Loans</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="land_appraisal.php">
-                        <i class="fa-solid fa-landmark"></i>
-                        <span class="menu-title">Land Appraisal</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="appointment.php">
-                        <i class="fas fa-regular fa-calendar"></i>
-                        <span class="menu-title">Appointments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="transaction.php">
-                        <i class="fas fa-right-left"></i>
-                        <span class="menu-title">Transaction</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -214,8 +184,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Announcement</span>
                     </a>
                 </li>
-                                <li class="nav-item">
-                    <a class="nav-link" href="inbox.php">
+                <li class="nav-item">
+                    <a class="nav-link active" href="inbox.php">
                         <i class="fa-solid fa-comment"></i>
                         <span class="menu-title">Inbox</span>
                     </a>
@@ -224,18 +194,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     <a class="nav-link" href="events.php">
                         <i class="fas fa-calendar-check"></i>
                         <span class="menu-title">Events</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="savings.php">
-                        <i class="fa-solid fa-piggy-bank"></i>
-                        <span class="menu-title">Savings</span>
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="sharecapital.php">
-                        <i class="fa-solid fa-coins"></i>
-                        <span class="menu-title">Share Capital</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -262,7 +220,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <span class="menu-title">Settings</span>
                     </a>
                 </li>
-
             </ul>
         </nav>
         <!-- partial -->

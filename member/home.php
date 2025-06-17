@@ -602,12 +602,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           $full_name = $_SESSION['full_name'];
 
         // Get user's total savings from the users table
-        $savings_query = "SELECT COALESCE(savings, 0) as total_savings FROM users WHERE user_id = ?";
+        $savings_query = "SELECT COALESCE(savings, 0) as base_savings, account_opening_date FROM users WHERE user_id = ?";
         $stmt = $conn->prepare($savings_query);
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $savings_result = $stmt->get_result();
-        $total_savings = $savings_result->fetch_assoc()['total_savings'];
+        $result = $stmt->get_result();
+        $user_data = $result->fetch_assoc();
+
+        $base_savings = $user_data['base_savings'];
+        $opening_date = new DateTime($user_data['account_opening_date']);
+        $current_date = new DateTime();
+        $days_since_opening = $opening_date->diff($current_date)->days;
 
                   // Get the account opening date (you'll need to add this to your users table)
         $account_info_query = "SELECT account_opening_date FROM users WHERE user_id = ?";
@@ -622,22 +627,23 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
         // Calculate savings with interest (1.5% annual rate)
         $savings_interest_rate = 0.015;
-        $total_savings_with_interest = $total_savings * exp($savings_interest_rate * ($days_since_opening / 365));
+        $total_savings_with_interest = $base_savings * exp($savings_interest_rate * ($days_since_opening / 365));
 
 
           // Calculate savings percentage this month
-          $monthly_savings_query = "SELECT COALESCE(SUM(amount), 0) as monthly_savings 
-                                  FROM savings 
-                                  WHERE MemberID = ? 
-                                  AND Status = 'Approved' 
-                                  AND MONTH(TransactionDate) = MONTH(CURRENT_DATE())
-                                  AND YEAR(TransactionDate) = YEAR(CURRENT_DATE())";
-          $stmt = $conn->prepare($monthly_savings_query);
-          $stmt->bind_param("i", $user_id);
-          $stmt->execute();
-          $monthly_result = $stmt->get_result();
-          $monthly_savings = $monthly_result->fetch_assoc()['monthly_savings'];
-          $savings_percentage = ($total_savings > 0) ? ($monthly_savings / $total_savings) * 100 : 0;
+$monthly_savings_query = "SELECT COALESCE(SUM(amount), 0) as monthly_savings 
+                          FROM savings 
+                          WHERE MemberID = ? 
+                          AND Status = 'Approved' 
+                          AND MONTH(TransactionDate) = MONTH(CURRENT_DATE())
+                          AND YEAR(TransactionDate) = YEAR(CURRENT_DATE())";
+$stmt = $conn->prepare($monthly_savings_query);
+$stmt->bind_param("i", $user_id);
+$stmt->execute();
+$monthly_result = $stmt->get_result();
+$monthly_savings = $monthly_result->fetch_assoc()['monthly_savings'];
+
+$savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) * 100 : 0;
 
           // Get total approved share capital and calculate interest
           $share_capital_query = "SELECT COALESCE(SUM(amount), 0) as total_share_capital 
@@ -668,10 +674,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
           $share_percentage = ($total_share_capital > 0) ? ($monthly_share / $total_share_capital) * 100 : 0;
 
         // Update the user's balance with the interest (you might want to run this periodically, like monthly)
-        $update_savings_query = "UPDATE users SET savings = ? WHERE user_id = ?";
-        $stmt = $conn->prepare($update_savings_query);
-        $stmt->bind_param("di", $total_savings_with_interest, $user_id);
-        $stmt->execute();
 
         $update_share_query = "UPDATE users SET share_capital = ? WHERE user_id = ?";
         $stmt = $conn->prepare($update_share_query);
@@ -824,7 +826,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         <div class="col-md-4">
                             <div class="stat-card">
                                 <div class="stat-label">Interest Rate</div>
-                                <div class="stat-value">₱<?php echo number_format($total_savings_with_interest - $total_savings, 2); ?></div>
+                                <div class="stat-value">₱<?php echo number_format($total_savings_with_interest - $base_savings, 2); ?></div>
                             </div>
                         </div>
                         <div class="col-md-4">

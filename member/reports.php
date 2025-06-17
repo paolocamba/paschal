@@ -58,6 +58,15 @@ $_SESSION['user_db_id'] = $user_db_id;
 if (isset($_GET['report'])) {
     require '../vendor/autoload.php';
 
+    // Prepare the logo for the PDF
+    $logo_path = '../dist/assets/images/pmpclogo.jpg'; // Update this path as needed
+    
+    if (file_exists($logo_path)) {
+        $logo_data = base64_encode(file_get_contents($logo_path));
+        $logo_src = 'data:image/jpg;base64,' . $logo_data; // Changed to PNG since your file is .png
+    } else {
+        $logo_src = ''; // fallback if logo not found
+    }
     
     try {
         $mpdf = new Mpdf(['format' => 'A4']);
@@ -94,19 +103,21 @@ if (isset($_GET['report'])) {
         // Generate appropriate report
         switch ($report_type) {
         case 'transaction_history':
-            generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn);
+            generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn, $logo_src);
             break;
         case 'savings_summary':
-            generateSavingsSummaryReport($mpdf, $user_db_id, $user_id, $date_from, $date_to, $conn, $current_savings);
+            generateSavingsSummaryReport($mpdf, $user_db_id, $user_id, $date_from, $date_to, $conn, $current_savings, $logo_src);
             break;
         case 'share_capital':
-            generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn, $current_share_capital);
-            break;    ;
-            default:
-                throw new Exception('Invalid report type');
-        }
-
-    
+            generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn, $current_share_capital, $logo_src);
+            break;
+        case 'loan_history':
+            generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn, $logo_src);
+            break;
+        
+        default:
+            throw new Exception('Invalid report type');
+}       
 
         $filename = $first_name . '_' . $last_name . '_' . ucwords(str_replace('_', ' ', $report_type)) . '.pdf';
         $mpdf->Output($filename, 'D');
@@ -118,7 +129,7 @@ if (isset($_GET['report'])) {
 }
 
 // Report Generation Functions
-function generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn) {
+function generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn, $logo_src) {
     $where_clause = "WHERE t.user_id = $user_id";
 
     if (!empty($date_from)) {
@@ -145,15 +156,15 @@ function generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to,
 
     if ($result) {
         while ($row = $result->fetch_assoc()) {
-    $transactions[] = $row;
+            $transactions[] = $row;
 
-    // Check if it's a withdrawal and subtract, otherwise add
-    if (strtolower(trim($row['service'])) === 'savings withdrawal') {
-        $total_amount -= $row['amount'];
-    } else {
-        $total_amount += $row['amount'];
-    }
-}
+            // Check if it's a withdrawal and subtract, otherwise add
+            if (strtolower(trim($row['service'])) === 'savings withdrawal') {
+                $total_amount -= $row['amount'];
+            } else {
+                $total_amount += $row['amount'];
+            }
+        }
     }
 
     $user_info = getUserInfo($user_id, $conn);
@@ -179,7 +190,7 @@ function generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to,
     <body>
         <div class="container">
             <div class="header">
-                <img src="../dist/assets/images/pmpc-logo.png" alt="PMPC Logo" style="max-width: 150px;">
+                <img src="' . $logo_src . '" alt="PMPC Logo" style="max-width: 150px;">
                 <div class="report-title">Transaction History Report</div>
                 <div class="report-period">' . 
                 (!empty($date_from) || !empty($date_to) ? 
@@ -242,36 +253,36 @@ function generateTransactionHistoryReport($mpdf, $user_id, $date_from, $date_to,
     $mpdf->WriteHTML($html);
 }
 
-function generateSavingsSummaryReport($mpdf, $member_id, $user_id_str, $date_from, $date_to, $conn, $current_savings) {
-
-    $where_clause = "WHERE s.MemberID = $member_id";
+function generateSavingsSummaryReport($mpdf, $user_id, $member_id, $date_from, $date_to, $conn, $current_savings, $logo_src) {
+    $where_clause = "WHERE t.user_id = '$member_id' AND t.service_name LIKE 'Savings%'";
+    
     if (!empty($date_from)) {
-        $where_clause .= " AND DATE(s.TransactionDate) >= '$date_from'";
+        $where_clause .= " AND DATE(t.updated_at) >= '$date_from'";
     }
     if (!empty($date_to)) {
-        $where_clause .= " AND DATE(s.TransactionDate) <= '$date_to'";
+        $where_clause .= " AND DATE(t.updated_at) <= '$date_to'";
     }
 
     // Get summary data
     $summary_sql = "SELECT 
-                    SUM(CASE WHEN s.Type = 'Deposit' THEN s.Amount ELSE 0 END) as total_deposits,
-                    SUM(CASE WHEN s.Type = 'Withdrawal' THEN s.Amount ELSE 0 END) as total_withdrawals,
+                    SUM(CASE WHEN t.service_name = 'Savings Deposit' THEN t.amount ELSE 0 END) as total_deposits,
+                    SUM(CASE WHEN t.service_name = 'Savings Withdrawal' THEN t.amount ELSE 0 END) as total_withdrawals,
                     COUNT(*) as transaction_count
-                FROM savings s
+                FROM transactions t
                 $where_clause";
     $summary_result = $conn->query($summary_sql);
     $summary = $summary_result->fetch_assoc();
 
     // Get transaction details
     $transactions_sql = "SELECT 
-                        s.Amount,
-                        s.Type,
-                        s.TransactionDate as date,
-                        s.Notes,
-                        s.Status
-                    FROM savings s
+                        t.updated_at as date,
+                        t.service_name as service,
+                        t.amount,
+                        t.control_number,
+                        t.payment_status as status
+                    FROM transactions t
                     $where_clause
-                    ORDER BY s.TransactionDate DESC";
+                    ORDER BY t.updated_at DESC";
 
     $transactions_result = $conn->query($transactions_sql);
     $transactions = [];
@@ -304,7 +315,7 @@ function generateSavingsSummaryReport($mpdf, $member_id, $user_id_str, $date_fro
     <body>
         <div class="container">
             <div class="header">
-                <img src="../dist/assets/images/pmpc-logo.png" alt="PMPC Logo" style="max-width: 150px;">
+                <img src="' . $logo_src . '" alt="PMPC Logo" style="max-width: 150px;">
                 <div class="report-title">Savings Summary Report</div>
                 <div class="report-period">' . 
                 (!empty($date_from) || !empty($date_to) ? 
@@ -340,23 +351,23 @@ function generateSavingsSummaryReport($mpdf, $member_id, $user_id_str, $date_fro
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Type</th>
+                        <th>Transaction Type</th>
                         <th class="text-right">Amount</th>
-                        <th>Notes</th>
+                        <th>Control No.</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>';
 
     foreach ($transactions as $transaction) {
-        $formatted_date = date("F d, Y h:ia", strtotime($transaction['date']));
+        $transaction_type = str_replace('Savings ', '', $transaction['service']);
         $html .= '
                     <tr>
-                        <td>' . $formatted_date . '</td>
-                        <td>' . htmlspecialchars($transaction['Type']) . '</td>
-                        <td class="text-right">₱' . number_format($transaction['Amount'], 2) . '</td>
-                        <td>' . htmlspecialchars($transaction['Notes']) . '</td>
-                        <td>' . htmlspecialchars($transaction['Status']) . '</td>
+                        <td>' . date("F d, Y h:ia", strtotime($transaction['date'])) . '</td>
+                        <td>' . htmlspecialchars($transaction_type) . '</td>
+                        <td class="text-right">₱' . number_format($transaction['amount'], 2) . '</td>
+                        <td>' . htmlspecialchars($transaction['control_number']) . '</td>
+                        <td>' . htmlspecialchars($transaction['status']) . '</td>
                     </tr>';
     }
 
@@ -374,45 +385,39 @@ function generateSavingsSummaryReport($mpdf, $member_id, $user_id_str, $date_fro
     $mpdf->WriteHTML($html);
 }
 
-
-function generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn, $current_share_capital) {
-    $where_clause = "WHERE sc.MemberID = '$user_id'";
+function generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn, $current_share_capital, $logo_src) {
+    $where_clause = "WHERE t.user_id = '$user_id' AND t.service_name LIKE 'Share Capital%'";
+    
     if (!empty($date_from)) {
-        $where_clause .= " AND DATE(sc.TransactionDate) >= '$date_from'";
+        $where_clause .= " AND DATE(t.updated_at) >= '$date_from'";
     }
     if (!empty($date_to)) {
-        $where_clause .= " AND DATE(sc.TransactionDate) <= '$date_to'";
+        $where_clause .= " AND DATE(t.updated_at) <= '$date_to'";
     }
-    
-    // Get summary data
-    $summary_sql = "SELECT 
-                    SUM(CASE WHEN sc.Type = 'Deposit' THEN sc.Amount ELSE 0 END) as total_contributions,
-                    COUNT(*) as transaction_count
-                FROM share_capital sc
-                $where_clause";
-    
-    $summary_result = $conn->query($summary_sql);
-    $summary = $summary_result->fetch_assoc();
-    
-    // Get transaction details
-    $transactions_sql = "SELECT 
-                        sc.Amount,
-                        sc.Type,
-                        sc.TransactionDate as date,
-                        sc.Notes,
-                        sc.Status
-                    FROM share_capital sc
-                    $where_clause
-                    ORDER BY sc.TransactionDate DESC";
-    
-    $transactions_result = $conn->query($transactions_sql);
+
+    $sql = "SELECT 
+        t.updated_at as date,
+        t.service_name as service,
+        t.amount,
+        t.control_number,
+        t.payment_status
+    FROM transactions t
+    $where_clause
+    ORDER BY t.updated_at DESC";
+
+    $result = $conn->query($sql);
     $transactions = [];
-    while ($row = $transactions_result->fetch_assoc()) {
-        $transactions[] = $row;
+    $total_contributions = 0;
+
+    if ($result) {
+        while ($row = $result->fetch_assoc()) {
+            $transactions[] = $row;
+            $total_contributions += $row['amount'];
+        }
     }
-    
+
     $user_info = getUserInfo($user_id, $conn);
-    
+
     $html = '
     <html>
     <head>
@@ -436,20 +441,19 @@ function generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn
     <body>
         <div class="container">
             <div class="header">
-                <img src="../dist/assets/images/pmpc-logo.png" alt="PMPC Logo" style="max-width: 150px;">
+                <img src="' . $logo_src . '" alt="PMPC Logo" style="max-width: 150px;">
                 <div class="report-title">Share Capital Report</div>
                 <div class="report-period">' . 
                 (!empty($date_from) || !empty($date_to) ? 
-                'Period: ' . (!empty($date_from) ? $date_from : 'Start') . ' to ' . (!empty($date_to) ? $date_to : 'End') : 
-                'All Transactions' 
-                ) . '</div>
+                'Period: ' . (!empty($date_from) ? htmlspecialchars($date_from) : 'Start') . ' to ' . (!empty($date_to) ? htmlspecialchars($date_to) : 'End') : 
+                'All Transactions') . '</div>
             </div>
-            
+
             <div class="member-info">
                 <div><strong>Member:</strong> ' . htmlspecialchars($user_info['first_name'] . ' ' . $user_info['last_name']) . '</div>
                 <div><strong>Member ID:</strong> ' . htmlspecialchars($user_info['user_id']) . '</div>
             </div>
-            
+
             <div class="summary-box">
                 <div class="summary-row">
                     <span class="summary-label">Current Share Capital Balance:</span>
@@ -457,61 +461,64 @@ function generateShareCapitalReport($mpdf, $user_id, $date_from, $date_to, $conn
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Total Contributions:</span>
-                    <span>₱' . number_format($summary['total_contributions'], 2) . '</span>
+                    <span>₱' . number_format($total_contributions, 2) . '</span>
                 </div>
                 <div class="summary-row">
                     <span class="summary-label">Number of Transactions:</span>
-                    <span>' . $summary['transaction_count'] . '</span>
+                    <span>' . count($transactions) . '</span>
                 </div>
             </div>
-            
+
             <table>
                 <thead>
                     <tr>
                         <th>Date</th>
-                        <th>Type</th>
+                        <th>Transaction Type</th>
                         <th class="text-right">Amount</th>
-                        <th>Notes</th>
+                        <th>Control No.</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>';
-    
+
     foreach ($transactions as $transaction) {
         $html .= '
                     <tr>
-                        <td>' . htmlspecialchars($transaction['date']) . '</td>
-                        <td>' . htmlspecialchars($transaction['Type']) . '</td>
-                        <td class="text-right">₱' . number_format($transaction['Amount'], 2) . '</td>
-                        <td>' . htmlspecialchars($transaction['Notes']) . '</td>
-                        <td>' . htmlspecialchars($transaction['Status']) . '</td>
+                        <td>' . date("F d, Y h:ia", strtotime($transaction['date'])) . '</td>
+                        <td>' . htmlspecialchars($transaction['service']) . '</td>
+                        <td class="text-right">₱' . number_format($transaction['amount'], 2) . '</td>
+                        <td>' . htmlspecialchars($transaction['control_number']) . '</td>
+                        <td>' . htmlspecialchars($transaction['payment_status']) . '</td>
                     </tr>';
     }
-    
+
     $html .= '
                 </tbody>
             </table>
-            
+
             <div class="footer">
-                <div>Generated on: ' . date('Y-m-d H:i:s') . '</div>
+                <div>Generated on: ' . date('F d, Y h:ia') . '</div>
             </div>
         </div>
     </body>
     </html>';
-    
+
     $mpdf->WriteHTML($html);
 }
 
-function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn) {
+function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn, $logo_src) {
+    // Initialize where clause with member filter
     $where_clause = "WHERE ch.MemberID = $user_id";
+    
+    // Add date filters if provided
     if (!empty($date_from)) {
-        $where_clause .= " AND DATE(ch.created_at) >= '$date_from'";
+        $where_clause .= " AND DATE(ch.MaturityDate) >= '$date_from'";
     }
     if (!empty($date_to)) {
-        $where_clause .= " AND DATE(ch.created_at) <= '$date_to'";
+        $where_clause .= " AND DATE(ch.MaturityDate) <= '$date_to'";
     }
     
-    // Get loan summary
+    // Get loan summary with corrected query
     $loans_sql = "SELECT 
                     ch.LoanID,
                     ch.LoanType,
@@ -523,14 +530,21 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                     ch.Status as loan_status,
                     ch.Balance,
                     ch.MaturityDate,
-                    SUM(CASE WHEN lp.payment_status = 'Completed' THEN lp.amount_paid ELSE 0 END) as total_paid
+                    COALESCE(SUM(lp.amount_paid), 0) as total_paid
                 FROM credit_history ch
-                LEFT JOIN loan_payments lp ON ch.LoanID = lp.LoanID
+                LEFT JOIN loan_payments lp ON ch.LoanID = lp.LoanID AND lp.payment_status = 'Completed'
                 $where_clause
-                GROUP BY ch.LoanID
-                ORDER BY ch.created_at DESC";
+                GROUP BY ch.LoanID, ch.LoanType, ch.AmountRequested, ch.InterestRate, 
+                         ch.LoanTerm, ch.TotalPayable, ch.ApprovalStatus, ch.Status, 
+                         ch.Balance, ch.MaturityDate
+                ORDER BY ch.MaturityDate DESC";  // Using MaturityDate for sorting instead of created_at
     
     $loans_result = $conn->query($loans_sql);
+    
+    if (!$loans_result) {
+        throw new Exception("Database error: " . $conn->error);
+    }
+    
     $loans = [];
     while ($row = $loans_result->fetch_assoc()) {
         $loans[] = $row;
@@ -555,12 +569,13 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
             .text-center { text-align: center; }
             .loan-summary { margin-bottom: 30px; }
             .payment-details { margin-top: 30px; }
+            .no-payments { color: #666; font-style: italic; }
         </style>
     </head>
     <body>
         <div class="container">
             <div class="header">
-                <img src="../dist/assets/images/pmpc-logo.png" alt="PMPC Logo" style="max-width: 150px;">
+                <img src="' . $logo_src . '" alt="PMPC Logo" style="max-width: 150px;">
                 <div class="report-title">Loan History Report</div>
                 <div class="report-period">' . 
                 (!empty($date_from) || !empty($date_to) ? 
@@ -573,6 +588,10 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                 <div><strong>Member:</strong> ' . htmlspecialchars($user_info['first_name'] . ' ' . $user_info['last_name']) . '</div>
                 <div><strong>Member ID:</strong> ' . htmlspecialchars($user_info['user_id']) . '</div>
             </div>';
+    
+    if (empty($loans)) {
+        $html .= '<p class="no-payments">No loan records found for this member.</p>';
+    }
     
     foreach ($loans as $loan) {
         $html .= '
@@ -604,7 +623,11 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                         <td>₱' . number_format($loan['Balance'], 2) . '</td>
                     </tr>
                     <tr>
-                        <td><strong>Status:</strong></td>
+                        <td><strong>Approval Status:</strong></td>
+                        <td>' . htmlspecialchars($loan['ApprovalStatus']) . '</td>
+                    </tr>
+                    <tr>
+                        <td><strong>Loan Status:</strong></td>
                         <td>' . htmlspecialchars($loan['loan_status']) . '</td>
                     </tr>
                     <tr>
@@ -621,12 +644,18 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                             lp.payment_status,
                             lp.receipt_number,
                             lp.is_late,
-                            lp.days_late
+                            lp.days_late,
+                            lp.payable_date
                         FROM loan_payments lp
                         WHERE lp.LoanID = " . $loan['LoanID'] . "
-                        ORDER BY lp.payment_date DESC";
+                        ORDER BY lp.payable_date DESC, lp.payment_date DESC";
         
         $payments_result = $conn->query($payments_sql);
+        
+        if (!$payments_result) {
+            throw new Exception("Database error: " . $conn->error);
+        }
+        
         if ($payments_result->num_rows > 0) {
             $html .= '
             <div class="payment-details">
@@ -634,6 +663,7 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                 <table>
                     <thead>
                         <tr>
+                            <th>Due Date</th>
                             <th>Payment Date</th>
                             <th class="text-right">Amount Paid</th>
                             <th>Receipt #</th>
@@ -646,6 +676,7 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
             while ($payment = $payments_result->fetch_assoc()) {
                 $html .= '
                         <tr>
+                            <td>' . htmlspecialchars($payment['payable_date']) . '</td>
                             <td>' . htmlspecialchars($payment['payment_date']) . '</td>
                             <td class="text-right">₱' . number_format($payment['amount_paid'], 2) . '</td>
                             <td>' . htmlspecialchars($payment['receipt_number']) . '</td>
@@ -658,6 +689,8 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
                     </tbody>
                 </table>
             </div>';
+        } else {
+            $html .= '<p class="no-payments">No payment records found for this loan.</p>';
         }
     }
     
@@ -673,10 +706,11 @@ function generateLoanHistoryReport($mpdf, $user_id, $date_from, $date_to, $conn)
 }
 
 function getUserInfo($user_id, $conn) {
-    $sql = "SELECT user_id, first_name, last_name FROM users WHERE id = $user_id";
+    $sql = "SELECT user_id, first_name, last_name FROM users WHERE user_id = $user_id";
     $result = $conn->query($sql);
     return $result->fetch_assoc();
 }
+
 ?>
 
 <!DOCTYPE html>
