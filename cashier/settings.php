@@ -362,12 +362,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="appointment.php">
-                        <i class="fas fa-regular fa-calendar"></i>
-                        <span class="menu-title">Appointments</span>
-                    </a>
-                </li>
-                <li class="nav-item">
                     <a class="nav-link" href="transaction.php">
                         <i class="fas fa-right-left"></i>
                         <span class="menu-title">Transaction</span>

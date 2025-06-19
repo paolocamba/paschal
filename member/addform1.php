@@ -8,7 +8,7 @@
                 // Debug session and login status
                 if (!isset($_SESSION['user_id'])) {
                     // Redirect to login if no user is logged in
-                    header("Location: member-login.php");
+                    header("Location: login.php");
                     exit();
                 }
 

@@ -8,7 +8,7 @@ var_dump($_GET); // Verify the id parameter is being passed
 
 // Ensure user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: ../member-login.php");
+    header("Location: ../login.php");
     exit();
 }
 

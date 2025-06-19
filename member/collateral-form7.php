@@ -367,7 +367,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 // Debug session and login status
                 if (!isset($_SESSION['user_id'])) {
-                    header("Location: member-login.php");
+                    header("Location: login.php");
                     exit();
                 }
 

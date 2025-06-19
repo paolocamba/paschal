@@ -455,7 +455,7 @@ if (!isset($_POST['submit']) && isset($_COOKIE['remember_user']) && isset($_COOK
                         <a class="nav-link" href="signup.php">Sign Up</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link apply-loan" href="apply-loan.php">Apply for Loan</a>
+                        <a class="nav-link apply-loan" href="login.php">Apply for Loan</a>
                     </li>
                 </ul>
             </div>
@@ -531,7 +531,7 @@ if (!isset($_POST['submit']) && isset($_COOKIE['remember_user']) && isset($_COOK
                             <li><a href="services.php" class="text-white text-decoration-none">Our Services</a></li>
                             <li><a href="benefits.php" class="text-white text-decoration-none">Member Benefits</a></li>
                             <li><a href="about.php" class="text-white text-decoration-none">About Us</a></li>
-                            <li><a href="apply-loan.php" class="text-white text-decoration-none">Apply for Loan</a></li>
+                            <li><a href="login.php" class="text-white text-decoration-none">Apply for Loan</a></li>
                         </ul>
                     </div>
                     <div class="col-lg-3 mt-4 mt-lg-0">
