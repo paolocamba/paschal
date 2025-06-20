@@ -528,11 +528,6 @@ try {
                                                         data-target="#editMemberModal<?php echo $row['id']; ?>">
                                                         <i class="fa-solid fa-edit"></i>
                                                     </button>
-                                                    <!-- PDF Button -->
-                                                    <a href="generate_members_pdf.php?id=<?php echo $row['id']; ?>" 
-                                                    class="btn btn-success btn-sm">
-                                                        <i class="fa-solid fa-file-pdf"></i>
-                                                    </a>
                                                 </td>
                                             </tr>
 

@@ -125,6 +125,67 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
     <div class="container-fluid page-body-wrapper">
         <!-- partial:partials/_sidebar.html -->
         <style>
+            /* === Modal Enhancements for Admin Panel === */
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-title {
+    font-weight: 600;
+    font-size: 1.15rem;
+    letter-spacing: 0.3px;
+}
+
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card-header {
+    font-size: 0.95rem;
+    color: #495057;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.card-body p {
+    font-size: 0.92rem;
+    margin-bottom: 0.5rem;
+    color: #343a40;
+}
+
+.card-body input.form-control {
+    background-color: #fff;
+    border: 1px solid #ced4da;
+    font-size: 1rem;
+    height: calc(1.5em + 0.75rem + 2px);
+}
+
+.card-body input[readonly] {
+    background-color: #e9ecef;
+    font-weight: 600;
+}
+
+.modal-footer {
+    padding: 0.75rem 1.5rem;
+}
+
+.receipt-section {
+    margin-bottom: 1.5rem;
+}
+
+.receipt-item {
+    margin-bottom: 0.5rem;
+    font-size: 0.93rem;
+}
+
+@media (min-width: 768px) {
+    .modal-lg {
+        max-width: 800px;
+    }
+}
+
             .navbar {
                         padding-top: 0 !important;
                         margin-top: 0 !important;
@@ -212,6 +273,31 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
             .card-body {
                 padding: 15px;
             }
+            .receipt-box {
+    background: #fff;
+    border: 1px dashed #ccc;
+    padding: 25px;
+    margin-bottom: 0;
+    color: #212529;
+}
+
+.receipt-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+}
+
+.receipt-divider {
+    border-top: 1px dashed #bbb;
+    margin: 1rem 0;
+}
+
+.total-line {
+    font-size: 1.05rem;
+    font-weight: 600;
+}
+
 
         </style>
         <nav class="sidebar sidebar-offcanvas" id="sidebar">
@@ -452,9 +538,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                     <button class="btn btn-primary btn-sm" data-toggle="modal" data-target="#editApplicationModal<?php echo $row['transaction_id']; ?>">
                                                         <i class="fa-solid fa-pen-to-square"></i>
                                                     </button>
-                                                    <a href="generate_transaction_pdf.php?transaction_id=<?php echo $row['transaction_id']; ?>" class="btn btn-success btn-sm">
-                                                        <i class="fa-solid fa-file-pdf"></i>
-                                                    </a>
                                                 </td>
                                             </tr>
 
@@ -534,78 +617,50 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <!-- View Modal -->
-                                                <div class="modal fade" id="viewApplicationModal<?php echo $row['transaction_id']; ?>" tabindex="-1" role="dialog" aria-labelledby="viewApplicationModalLabel<?php echo $row['id']; ?>" aria-hidden="true">
-                                                    <div class="modal-dialog modal-lg" role="document">
-                                                        <div class="modal-content">
-                                                            <div class="modal-header bg-info text-white">
-                                                                <h5 class="modal-title" id="viewApplicationModalLabel<?php echo $row['transaction_id']; ?>">
-                                                                    Transaction Details - <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?>
-                                                                </h5>
-                                                                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
-                                                                    <span aria-hidden="true">&times;</span>
-                                                                </button>
-                                                            </div>
-                                                            <div class="modal-body">
-                                                            <div class="row">
-                                                                <!-- Left Column: Personal Information -->
-                                                                <div class="col-md-6">
-                                                                    <div class="receipt-section">
-                                                                        <h5 class="text-center mb-3 text-primary">Receipt</h5>
-                                                                        <div class="receipt-item">
-                                                                            <strong>OR No.:</strong> <span><?php echo htmlspecialchars($row['control_number']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>Certificate No.:</strong> <span><?php echo htmlspecialchars($row['certificate_no']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>First Name:</strong> <span><?php echo htmlspecialchars($row['first_name']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>Last Name:</strong> <span><?php echo htmlspecialchars($row['last_name']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>Email:</strong> <span><?php echo htmlspecialchars($row['email']); ?></span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
+<!-- View Modal -->
+<div class="modal fade" id="viewApplicationModal<?php echo $row['transaction_id']; ?>" tabindex="-1" role="dialog" aria-labelledby="viewApplicationModalLabel<?php echo $row['transaction_id']; ?>" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable" role="document">
+        <div class="modal-content border-0 shadow-sm">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="viewApplicationModalLabel<?php echo $row['transaction_id']; ?>">
+                    Transaction Details – <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?>
+                </h5>
+                <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
 
-                                                                <!-- Right Column: Membership Details -->
-                                                                <div class="col-md-6">
-                                                                    <div class="receipt-section">
-                                                                        <div class="receipt-item">
-                                                                            <strong>Service Name:</strong> <span><?php echo htmlspecialchars($row['services_name']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>Payment Status:</strong> <span><?php echo htmlspecialchars($row['payment_status']); ?></span>
-                                                                        </div>
-                                                                        <div class="receipt-item">
-                                                                            <strong>Payment Completed:</strong> <span><?php echo date('g:i A, F d, Y', strtotime($row['updated_at'])); ?></span>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
+<div class="modal-body px-4 pt-4 pb-0">
+    <div class="receipt-box">
+        <div class="receipt-line"><span>OR No.:</span> <strong><?php echo htmlspecialchars($row['control_number']); ?></strong></div>
+        <div class="receipt-line"><span>Certificate No.:</span> <?php echo htmlspecialchars($row['certificate_no']); ?></div>
+        <div class="receipt-line"><span>Name:</span> <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></div>
+        <div class="receipt-line"><span>Email:</span> <?php echo htmlspecialchars($row['email']); ?></div>
 
-                                                            <!-- Total Summary Row -->
-                                                            <div class="row mt-4">
-                                                                <div class="col-12">
-                                                                    <div class="card bg-light">
-                                                                        <div class="card-body">
-                                                                            <h6 class="text-primary mb-3">Total Summary</h6>
-                                                                            <div class="form-group mb-0">
-                                                                                <label><strong>Total Amount</strong></label>
-                                                                                <input type="text" class="form-control font-weight-bold" value="₱<?php echo number_format((float)$row['amount'], 2); ?>" readonly>
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </div>
+        <hr class="receipt-divider">
 
-                                                        <!-- Modal Footer -->
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                                                        </div>
+        <div class="receipt-line"><span>Service:</span> <?php echo htmlspecialchars($row['services_name']); ?></div>
+        <div class="receipt-line"><span>Payment Status:</span> <?php echo htmlspecialchars($row['payment_status']); ?></div>
+        <div class="receipt-line"><span>Completed On:</span> <?php echo date('g:i A, F d, Y', strtotime($row['updated_at'])); ?></div>
+
+        <hr class="receipt-divider">
+
+        <div class="receipt-line total-line">
+            <span>Total Amount:</span> 
+            <strong>₱<?php echo number_format((float)$row['amount'], 2); ?></strong>
+        </div>
+    </div>
+</div>
+
+
+            <!-- Modal Footer -->
+            <div class="modal-footer bg-light border-top-0">
+                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
                                             <?php endwhile; ?>
                                             <?php if ($result->num_rows == 0): ?>

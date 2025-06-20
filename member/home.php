@@ -423,6 +423,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     box-shadow: 0 0 10px rgba(0,0,0,0.1);
 }
 
+.modal {
+    z-index: 1060 !important; /* Higher than navbar */
+}
+
+.modal-backdrop {
+    z-index: 1050 !important; /* Just below modal */
+}
+
 .navbar {
               padding-top: 0 !important;
               margin-top: 0 !important;
@@ -471,6 +479,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     .modal-footer {
         display: none !important;
     }
+    
 }
 
     
@@ -1274,24 +1283,25 @@ $savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) *
               $loan_stmt->execute();
               $loan_result = $loan_stmt->get_result();
 
-              // Fetch the loan details
-              $loans_sql = "SELECT 
-                  LoanID, 
-                  AmountRequested, 
-                  LoanType, 
-                  LoanTerm, 
-                  ModeOfPayment, 
-                  userID, 
-                  DateOfLoan, 
-                  application_date,
-                  Status 
-                  FROM loanapplication
-                  WHERE userID = ? AND reference3_contact_no IS NOT NULL";
+            // Fetch the loan details
+            $loans_sql = "SELECT 
+                LoanID, 
+                AmountRequested, 
+                LoanType, 
+                LoanTerm, 
+                ModeOfPayment, 
+                userID, 
+                DateOfLoan, 
+                application_date,
+                Status 
+                FROM loanapplication
+                WHERE userID = ? AND reference3_contact_no IS NOT NULL";
 
-              $loans_stmt = $conn->prepare($loans_sql);
-              $loans_stmt->bind_param("i", $user_id);
-              $loans_stmt->execute();
-              $loans_result = $loans_stmt->get_result();
+            $loans_stmt = $conn->prepare($loans_sql);
+            $loans_stmt->bind_param("i", $user_id);
+            $loans_stmt->execute();
+            $loans_result = $loans_stmt->get_result();
+
 
               // Count query for pagination
               $count_sql = "SELECT COUNT(*) as total 
@@ -1339,93 +1349,249 @@ $savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) *
                           </form>
                       </div>
                   </div>
-                  <div class="card mb-4">
-                      <div class="card-header">
-                          Loan Applications
-                      </div>
-                      <div class="card-body">
-                          <?php if ($loans_result->num_rows > 0): ?>
-                              <div class="table-responsive">
-                                  <table class="table table-hover">
-                                      <thead class="table-light">
-                                          <tr>
-                                              <th>Loan ID</th>
-                                              <th>Amount Requested</th>
-                                              <th>Loan Type</th>
-                                              <th>Loan Term</th>
-                                              <th>Mode of Payment</th>
-                                              <th>Date of Loan</th>
-                                              <th>Date of Application</th>  
-                                              <th>Status</th>
-                                              <th>Action</th>
-                                          </tr>
-                                      </thead>
-                                      <tbody>
-                                        <?php while($loans = $loans_result->fetch_assoc()): ?>
-                                            <tr>
-                                                <td><?php echo htmlspecialchars($loans['LoanID']); ?></td>
-                                                <td>₱<?php echo number_format($loans['AmountRequested'], 2); ?></td>
-                                                <td><?php echo htmlspecialchars($loans['LoanType']); ?></td>
-                                                <td><?php echo htmlspecialchars($loans['LoanTerm']); ?></td>
-                                                <td><?php echo htmlspecialchars($loans['ModeOfPayment']); ?></td>
-                                                <td><?php echo date('M d, Y', strtotime($loans['DateOfLoan'])); ?></td>
-                                                <td><?php echo date('M d, Y', strtotime($loans['application_date'])); ?></td>
-                                                <td><?php echo htmlspecialchars($loans['Status']); ?></td>
-                                                <td>
+<div class="card mb-4"> 
+  <div class="card-header">
+      Loan Applications
+  </div>
+  <div class="card-body">
+    <?php if ($loans_result->num_rows > 0): ?>
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead class="table-light">
+            <tr>
+              <th>Loan ID</th>
+              <th>Amount Requested</th>
+              <th>Type</th>
+              <th>Term</th>
+              <th>Payment</th>
+              <th>Application Date</th>  
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php while($loans = $loans_result->fetch_assoc()): ?>
+              <tr>
+                <td><?php echo htmlspecialchars($loans['LoanID']); ?></td>
+                <td>₱<?php echo number_format($loans['AmountRequested'], 2); ?></td>
+                <td><?php echo htmlspecialchars($loans['LoanType']); ?></td>
+                <td><?php echo htmlspecialchars($loans['LoanTerm']) . ' mos'; ?></td>
+                <td><?php echo htmlspecialchars($loans['ModeOfPayment']); ?></td>
+                <td><?php echo date('M d, Y', strtotime($loans['application_date'])); ?></td>
+                <td>
+                  <?php
+                    $status = htmlspecialchars($loans['Status']);
+                    $badgeClass = match($status) {
+                      'Approved' => 'success',
+                      'In Progress' => 'warning',
+                      'Cancelled' => 'danger',
+                      'Rejected' => 'secondary',
+                      default => 'info',
+                    };
+                  ?>
+                  <span class="badge bg-<?php echo $badgeClass; ?>"><?php echo $status; ?></span>
+                </td>
+                <td>
+                  <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewModal<?php echo $loans['LoanID']; ?>">
+                    <i class="fa-solid fa-eye"></i>
+                  </button>
+                  <?php if ($status === 'In Progress'): ?>
+                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#cancelLoanModal" data-loan-id="<?php echo $loans['LoanID']; ?>">
+                      Cancel
+                    </button>
+                  <?php endif; ?>
+                </td>
+              </tr>
+            <?php endwhile; ?>
+          </tbody>
+        </table>
+      </div>
+    <?php else: ?>
+      <p>No loan applications found.</p>
+    <?php endif; ?>
+  </div>
+</div>
+
+<!-- View Loan Modals - Placed outside the table -->
+<?php 
+// Reset the result pointer to loop again for modals
+mysqli_data_seek($loans_result, 0);
+while($loans = $loans_result->fetch_assoc()): 
+    $loan_id = $loans['LoanID'];
+    $stmt = $conn->prepare("SELECT * FROM loanapplication WHERE LoanID = ?");
+    $stmt->bind_param("i", $loan_id);
+    $stmt->execute();
+    $loan = $stmt->get_result()->fetch_assoc();
+
+    $total_income = (
+      floatval($loan['monthly_income']) + 
+      floatval($loan['spouse_income_amount']) + 
+      floatval($loan['spouse_other_income_amount']) + 
+      floatval($loan['self_other_income_amount'])
+    );
+?>
+<div class="modal fade" id="viewModal<?php echo $loan_id; ?>" tabindex="-1" aria-labelledby="viewLoanLabel<?php echo $loan_id; ?>" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Loan Application Summary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Section 1: Loan Info -->
+        <h6 class="fw-bold">Loan Information</h6>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">Loan Type: <strong><?php echo $loan['LoanType']; ?></strong></li>
+          <li class="list-group-item">Amount Requested: <strong>₱<?php echo number_format($loan['AmountRequested'], 2); ?></strong></li>
+          <li class="list-group-item">Loan Term: <strong><?php echo $loan['LoanTerm']; ?> months</strong></li>
+          <li class="list-group-item">Mode of Payment: <strong><?php echo $loan['ModeOfPayment']; ?></strong></li>
+          <li class="list-group-item">Application Date: <strong><?php echo date('F d, Y', strtotime($loan['application_date'])); ?></strong></li>
+        </ul>
+
+        <!-- Section 2: Residency & Household -->
+        <h6 class="fw-bold">Household Info</h6>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">Years at Current Address: <strong><?php echo $loan['years_stay_present_address']; ?></strong></li>
+          <li class="list-group-item">Marital Status: <strong><?php echo $loan['marital_status']; ?></strong></li>
+          <li class="list-group-item">Dependents: <strong><?php echo $loan['number_of_dependents']; ?></strong></li>
+          <li class="list-group-item">Housing: 
+            <strong>
+              <?php 
+                echo $loan['own_house'] === 'Yes' ? 'Own House' : 
+                     ($loan['renting'] === 'Yes' ? 'Renting' : 
+                     ($loan['living_with_relative'] === 'Yes' ? 'Living with Relative' : 'N/A'));
+              ?>
+            </strong>
+          </li>
+        </ul>
+
+        <!-- Section 3: Financial Summary -->
+        <h6 class="fw-bold">Financial Summary</h6>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">
+            Total Monthly Income: 
+            <strong>₱<?php echo number_format($total_income, 2); ?></strong>
+            <small class="text-muted">(Self + Spouse + Other Income)</small>
+          </li>
+          <li class="list-group-item">Total Expenses: 
+            <strong>₱<?php echo number_format($loan['total_expenses'], 2); ?></strong>
+          </li>
+          <li class="list-group-item">Net Family Income: 
+            <strong>₱<?php echo number_format($loan['net_family_income'], 2); ?></strong>
+          </li>
+        </ul>
+
+        <!-- Section 4: Employment Info -->
+        <h6 class="fw-bold">Employment</h6>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">Employer: <strong><?php echo $loan['employer_name']; ?></strong></li>
+          <li class="list-group-item">Position: <strong><?php echo $loan['present_position']; ?></strong></li>
+          <?php if (!empty($loan['date_of_employment'])): ?>
+          <li class="list-group-item">Date Hired: <strong><?php echo date('F d, Y', strtotime($loan['date_of_employment'])); ?></strong></li>
+          <?php endif; ?>
+        </ul>
+
+        <!-- Section 5: Collateral Info -->
+        <?php if ($loan['LoanType'] === 'Collateral'): ?>
+          <h6 class="fw-bold">Collateral Appraisal Summary</h6>
+          <?php
+            $appraisal_stmt = $conn->prepare("SELECT * FROM land_appraisal WHERE LoanID = ?");
+            $appraisal_stmt->bind_param("i", $loan_id);
+            $appraisal_stmt->execute();
+            $collateral = $appraisal_stmt->get_result()->fetch_assoc();
+          ?>
+          <?php if ($collateral): ?>
+            <ul class="list-group mb-3">
+              <li class="list-group-item">Type of Land: <strong><?php echo $collateral['type_of_land']; ?></strong></li>
+              <li class="list-group-item">Size: <strong><?php echo $collateral['square_meters']; ?> sq.m</strong></li>
+              <li class="list-group-item">Location: <strong><?php echo $collateral['location_name']; ?></strong></li>
+              <li class="list-group-item">Zonal Value: <strong>₱<?php echo number_format($collateral['final_zonal_value'], 2); ?></strong></li>
+              <li class="list-group-item">Total Assessed Value: <strong>₱<?php echo number_format($collateral['total_value'], 2); ?></strong></li>
+              <li class="list-group-item">Right of Way: <strong><?php echo $collateral['right_of_way']; ?></strong></li>
+              <?php if (!empty($collateral['land_title_path'])): ?>
+              <li class="list-group-item">Land Title Document: 
+                <a href="<?php echo $collateral['land_title_path']; ?>" target="_blank" class="btn btn-sm btn-outline-primary ms-2">View</a>
+              </li>
+              <?php endif; ?>
+            </ul>
+          <?php else: ?>
+            <p class="text-muted">No collateral details available.</p>
+          <?php endif; ?>
+        <?php endif; ?>
+
+        <!-- Section 6: Evaluation -->
+        <h6 class="fw-bold">Loan Evaluation</h6>
+        <ul class="list-group mb-3">
+          <li class="list-group-item">
+            Status: 
+            <strong class="text-<?php 
+              echo match($loan['Status']) {
+                'Approved' => 'success',
+                'In Progress' => 'warning',
+                'Disapproved' => 'danger',
+                'Cancelled' => 'secondary',
+                default => 'dark',
+              }; 
+            ?>">
+              <?php echo $loan['Status']; ?>
+            </strong>
+          </li>
+          <li class="list-group-item">
+            Eligibility: 
+            <strong><?php echo $loan['Eligibility'] ?? 'Pending'; ?></strong>
+          </li>
+          <li class="list-group-item">
+            Loanable Amount: 
+            <strong>₱<?php echo number_format($loan['loanable_amount'] ?? 0, 2); ?></strong>
+          </li>
+        </ul>
+
+        <?php if ($loan['Status'] === 'Disapproved' || $loan['Eligibility'] === 'Not Eligible'): ?>
+          <div class="alert alert-danger mt-2">
+            This loan application was marked as <strong><?php echo $loan['Status']; ?></strong>.
+            Please consult the loan officer for further details.
+          </div>
+        <?php endif; ?>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+<?php endwhile; ?>
+
+<!-- Cancel Loan Modal (Single instance) -->
+<div class="modal fade" id="cancelLoanModal" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title" id="cancelLoanModalLabel">Cancel Loan Application</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-warning">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          <strong>Important:</strong> You can only cancel your loan application within 3 days of submission. After this period, cancellation will no longer be possible.
+        </div>
+        <p>Are you sure you want to cancel this loan application? This action cannot be undone.</p>
+        <div id="loanDetailsContainer"></div>
+      </div>
+      <div class="modal-footer">
+        <form id="cancelLoanForm" action="cancel_loan.php" method="POST">
+          <input type="hidden" id="loanID" name="loanID" value="">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-danger" id="cancelLoanBtn">
+            <i class="fas fa-times-circle me-2"></i>Cancel Loan
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
 
 
-                                                    <!-- Always show View button -->
-                                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#viewModal<?php echo $loans['LoanID']; ?>">
-                                                        <i class="fa-solid fa-eye"></i>
-                                                    </button>
-                                                    <?php if ($loans['Status'] == 'In Progress'): ?>
-                                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelLoanModal" data-loan-id="<?php echo $loans['LoanID']; ?>">
-                                                            Cancel Loan
-                                                        </button>
-                                                    <?php elseif ($loans['Status'] == 'Cancelled'): ?>
-                                                        <span class="badge bg-danger">Cancelled</span>
-                                                    <?php endif; ?>
-                                                </td>
-                                            </tr>
-                                        <?php endwhile; ?>
-
-                                      </tbody>
-                                  </table>
-                              </div>
-                          <?php else: ?>
-                              <p>No in progress loan found.</p>
-                          <?php endif; ?>
-                      </div>
-                  </div>
-
-                    <!-- Cancel Loan Modal -->
-                    <div class="modal fade" id="cancelLoanModal" tabindex="-1" aria-labelledby="cancelLoanModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header bg-danger text-white">
-                                    <h5 class="modal-title" id="cancelLoanModalLabel">Cancel Loan Application</h5>
-                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="alert alert-warning">
-                                        <i class="fas fa-exclamation-triangle me-2"></i>
-                                        <strong>Important:</strong> You can only cancel your loan application within 3 days of submission. After this period, cancellation will no longer be possible.
-                                    </div>
-                                    <p>Are you sure you want to cancel this loan application? This action cannot be undone.</p>
-                                    <div id="loanDetailsContainer"></div>
-                                </div>
-                                <div class="modal-footer">
-                                    <form id="cancelLoanForm" action="cancel_loan.php" method="POST">
-                                        <input type="hidden" id="loanID" name="loanID" value="">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        <button type="submit" class="btn btn-danger" id="cancelLoanBtn">
-                                            <i class="fas fa-times-circle me-2"></i>Cancel Loan
-                                        </button>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                
 
 
                     <!-- Active Loans -->
@@ -1441,12 +1607,10 @@ $savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) *
                                             <tr>
                                                 <th>Loan ID</th>
                                                 <th>Amount Requested</th>
-                                                <th>Loan Term</th>
+                                                <th>Term</th>
                                                 <th>Type</th>
                                                 <th>Status</th>
                                                 <th>Mode of Payment</th>
-                                                <th>Payable Amount</th>
-                                                <th>Payable Date</th>
                                                 <th>Action</th>
                                             </tr>
                                         </thead>
@@ -1480,8 +1644,6 @@ $savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) *
                                                     <td><?php echo htmlspecialchars($loanTerm); ?> months</td>
                                                     <td><?php echo htmlspecialchars($loan['LoanType']); ?></td>
                                                     <td><?php echo htmlspecialchars($loan['ApprovalStatus']); ?></td>
-                                                    <td><?php echo htmlspecialchars($loan['ModeOfPayment']); ?></td>
-                                                    <td>₱<?php echo number_format($loan['PayableAmount'], 2); ?></td>
                                                     <td><?php echo date('M d, Y', strtotime($loan['PayableDate'])); ?></td>
                                                     <td>
                                                     <?php if ($balance > 0): ?>
@@ -1984,6 +2146,20 @@ $savings_percentage = ($base_savings > 0) ? ($monthly_savings / $base_savings) *
   <script src="../dist/assets/js/dashboard.js"></script>
 
   <script>
+    $(document).on('show.bs.modal', '.modal', function () {
+    // Close any open modals when opening a new one
+    $('.modal.show').modal('hide');
+    
+    // Adjust z-index to ensure new modal is on top
+    var zIndex = 1040 + (10 * $('.modal:visible').length);
+    $(this).css('z-index', zIndex);
+    
+    // Add backdrop with proper z-index
+    setTimeout(function() {
+        $('.modal-backdrop').not('.modal-stack').css('z-index', zIndex - 1)
+            .addClass('modal-stack');
+    }, 0);
+});
 $(document).ready(function() {
     // Store loan application dates in a data attribute when page loads
     <?php
