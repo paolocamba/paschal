@@ -438,11 +438,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                             <div class="card-body">
                                 <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap">
                                     <p class="card-title mb-0">Transaction</p>
-                                    <div class="ml-auto">
-                                        <button class="btn btn-primary mb-3" style="background-color: #03C03C;" onclick="window.location.href='generate_alltrans_pdf.php'">
-                                            Generate Transaction Data
-                                        </button>
-                                    </div>
                                 </div>
 
                                 <div class="row mb-3">
@@ -500,7 +495,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                             <th>Service</th>
                                             <th>Amount</th>
                                             <th>Status</th>
-                                            <th>Certificate No.</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -530,7 +524,6 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                                                     <?php echo htmlspecialchars($row['payment_status']); ?>
                                                 </span>
                                                 </td>
-                                                <td><?php echo htmlspecialchars($row['certificate_no'] ?? ''); ?></td>
                                                 <td>
                                                     <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#viewApplicationModal<?php echo $row['transaction_id']; ?>">
                                                         <i class="fa-solid fa-eye"></i>
@@ -633,7 +626,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
 <div class="modal-body px-4 pt-4 pb-0">
     <div class="receipt-box">
         <div class="receipt-line"><span>OR No.:</span> <strong><?php echo htmlspecialchars($row['control_number']); ?></strong></div>
-        <div class="receipt-line"><span>Certificate No.:</span> <?php echo htmlspecialchars($row['certificate_no']); ?></div>
+
         <div class="receipt-line"><span>Name:</span> <?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></div>
         <div class="receipt-line"><span>Email:</span> <?php echo htmlspecialchars($row['email']); ?></div>
 

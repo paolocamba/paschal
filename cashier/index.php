@@ -156,6 +156,39 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
                     padding-top: 0 !important;
                     margin-top: 0 !important;
                 }
+<style>
+/* Add these to your existing <style> section */
+
+/* Full-width card styling */
+.card {
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* Form element styling */
+#reportForm .form-control, 
+#reportForm .form-select {
+    height: 45px;
+    border: 1px solid #e0e0e0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    #reportForm .col-md-4, 
+    #reportForm .col-md-3 {
+        margin-bottom: 15px;
+    }
+}
+
+/* Remove side padding for full width */
+.content-wrapper {
+    padding: 1.5rem 0 !important; /* Override template padding */
+}
+
+.main-panel > .content-wrapper {
+    padding: 1.5rem 1.5rem !important;
+}
+</style>
   </style>
 </head>
 
@@ -235,6 +268,8 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
               </div>
             </div>
           </div>
+
+          
 
           <?php
           // Function to safely fetch data
@@ -361,6 +396,47 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
               </div>
           </div>
 
+<!-- Replace your existing form section with this -->
+<div class="row mb-4">
+    <div class="col-12"> <!-- Changed from col-md-8 to col-12 for full width -->
+        <div class="card">
+            <div class="card-body p-4"> <!-- Added padding -->
+                <h4 class="card-title mb-4"><i class="fas fa-file-alt me-2"></i>Generate Transaction Report</h4>
+                <form id="reportForm" method="post" action="generate_report.php" target="_blank">
+                    <div class="row align-items-end">
+                        <!-- Date Range Picker (Full Width) -->
+                        <div class="col-md-4 col-lg-3">
+                            <label class="form-label">From Date</label>
+                            <input type="date" class="form-control" id="startDate" name="startDate" required>
+                        </div>
+                        <div class="col-md-4 col-lg-3">
+                            <label class="form-label">To Date</label>
+                            <input type="date" class="form-control" id="endDate" name="endDate" required>
+                        </div>
+                        
+                        <!-- Report Type Dropdown -->
+                        <div class="col-md-3 col-lg-4">
+                            <label class="form-label">Report Type</label>
+                            <select class="form-select" id="reportType" name="reportType" required>
+                                <option value="">-- Select --</option>
+                                <option value="daily_collection">Transaction Collection</option>
+                                <option value="member_contributions">Member Contributions</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Generate Button -->
+                        <div class="col-md-3 col-lg-2 mt-md-0 mt-2">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-file-pdf me-2"></i>Generate
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
           <!-- content-wrapper ends -->
           <!-- partial:partials/_footer.html -->
           <footer class="footer">
@@ -382,7 +458,24 @@ $_SESSION['is_logged_in'] = $row['is_logged_in'];
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <script>
+// Update your existing script with this date initialization
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date range (current month)
+    const today = new Date();
+    const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+    
+    // Format as YYYY-MM-DD
+    document.getElementById('startDate').value = formatDate(firstDay);
+    document.getElementById('endDate').value = formatDate(today);
+    
+    function formatDate(date) {
+        return date.toISOString().split('T')[0];
+    }
+    
+    // Rest of your chart code...
+});
     document.addEventListener('DOMContentLoaded', function() {
         // Transaction Status Chart
         const transactionStatusCtx = document.getElementById('transactionStatusChart').getContext('2d');
