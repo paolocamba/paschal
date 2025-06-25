@@ -214,7 +214,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 <li class="nav-item">
                     <a class="nav-link" href="users.php">
                         <i class="fa-solid fa-users"></i>
-                        <span class="menu-title">Users</span>
+                        <span class="menu-title">Staffs</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -327,6 +327,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     <div class="form-group">
                         <label for="user_type">Staff Role</label>
                         <select class="form-control" name="user_type" required>
+                            <option value="Admin">Admin</option>
                             <option value="Membership Officer">Membership Officer</option>
                             <option value="Loan Officer">Loan Officer</option>
                             <option value="Liaison Officer">Liaison Officer</option>
@@ -353,7 +354,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 // Fetch users with user_type admin or subadmin, regardless of status, with search and pagination
                 $sql = "SELECT id, first_name, last_name, email, username, mobile, street, barangay, municipality, province, user_type, created_at 
                         FROM users
-                        WHERE user_type IN ('Membership Officer','Loan Officer','Liaison Officer','Cashier') AND (
+                        WHERE user_type IN ('Admin','Membership Officer','Loan Officer','Liaison Officer','Cashier') AND (
                             first_name LIKE ? OR 
                             last_name LIKE ? OR 
                             email LIKE ? OR 

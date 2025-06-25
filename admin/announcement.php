@@ -192,7 +192,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 <li class="nav-item">
                     <a class="nav-link" href="users.php">
                         <i class="fa-solid fa-users"></i>
-                        <span class="menu-title">Users</span>
+                        <span class="menu-title">Staffs</span>
                     </a>
                 </li>
                 <li class="nav-item">

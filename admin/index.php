@@ -1,167 +1,354 @@
 <?php
 session_start();
 
-
 // Check if the user is not logged in, redirect to login page
 if (!isset($_SESSION['user_id'])) {
-  header("Location: ../login.php");
-  exit();
+    header("Location: ../login.php");
+    exit();
 }
 
 include '../connection/config.php';
 
-// Fetch the user's data from the "users" table based on the user ID
-$id = $_SESSION['user_id'];
-$sql = "SELECT username, first_name, last_name, mobile, email, street, barangay, municipality, province, uploadID, is_logged_in FROM users WHERE user_id = '$id'";
-$result = $conn->query($sql);
-
-// Check if the query was successful
-if ($result && $result->num_rows > 0) {
-  $row = $result->fetch_assoc();
-  $name = $row["username"];
-  $uploadID = $row["uploadID"];
-  $first_name = $row["first_name"];
-  $last_name = $row["last_name"];
-  $mobile = $row["mobile"];
-  $email = $row["email"];
-  $street = $row["street"];
-  $barangay = $row["barangay"];
-  $municipality = $row["municipality"];
-  $province = $row["province"];
-
-} else {
-  // Default values if user data is not found
-  $username = "Guest";
-  $uploadID = "default_image.jpg"; // Assuming default image name
-  $first_name = "";
-  $last_name = "";
-  $mobile = "";
-  $email = "";
-  $street = "";
-  $barangay = "";
-  $municipality = "";
-  $province = "";
-
+// --- Analytics Functions ---
+function fetchData($conn, $query, $params = []) {
+    $stmt = $conn->prepare($query);
+    if (!empty($params)) {
+        $types = str_repeat('s', count($params));
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $data = [];
+    while ($row = $result->fetch_assoc()) {
+        $data[] = $row;
+    }
+    return $data;
 }
 
-// Assign the value of $username and $image to $_SESSION variables
-$_SESSION['username'] = $name;
+// Fetch user data
+$id = $_SESSION['user_id'];
+$sql = "SELECT username, first_name, last_name, mobile, email, street, barangay, municipality, province, uploadID, membership_type, is_logged_in FROM users WHERE user_id = '$id'";
+$result = $conn->query($sql);
+
+if ($result && $result->num_rows > 0) {
+    $row = $result->fetch_assoc();
+    $name = $row["username"];
+    $uploadID = $row["uploadID"];
+    $first_name = $row["first_name"];
+    $last_name = $row["last_name"];
+    $mobile = $row["mobile"];
+    $email = $row["email"];
+    $street = $row["street"];
+    $barangay = $row["barangay"];
+    $municipality = $row["municipality"];
+    $province = $row["province"];
+    $membership_type = $row["membership_type"];
+} else {
+    $username = "Guest";
+    $uploadID = "default_image.jpg";
+    $first_name = "";
+    $last_name = "";
+    $mobile = "";
+    $email = "";
+    $street = "";
+    $barangay = "";
+    $municipality = "";
+    $province = "";
+    $membership_type = "";
+}
+
+$_SESSION['membership_type'] = $row['membership_type'];
 $_SESSION['uploadID'] = $uploadID;
-$_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
+$_SESSION['is_logged_in'] = $row['is_logged_in'];
 ?>
 
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <!-- Required meta tags -->
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-  <title>Dashboard | Admin</title>
-  <!-- plugins:css -->
-  <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
-  <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
-  <link rel="stylesheet" href="../dist/assets/vendors/css/vendor.bundle.base.css">
-  <link rel="stylesheet" href="../dist/assets/vendors/font-awesome/css/font-awesome.min.css">
-  <link rel="stylesheet" href="../dist/assets/vendors/mdi/css/materialdesignicons.min.css">
-  <!--FONTAWESOME CSS-->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css"
-    integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg=="
-    crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <!-- endinject -->
-  <!-- Plugin css for this page -->
-  <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
-  <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
-  <link rel="stylesheet" type="text/css" href="../dist/assets/js/select.dataTables.min.css">
-  <!-- Bootstrap CSS -->
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-  <!-- End plugin css for this page -->
-  <!-- inject:css -->
-  <link rel="stylesheet" href="../dist/assets/css/style.css">
-  <!-- endinject -->
-  <link rel="shortcut icon" href="../dist/assets/images/ha.png" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Dashboard | Admin</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
+    <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
+    <link rel="stylesheet" href="../dist/assets/vendors/css/vendor.bundle.base.css">
+    <link rel="stylesheet" href="../dist/assets/vendors/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../dist/assets/vendors/mdi/css/materialdesignicons.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.21/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
+    <link rel="stylesheet" type="text/css" href="../dist/assets/js/select.dataTables.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../dist/assets/css/style.css">
+    <link rel="shortcut icon" href="../dist/assets/images/ha.png" />
+    
+    <style>
+        :root {
+            --primary-color: #03C03C;
+            --primary-dark: #00563B;
+            --secondary-color: #6c757d;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --info-color: #17a2b8;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+        }
+        
+        .navbar {
+            padding-top: 0 !important;
+            margin-top: 0 !important;
+        }
+        
+        .nav-link i {
+            margin-right: 10px;
+        }
+        
+        .btn-primary {
+            background-color: var(--primary-color) !important;
+            border-color: var(--primary-color) !important;
+        }
+        
+        .btn-primary:hover {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+        }
+        
+        .page-item.active .page-link {
+            background-color: var(--primary-dark) !important;
+            border-color: var(--primary-dark) !important;
+        }
+        
+        .welcome-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+        }
+
+                /* Add these styles to your existing CSS */
+        
+        /* Card Styles */
+        .dashboard-card {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.12);
+        }
+        
+        .card-icon-container {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+        
+        .card-icon {
+            font-size: 1.8rem;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #6c757d;
+            margin-bottom: 0.5rem;
+        }
+        
+        .card-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 1rem;
+        }
+        
+        .card-link {
+            display: inline-block;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border: 1px solid transparent;
+        }
+        
+        .card-link:hover {
+            transform: translateY(-2px);
+        }
+        
+        /* Color variations for each card */
+        .announcements-card .card-icon-container {
+            background-color: rgba(3, 192, 60, 0.1);
+        }
+        
+        .announcements-card .card-icon {
+            color: #03C03C;
+        }
+        
+        .announcements-card .card-link {
+            background-color: #03C03C;
+            color: white;
+        }
+        
+        .announcements-card .card-link:hover {
+            background-color: #029e3b;
+        }
+        
+        .inbox-card .card-icon-container {
+            background-color: rgba(23, 162, 184, 0.1);
+        }
+        
+        .inbox-card .card-icon {
+            color: #17a2b8;
+        }
+        
+        .inbox-card .card-link {
+            background-color: #17a2b8;
+            color: white;
+        }
+        
+        .inbox-card .card-link:hover {
+            background-color: #138496;
+        }
+        
+        .events-card .card-icon-container {
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        
+        .events-card .card-icon {
+            color: #dc3545;
+        }
+        
+        .events-card .card-link {
+            background-color: #dc3545;
+            color: white;
+        }
+        
+        .events-card .card-link:hover {
+            background-color: #c82333;
+        }
+        
+        .services-card .card-icon-container {
+            background-color: rgba(255, 193, 7, 0.1);
+        }
+        
+        .services-card .card-icon {
+            color: #ffc107;
+        }
+        
+        .services-card .card-link {
+            background-color: #ffc107;
+            color: #212529;
+        }
+        
+        .services-card .card-link:hover {
+            background-color: #e0a800;
+        }
+        
+        .locations-card .card-icon-container {
+            background-color: rgba(108, 117, 125, 0.1);
+        }
+        
+        .locations-card .card-icon {
+            color: #6c757d;
+        }
+        
+        .locations-card .card-link {
+            background-color: #6c757d;
+            color: white;
+        }
+        
+        .locations-card .card-link:hover {
+            background-color: #5a6268;
+        }
+        
+        .users-card .card-icon-container {
+            background-color: rgba(111, 66, 193, 0.1);
+        }
+        
+        .users-card .card-icon {
+            color: #6f42c1;
+        }
+        
+        .users-card .card-link {
+            background-color: #6f42c1;
+            color: white;
+        }
+        
+        .users-card .card-link:hover {
+            background-color: #5a32a3;
+        }
+        
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .card-value {
+                font-size: 1.8rem;
+            }
+            
+            .card-icon-container {
+                width: 50px;
+                height: 50px;
+            }
+            
+            .card-icon {
+                font-size: 1.5rem;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container-scroller">
-
-  </div>
-  <!-- partial:partials/_navbar.html -->
-  <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
-    <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
-      <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../dist/assets/images/logo.png" class="me-2"
-          alt="logo" /></a>
-      <a class="navbar-brand brand-logo-mini" href="index.php"><img src="../dist/assets/images/pmpc-logo.png"
-          alt="logo" /></a>
-    </div>
-    <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
-      <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
-        <span class="icon-menu"></span>
-      </button>
-
-      <ul class="navbar-nav mr-lg-2">
-        <!--<li class="nav-item nav-search d-none d-lg-block">
-        <div class="input-group">
-          <div class="input-group-prepend hover-cursor" id="navbar-search-icon">
-            <span class="input-group-text" id="search">
-              <i class="icon-search"></i>
-            </span>
-          </div>
-          <input type="text" class="form-control" id="navbar-search-input" placeholder="Search now" aria-label="search" aria-describedby="search">
-        </div>
-      </li>-->
-      </ul>
-      <ul class="navbar-nav navbar-nav-right">
-
-        <li class="nav-item nav-profile dropdown">
-          <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
-            <img src="../dist/assets/images/user/<?php echo $_SESSION['uploadID']; ?>" alt="profile" />
-          </a>
-          <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
-            <a class="dropdown-item" href="settings.php">
-              <i class="ti-settings text-primary"></i> Settings </a>
-            <a class="dropdown-item" href="logout.php">
-              <i class="ti-power-off text-primary"></i> Logout </a>
-          </div>
-        </li>
-        <li class="nav-item nav-settings d-none d-lg-flex">
-          <a class="nav-link" href="#">
-            <i class="icon-ellipsis"></i>
-          </a>
-        </li>
-      </ul>
-      <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button"
-        data-toggle="offcanvas">
-        <span class="icon-menu"></span>
-      </button>
-    </div>
-  </nav>
-  <!-- partial -->
-  <div class="container-fluid page-body-wrapper">
-    <!-- partial:partials/_sidebar.html -->
-    <style>
-      .nav-link i {
-        margin-right: 10px;
-      }
-
-      .btn-primary {
-        background-color: #03C03C !important;
-      }
-
-      .btn-primary:hover {
-        background-color: #00563B !important;
-      }
-
-      .btn-outline-primary:hover {
-        background-color: #00563B !important;
-      }
-
-      .page-item.active .page-link {
-        background-color: #00563B !important;
-        border-color: #00563B !important;
-      }
-    </style>
-   <nav class="sidebar sidebar-offcanvas" id="sidebar">
+    <div class="container-scroller">
+        <!-- partial:partials/_navbar.html -->
+        <nav class="navbar col-lg-12 col-12 p-0 fixed-top d-flex flex-row">
+            <div class="text-center navbar-brand-wrapper d-flex align-items-center justify-content-start">
+                <a class="navbar-brand brand-logo me-5" href="index.php"><img src="../dist/assets/images/logo.png" class="me-2" alt="logo" /></a>
+                <a class="navbar-brand brand-logo-mini" href="index.php"><img src="../dist/assets/images/pmpc-logo.png" alt="logo" /></a>
+            </div>
+            <div class="navbar-menu-wrapper d-flex align-items-center justify-content-end">
+                <button class="navbar-toggler navbar-toggler align-self-center" type="button" data-toggle="minimize">
+                    <span class="icon-menu"></span>
+                </button>
+                <ul class="navbar-nav navbar-nav-right">
+                    <li class="nav-item nav-profile dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" id="profileDropdown">
+                            <img src="../dist/assets/images/user/<?php echo htmlspecialchars($_SESSION['uploadID']); ?>" alt="profile" />
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-right navbar-dropdown" aria-labelledby="profileDropdown">
+                            <a class="dropdown-item" href="settings.php">
+                                <i class="ti-settings text-primary"></i> Settings </a>
+                            <a class="dropdown-item" href="logout.php">
+                                <i class="ti-power-off text-primary"></i> Logout </a>
+                        </div>
+                    </li>
+                    <li class="nav-item nav-settings d-none d-lg-flex">
+                        <a class="nav-link" href="#">
+                            <i class="icon-ellipsis"></i>
+                        </a>
+                    </li>
+                </ul>
+                <button class="navbar-toggler navbar-toggler-right d-lg-none align-self-center" type="button" data-toggle="offcanvas">
+                    <span class="icon-menu"></span>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- partial -->
+        <div class="container-fluid page-body-wrapper">
+            <!-- sidebar -->
+            <nav class="sidebar sidebar-offcanvas" id="sidebar">
                         <ul class="nav">
                 <li class="nav-item">
                     <a class="nav-link" href="index.php">
@@ -202,7 +389,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 <li class="nav-item">
                     <a class="nav-link" href="users.php">
                         <i class="fa-solid fa-users"></i>
-                        <span class="menu-title">Users</span>
+                        <span class="menu-title">Staffs</span>
                     </a>
                 </li>
                 <li class="nav-item">
@@ -213,669 +400,159 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                 </li>
             </ul>
         </nav>
-    <!-- partial -->
-    <div class="main-panel">
-      <div class="content-wrapper">
-        <div class="row">
-          <div class="col-md-12 grid-margin">
-            <div class="row">
-              <div class="col-12 col-xl-8 mb-4 mb-xl-0">
-                <h3 class="font-weight-bold">Welcome <?php echo htmlspecialchars($_SESSION['full_name']); ?></h3>
-                <!-- <h6 class="font-weight-normal mb-0">All systems are running smoothly! You have <span class="text-primary">3 unread alerts!</span></h6> -->
-              </div>
-              <div class="col-12 col-xl-4">
-                <div class="justify-content-end d-flex">
-                  <div class="dropdown flex-md-grow-1 flex-xl-grow-0">
-
-
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <style>
-          .people {
-            border-radius: 20px;
-          }
-        </style>
-        <div class="row">
-          <div class="col-md-6 grid-margin stretch-card">
-            <div class="card" style="background: #03C03C;">
-              <div class="card mt-auto">
-                <img src="../dist/assets/images/paschal.png" alt="people" class="people">
-                <div class="weather-info">
-                  <div class="d-flex">
-                    <div>
-                      <h2 class="mb-0 font-weight-normal"><sup></sup></h2>
-                    </div>
-                    <div class="ms-2">
-                      <h4 class="location font-weight-normal"></h4>
-                      <h6 class="font-weight-normal"></h6>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div class="col-md-6 grid-margin transparent">
-              <div class="row">
-                  <!-- Total Appointments -->
-                  <div class="col-md-6 mb-4 stretch-card transparent">
-                      <div class="card card" style="background: #03C03C;">
-                          <div class="card-body">
-                              <p class="mb-4 text-white">Total Number of Appointments</p>
-                              <p class="fs-30 mb-2 text-white">
-                                  <?php
-                                  include('../connection/config.php');
-                                  $result = mysqli_query($conn, "SELECT COUNT(*) AS total_appointments FROM appointments");
-                                  $row = mysqli_fetch_assoc($result);
-                                  echo $row['total_appointments'];
-                                  ?>
-                              </p>
-                          </div>
-                      </div>
-                  </div>
-                  <!-- Total Active Loans -->
-                  <div class="col-md-6 mb-4 stretch-card transparent">
-                      <div class="card card" style="background: #03C03C;">
-                          <div class="card-body">
-                              <p class="mb-4 text-white">Total Number of Active Loans</p>
-                              <p class="fs-30 mb-2 text-white">
-                                  <?php
-                                  $result = mysqli_query($conn, "SELECT COUNT(*) AS total_active_loans FROM credit_history WHERE ApprovalStatus = 'Approved'");
-                                  $row = mysqli_fetch_assoc($result);
-                                  echo $row['total_active_loans'];
-                                  ?>
-                              </p>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-
             
-            </div>
-          </div>
-          <style>
-            /* Preview thumbnail styles */
-            .navbar {
-                        padding-top: 0 !important;
-                        margin-top: 0 !important;
-                    }
-
-
-            /* Modal styles */
-            .modal-overlay {
-              position: fixed;
-              bottom: 20px;
-              left: 80%;
-              z-index: 1000;
-              display: none;
-            }
-
-            .modal-container {
-              background: white;
-              border-radius: 8px;
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              width: 350px;
-              max-width: 90vw;
-              border: 1px solid #ddd;
-            }
-
-            .modal-header {
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 15px;
-              border-bottom: 1px solid #eee;
-            }
-
-            .modal-close {
-              cursor: pointer;
-              font-size: 24px;
-            }
-
-            .modal-body {
-              padding: 15px;
-            }
-
-            select,
-            textarea {
-              width: 100%;
-              margin-bottom: 15px;
-              padding: 8px;
-              border: 1px solid #ddd;
-              border-radius: 4px;
-            }
-
-            .dashboard-card {
-              box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-              border-radius: 10px;
-              margin-bottom: 20px;
-            }
-
-            .chart-container {
-              width: 100%;
-              max-width: 500px;
-              /* Adjust the maximum width as needed */
-              height: 300px;
-              /* Adjust the height as needed */
-              margin: 0 auto;
-              /* Center the chart horizontally */
-            }
-
-            #memberStatusChart {
-              width: 100%;
-              height: 100%;
-            }
-
-            .metric-card {
-              background-color: #ffffff;
-              border-left: 4px solid;
-              padding: 15px;
-              margin-bottom: 15px;
-            }
-
-            /* Responsive styles */
-            @media (max-width: 767px) {
-              .modal-overlay {
-                left: 60%;
-                transform: translateX(-50%);
-              }
-
-              .modal-container {
-                width: 90%;
-              }
-
-              select,
-              textarea {
-                font-size: 16px;
-              }
-
-                    
-
-
-
-            }
-          </style>
-          <?php
-
-          include '../connection/config.php';
-
-          // Function to safely fetch data
-          function fetchData($conn, $query, $params = [])
-          {
-            $stmt = $conn->prepare($query);
-
-            if (!empty($params)) {
-              $types = str_repeat('s', count($params));
-              $stmt->bind_param($types, ...$params);
-            }
-
-            $stmt->execute();
-            $result = $stmt->get_result();
-            $data = [];
-
-            while ($row = $result->fetch_assoc()) {
-              $data[] = $row;
-            }
-
-            return $data;
-          }
-
-          // Fetch Membership Status Data
-          $membershipStatusQuery = "
-              SELECT 
-                  membership_status, 
-                  COUNT(*) as count 
-              FROM users 
-              WHERE user_type = 'Member' 
-              GROUP BY membership_status
-          ";
-          $membershipStatusData = fetchData($conn, $membershipStatusQuery);
-
-          // Fetch Application Status Data
-          $applicationStatusQuery = "
-              SELECT 
-                  status, 
-                  COUNT(*) as count 
-              FROM member_applications 
-              GROUP BY status
-          ";
-          $applicationStatusData = fetchData($conn, $applicationStatusQuery);
-
-          // Additional Metrics
-          $totalMembersQuery = "
-              SELECT 
-                  COUNT(*) as total_members,
-                  SUM(CASE WHEN membership_status = 'Active' THEN 1 ELSE 0 END) as active_members
-              FROM users
-              WHERE user_type = 'Member'
-          ";
-          $totalMembersData = fetchData($conn, $totalMembersQuery)[0];
-
-          // Application Progress Metrics
-          $applicationProgressQuery = "
-              SELECT 
-                  status, 
-                  COUNT(*) as count,
-                  ROUND(COUNT(*) * 100.0 / (SELECT COUNT(*) FROM member_applications), 2) as percentage
-              FROM member_applications
-              GROUP BY status
-          ";
-          $applicationProgressData = fetchData($conn, $applicationProgressQuery);
-          ?>
-          <div class="container-fluid py-4">
-            <div class="row">
-              <div class="col-12">
-                <h1 class="text-center mb-4">Member Analytics</h1>
-              </div>
-            </div>
-
-            <!-- Quick Metrics Row -->
-            <div class="row mb-4">
-              <div class="col-md-4">
-                <div class="metric-card border-primary">
-                  <h5>Total Members</h5>
-                  <h3 class="text-primary"><?php echo $totalMembersData['total_members']; ?></h3>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="metric-card border-success">
-                  <h5>Active Members</h5>
-                  <h3 class="text-success"><?php echo $totalMembersData['active_members']; ?></h3>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="metric-card border-warning">
-                  <h5>In Progress Applications</h5>
-                  <h3 class="text-warning">
-                    <?php
-                    $inProgressCount = array_filter($applicationProgressData, function ($item) {
-                      return $item['status'] == 'In Progress';
-                    });
-                    echo !empty($inProgressCount) ? reset($inProgressCount)['count'] : 0;
-                    ?>
-                  </h3>
-                </div>
-              </div>
-            </div>
-
-            <!-- Charts Row -->
-            <div class="row">
-              <div class="col-md-6">
-                <div class="card dashboard-card">
-                  <div class="card-header bg-primary text-white">
-                    <h5 class="card-title mb-0">Membership Status Distribution</h5>
-                  </div>
-                  <div class="card-body chart-container">
-                    <canvas id="memberStatusChart"></canvas>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="card dashboard-card">
-                  <div class="card-header bg-success text-white">
-                    <h5 class="card-title mb-0">Application Status Overview</h5>
-                  </div>
-                  <div class="card-body chart-container">
-                    <canvas id="applicationStatusChart"></canvas>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <?php
-        // Fetch Transaction Data
-        function fetchTransactionData($conn) {
-            $transactionQuery = "
-                SELECT 
-                    payment_status,
-                    COUNT(*) as count,
-                    SUM(amount) as total_amount
-                FROM transactions
-                WHERE payment_status IN ('In Progress', 'Completed')
-                GROUP BY payment_status
-            ";
-            return fetchData($conn, $transactionQuery);
-        }
-
-        // Fetch Monthly Transaction Totals
-        function fetchMonthlyTransactions($conn) {
-            $monthlyQuery = "
-                SELECT 
-                    DATE_FORMAT(created_at, '%Y-%m') as month,
-                    COUNT(*) as transaction_count,
-                    SUM(amount) as monthly_total,
-                    payment_status
-                FROM transactions
-                WHERE payment_status IN ('In Progress', 'Completed')
-                GROUP BY DATE_FORMAT(created_at, '%Y-%m'), payment_status
-                ORDER BY month DESC
-                LIMIT 6
-            ";
-            return fetchData($conn, $monthlyQuery);
-        }
-
-        // Get transaction data
-        $transactionData = fetchTransactionData($conn);
-        $monthlyTransactions = fetchMonthlyTransactions($conn);
-
-        // Calculate totals
-        $totalAmount = 0;
-        $completedAmount = 0;
-        $inProgressAmount = 0;
-
-        foreach ($transactionData as $data) {
-            if ($data['payment_status'] == 'Completed') {
-                $completedAmount = $data['total_amount'];
-            } elseif ($data['payment_status'] == 'In Progress') {
-                $inProgressAmount = $data['total_amount'];
-            }
-            $totalAmount += $data['total_amount'];
-        }
-        ?>
-
-        <div class="container-fluid py-4">
-            <div class="row">
-                <div class="col-12">
-                    <h1 class="text-center mb-4">Transaction Analytics</h1>
-                </div>
-            </div>
-
-            <!-- Quick Metrics Row -->
-            <div class="row mb-4">
-                <div class="col-md-4">
-                    <div class="metric-card border-primary">
-                        <h5>Total Transaction Amount</h5>
-                        <h3 class="text-primary">₱<?php echo number_format($totalAmount, 2); ?></h3>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="metric-card border-success">
-                        <h5>Completed Transactions</h5>
-                        <h3 class="text-success">₱<?php echo number_format($completedAmount, 2); ?></h3>
-                    </div>
-                </div>
-                <div class="col-md-4">
-                    <div class="metric-card border-warning">
-                        <h5>In Progress Transactions</h5>
-                        <h3 class="text-warning">₱<?php echo number_format($inProgressAmount, 2); ?></h3>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Charts Row -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="card dashboard-card">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="card-title mb-0">Transaction Status Distribution</h5>
-                        </div>
-                        <div class="card-body chart-container">
-                            <canvas id="transactionStatusChart"></canvas>
+            <!-- main panel -->
+            <div class="main-panel">
+                <div class="content-wrapper">
+                    <!-- Welcome Header -->
+                    <div class="welcome-header">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <h3 class="font-weight-bold mb-2">Welcome <?php echo htmlspecialchars($_SESSION['full_name']); ?></h3>
+                                <h4 class="mb-0">Admin Dashboard</h4>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <p class="mb-0"><i class="far fa-calendar-alt mr-2"></i><?php echo date('l, F j, Y'); ?></p>
+                            </div>
                         </div>
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card dashboard-card">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="card-title mb-0">Monthly Transaction Trends</h5>
+
+                    <!-- Cards Section -->
+    <div class="row">
+        <!-- Announcements Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card announcements-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fas fa-bullhorn card-icon"></i>
                         </div>
-                        <div class="card-body chart-container">
-                            <canvas id="monthlyTrendChart"></canvas>
-                        </div>
+                        <h4 class="card-title">Announcements</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $announcementsCount = fetchData($conn, "SELECT COUNT(*) as count FROM announcements");
+                            echo $announcementsCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="announcement.php" class="card-link">View All</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Transaction Status Chart
-            const transactionStatusCtx = document.getElementById('transactionStatusChart').getContext('2d');
-            new Chart(transactionStatusCtx, {
-                type: 'pie',
-                data: {
-                    labels: <?php echo json_encode(array_column($transactionData, 'payment_status')); ?>,
-                    datasets: [{
-                        data: <?php echo json_encode(array_column($transactionData, 'count')); ?>,
-                        backgroundColor: ['#28a745', '#ffc107'],
-                        borderWidth: 1
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-
-            // Monthly Trends Chart
-            const monthlyData = <?php echo json_encode($monthlyTransactions); ?>;
-            const months = [...new Set(monthlyData.map(item => item.month))];
-            
-            const completedData = months.map(month => {
-                const record = monthlyData.find(item => item.month === month && item.payment_status === 'Completed');
-                return record ? record.monthly_total : 0;
-            });
-
-            const inProgressData = months.map(month => {
-                const record = monthlyData.find(item => item.month === month && item.payment_status === 'In Progress');
-                return record ? record.monthly_total : 0;
-            });
-
-            const monthlyTrendCtx = document.getElementById('monthlyTrendChart').getContext('2d');
-            new Chart(monthlyTrendCtx, {
-                type: 'bar',
-                data: {
-                    labels: months,
-                    datasets: [
-                        {
-                            label: 'Completed',
-                            data: completedData,
-                            backgroundColor: '#28a745',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'In Progress',
-                            data: inProgressData,
-                            backgroundColor: '#ffc107',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            ticks: {
-                                callback: function(value) {
-                                    return '₱' + value.toLocaleString();
-                                }
-                            }
-                        }
-                    },
-                    plugins: {
-                        legend: {
-                            position: 'bottom'
-                        }
-                    }
-                }
-            });
-        });
-        </script>
-          <?php
-
-            // Check if the "success" parameter is set in the URL
-            if (isset($_GET['success']) && $_GET['success'] == 1) {
-            // Use SweetAlert to show a success message
-            echo '<script>
-                document.addEventListener("DOMContentLoaded", function() {
-                    Swal.fire({
-                        icon: "success",
-                        title: "Your Message Send Successfully",
-                        showConfirmButton: false,
-                        timer: 1500 // Close after 1.5 seconds
-                    });
-                });
-            </script>';
-            }
-            // Check if the "success" parameter is set in the URL
-            if (isset($_GET['success']) && $_GET['success'] == 2) {
-              // Use SweetAlert to show a success message
-              echo '<script>
-                  document.addEventListener("DOMContentLoaded", function() {
-                      Swal.fire({
-                          icon: "success",
-                          title: "You Replied Successfully",
-                          showConfirmButton: false,
-                          timer: 1500 // Close after 1.5 seconds
-                      });
-                  });
-              </script>';
-              }
-           
-             ?>
-
-
-
-          <br><br><br><br><br><br><br>
-
-          <!-- content-wrapper ends -->
-          <!-- partial:partials/_footer.html -->
-          <footer class="footer">
-            <div class="d-sm-flex justify-content-center justify-content-sm-between">
-              <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2024-2050. <a
-                  href="" target="_blank">Paschal</a>. All rights reserved.</span>
-              <span class="float-none float-sm-right d-block mt-1 mt-sm-0 text-center"></span>
+        <!-- Inbox Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card inbox-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fas fa-comment card-icon"></i>
+                        </div>
+                        <h4 class="card-title">Inbox Messages</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $inboxCount = fetchData($conn, "SELECT COUNT(*) as count FROM messages");
+                            echo $inboxCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="inbox.php" class="card-link">View All</a>
+                    </div>
+                </div>
             </div>
-          </footer>
-          <!-- partial -->
         </div>
-        <!-- main-panel ends -->
-      </div>
-      <!-- page-body-wrapper ends -->
+
+        <!-- Events Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card events-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fas fa-calendar-check card-icon"></i>
+                        </div>
+                        <h4 class="card-title">Events</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $eventsCount = fetchData($conn, "SELECT COUNT(*) as count FROM events");
+                            echo $eventsCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="events.php" class="card-link">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Services Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card services-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fa-brands fa-slack card-icon"></i>
+                            
+                        </div>
+                        <h4 class="card-title">Services</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $servicesCount = fetchData($conn, "SELECT COUNT(*) as count FROM services");
+                            echo $servicesCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="services.php" class="card-link">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Locations Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card locations-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fas fa-location-dot card-icon"></i>
+                        </div>
+                        <h4 class="card-title">Locations</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $locationsCount = fetchData($conn, "SELECT COUNT(*) as count FROM locations");
+                            echo $locationsCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="location.php" class="card-link">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staffs Card -->
+        <div class="col-md-4 grid-margin stretch-card">
+            <div class="card dashboard-card users-card">
+                <div class="card-body">
+                    <div class="d-flex flex-column">
+                        <div class="card-icon-container">
+                            <i class="fas fa-user-tie card-icon"></i>
+                        </div>
+                        <h4 class="card-title">Staffs</h4>
+                        <h2 class="card-value">
+                            <?php 
+                            $staffCount = fetchData($conn, "SELECT COUNT(*) as count FROM users WHERE user_type != 'Member'");
+                            echo $staffCount[0]['count'];
+                            ?>
+                        </h2>
+                        <a href="users.php" class="card-link">View All</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <!-- container-scroller -->
-    <!-- plugins:js -->
-    <!-- jQuery -->
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-      document.addEventListener('DOMContentLoaded', function () {
-        var searchForm = document.getElementById('searchForm');
-        var searchInput = document.getElementById('searchInput');
-        var clearButton = document.getElementById('clearButton');
 
-        clearButton.addEventListener('click', function () {
-          searchInput.value = '';
-          searchForm.submit(); // Submit the form to reload all records
-        });
-      });
-      function confirmDelete(messageId) {
-        if (confirm('Are you sure you want to delete this message?')) {
-          window.location.href = 'delete_message.php?message_id=' + messageId;
-        }
-      }
-      document.addEventListener('DOMContentLoaded', function () {
-        // Membership Status Chart
-        var memberStatusCtx = document.getElementById('memberStatusChart').getContext('2d');
-        new Chart(memberStatusCtx, {
-          type: 'pie',
-          data: {
-            labels: [
-              <?php foreach ($membershipStatusData as $status): ?>
-                      '<?php echo $status['membership_status']; ?>',
-              <?php endforeach; ?>
-            ],
-            datasets: [{
-              data: [
-                <?php foreach ($membershipStatusData as $status): ?>
-                          <?php echo $status['count']; ?>,
-                <?php endforeach; ?>
-              ],
-              backgroundColor: [
-                '#007bff', '#28a745', '#dc3545', '#ffc107', '#6c757d'
-              ]
-            }]
-          },
-          options: {
-            title: {
-              display: true,
-              text: 'Membership Status Distribution'
-            }
-          }
-        });
-
-        // Application Status Chart
-        var applicationStatusCtx = document.getElementById('applicationStatusChart').getContext('2d');
-        new Chart(applicationStatusCtx, {
-          type: 'bar',
-          data: {
-            labels: [
-              <?php foreach ($applicationStatusData as $status): ?>
-                      '<?php echo $status['status']; ?>',
-              <?php endforeach; ?>
-            ],
-            datasets: [{
-              label: 'Application Status',
-              data: [
-                <?php foreach ($applicationStatusData as $status): ?>
-                          <?php echo $status['count']; ?>,
-                <?php endforeach; ?>
-              ],
-              backgroundColor: [
-                '#ffc107', '#28a745', '#dc3545', '#dc3545', '#6c757d'
-              ]
-            }]
-          },
-          options: {
-            title: {
-              display: true,
-              text: 'Member Application Status'
-            },
-            scales: {
-              yAxes: [{
-                ticks: {
-                  beginAtZero: true
-                }
-              }]
-            }
-          }
-        });
-      });
-    </script>
-    <!-- Bootstrap JS -->
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-    <!-- Add SweetAlert script -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
-
+    <!-- JavaScript -->
     <script src="../dist/assets/vendors/js/vendor.bundle.base.js"></script>
-    <!-- endinject -->
-    <!-- Plugin js for this page -->
-    <script src="../dist/assets/vendors/chart.js/chart.umd.js"></script>
-    <script src="https://cdn.datatables.net/1.10.21/js/jquery.dataTables.min.js"></script>
-    <!-- End plugin js for this page -->
-    <!-- inject:js -->
     <script src="../dist/assets/js/off-canvas.js"></script>
     <script src="../dist/assets/js/template.js"></script>
     <script src="../dist/assets/js/settings.js"></script>
     <script src="../dist/assets/js/todolist.js"></script>
-    <!-- endinject -->
-    <!-- Custom js for this page-->
-    <script src="../dist/assets/js/jquery.cookie.js" type="text/javascript"></script>
-    <script src="../dist/assets/js/dashboard.js"></script>
-    <!-- <script src="assets/js/Chart.roundedBarCharts.js"></script> -->
-    <!-- End custom js for this page-->
+    <script src="../dist/assets/js/jquery.cookie.js"></script>
 </body>
-
 </html>
