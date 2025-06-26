@@ -360,6 +360,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         background: linear-gradient(135deg, var(--primary-color), var(--secondary-color)) !important;
 
                     }
+                    input[readonly] {
+                        background-color: #f8f9fa; /* Light gray background */
+                        cursor: not-allowed; /* Change cursor to indicate it's not editable */
+                    }
 
                    
                 </style>
@@ -420,8 +424,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     $monthlyIncome = filter_input(INPUT_POST, 'monthly_income', FILTER_VALIDATE_FLOAT) ?: 0;
                     $contactPerson = filter_input(INPUT_POST, 'contact_person', FILTER_SANITIZE_STRING);
                     $contactTelephoneNo = filter_input(INPUT_POST, 'contact_telephone_no', FILTER_SANITIZE_STRING);
-                    $selfEmployedBusinessType = filter_input(INPUT_POST, 'self_employed_business_type', FILTER_SANITIZE_STRING);
-                    $businessStartDate = filter_input(INPUT_POST, 'business_start_date', FILTER_SANITIZE_STRING);
+                    $selfEmployedBusinessType = !empty($_POST['self_employed_business_type']) ? 
+                        filter_input(INPUT_POST, 'self_employed_business_type', FILTER_SANITIZE_STRING) : NULL;
+                    $businessStartDate = !empty($_POST['business_start_date']) ? 
+                        filter_input(INPUT_POST, 'business_start_date', FILTER_SANITIZE_STRING) : NULL;
 
                     // Family and income details
                     $familyMemberCount = filter_input(INPUT_POST, 'family_member_count', FILTER_VALIDATE_INT);
@@ -492,40 +498,40 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                         die("SQL preparation error: " . $conn->error);
                     }
 
-                // Bind parameters (correct number of placeholders & valid type specifiers)
-                $stmt->bind_param("isssssisissdsssissddssddddddddi", 
-                $yearStay,                  // i (Integer)
-                $ownHouse,                  // s (String)
-                $renting,                   // s
-                $livingWithRelative,        // s
-                $maritalStatus,             // s
-                $spouseName,                // s
-                $dependentCount,            // i (Integer)
-                $dependentInSchool,         // i (Integer)
-                $employerName,              // s
-                $employerAddress,           // s
-                $presentPosition,           // s
-                $dateOfEmployment,          // s
-                $monthlyIncome,             // d (Double/Float)
-                $contactPerson,             // s
-                $contactTelephoneNo,        // s
-                $selfEmployedBusinessType,  // s
-                $businessStartDate,         // s
-                $familyMemberCount,         // i (Integer)
-                $selfOtherIncomeAmount,     // d (Double/Float)
-                $spouseIncome,              // s
-                $spouseIncomeAmount,        // d (Double/Float)
-                $spouseOtherIncome,         // s
-                $spouseOtherIncomeAmount,   // d (Double/Float)
-                $foodGroceriesExpense,      // d (Double/Float)
-                $gasOilTransportationExpense, // d (Double/Float)
-                $schoolingExpense,          // d (Double/Float)
-                $utilitiesExpense,          // d (Double/Float)
-                $miscellaneousExpense,      // d (Double/Float)
-                $totalExpenses,             // d (Double/Float)
-                $netFamilyIncome,           // d (Double/Float)
-                $loan_id                    // i (Primary Key, Integer)
-                );
+                /// Correct type specification string (29 characters for 29 parameters)
+$stmt->bind_param("isssssiissssdsssissddssdddddddi", 
+    $yearStay,                  // i (Integer)
+    $ownHouse,                  // s (String)
+    $renting,                   // s
+    $livingWithRelative,        // s
+    $maritalStatus,             // s
+    $spouseName,                // s
+    $dependentCount,            // i (Integer)
+    $dependentInSchool,         // i (Integer)
+    $employerName,              // s
+    $employerAddress,           // s
+    $presentPosition,           // s
+    $dateOfEmployment,          // s
+    $monthlyIncome,             // d (Double/Float)
+    $contactPerson,             // s
+    $contactTelephoneNo,        // s
+    $selfEmployedBusinessType,  // s
+    $businessStartDate,         // s
+    $familyMemberCount,         // i (Integer)
+    $selfOtherIncomeAmount,     // d (Double/Float)
+    $spouseIncome,              // s
+    $spouseIncomeAmount,        // d (Double/Float)
+    $spouseOtherIncome,         // s
+    $spouseOtherIncomeAmount,   // d (Double/Float)
+    $foodGroceriesExpense,      // d (Double/Float)
+    $gasOilTransportationExpense, // d (Double/Float)
+    $schoolingExpense,          // d (Double/Float)
+    $utilitiesExpense,          // d (Double/Float)
+    $miscellaneousExpense,      // d (Double/Float)
+    $totalExpenses,             // d (Double/Float)
+    $netFamilyIncome,           // d (Double/Float)
+    $loan_id                    // i (Primary Key, Integer)
+);
 
 
                     // Execute and check success
@@ -775,28 +781,28 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <div class="form-group">
                                         <label for="self_employed_business_type" class="form-label">Type Of Business</label>
                                         <input type="text" class="form-control" name="self_employed_business_type"
-                                            id="self_employed_business_type" required>
+                                            id="self_employed_business_type">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="business_start_date" class="form-label">Start Of Business</label>
                                         <input type="date" class="form-control" name="business_start_date"
-                                            id="business_start_date" required>
+                                            id="business_start_date">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="other_income" class="form-label">Other Self Income</label>
                                         <input type="text" class="form-control" name="other_income"
-                                            id="other_income" required>
+                                            id="other_income">
                                     </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="form-group">
                                         <label for="self_other_income_amount" class="form-label">Self Other Income(Amount in Peso)</label>
                                         <input type="number" class="form-control" name="self_other_income_amount"
-                                            id="self_other_income_amount" required>
+                                            id="self_other_income_amount">
                                     </div>
                                 </div>
                             </div>
@@ -905,14 +911,14 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                     <div class="form-group">
                                         <label for="total_expenses" class="form-label">Total Expenses</label>
                                         <input type="number" class="form-control" name="total_expenses"
-                                            id="total_expenses" required>
+                                            id="total_expenses"  readonly>
                                     </div>
                                 </div>
                                 <div class="col-md-12">
                                     <div class="form-group">
                                         <label for="net_family_income" class="form-label">Net Family Income</label>
                                         <input type="number" class="form-control" name="net_family_income"
-                                            id="net_family_income" required>
+                                            id="net_family_income" readonly>
                                     </div>
                                 </div>
                             </div>
@@ -976,6 +982,30 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     showValidation(this, isValid, errorMessage);
                 });
             }
+
+            // Validate business fields together
+function validateBusinessFields() {
+    const businessType = $('#self_employed_business_type').val();
+    const businessDate = $('#business_start_date').val();
+    
+    if ((businessType && !businessDate) || (!businessType && businessDate)) {
+        showValidation('#business_start_date', false, 'Both business type and start date must be provided or left blank');
+        return false;
+    }
+    return true;
+}
+
+// Validate other income fields together
+function validateOtherIncomeFields() {
+    const otherIncomeDesc = $('#other_income').val();
+    const otherIncomeAmount = $('#self_other_income_amount').val();
+    
+    if ((otherIncomeDesc && !otherIncomeAmount) || (!otherIncomeDesc && otherIncomeAmount)) {
+        showValidation('#self_other_income_amount', false, 'Both other income description and amount must be provided or left blank');
+        return false;
+    }
+    return true;
+}
 
             // Validation functions
             const validationRules = {
@@ -1061,47 +1091,65 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     }
                 });
 
-              // Function to parse float with fallback to 0
-                function safeParseFloat(value) {
-                    const parsed = parseFloat(value);
-                    return isNaN(parsed) ? 0 : parsed;
-                }
-
-                // Function to calculate net family income and total expenses
-                function calculateFinancials() {
-                const monthly_income = safeParseFloat($('#monthly_income').val());
-                const selfOtherIncomeAmount = safeParseFloat($('#self_other_income_amount').val());
-                const maritalStatus = $('#maritalStatus').val();
-                
-                let spouseIncomeAmount = 0;
-                let spouseOtherIncomeAmount = 0;
-
-                if (maritalStatus === 'Married') {
-                    spouseIncomeAmount = safeParseFloat($('#spouse_income_amount').val()) || 0;
-                    spouseOtherIncomeAmount = safeParseFloat($('#spouse_other_income_amount').val()) || 0;
-                }
-
-                console.log("Spouse Income:", spouseIncomeAmount);  
-                console.log("Spouse Other Income:", spouseOtherIncomeAmount);  
-
-                const foodGroceriesExpense = safeParseFloat($('#food_groceries_expense').val());
-                const gasOilTransportationExpense = safeParseFloat($('#gas_oil_transportation_expense').val());
-                const schoolingExpense = safeParseFloat($('#schooling_expense').val());
-                const utilitiesExpense = safeParseFloat($('#utilities_expense').val());
-                const miscellaneousExpense = safeParseFloat($('#miscellaneous_expense').val());
-
-                const totalIncome = monthly_income + selfOtherIncomeAmount + spouseIncomeAmount + spouseOtherIncomeAmount;
-                const totalExpenses = foodGroceriesExpense + gasOilTransportationExpense + schoolingExpense + utilitiesExpense + miscellaneousExpense;
-                const netFamilyIncome = totalIncome - totalExpenses;
-
-                console.log("Total Income After Calculation:", totalIncome);
-                console.log("Net Family Income After Calculation:", netFamilyIncome);
-
-                $('#net_family_income').val(netFamilyIncome.toFixed(2));
-                $('#total_expenses').val(totalExpenses.toFixed(2));
-
-                return { netFamilyIncome, totalExpenses };
+            function safeParseFloat(value) {
+                const parsed = parseFloat(value);
+                return isNaN(parsed) ? 0 : parsed;
             }
+
+                // Conditional validation for business fields
+            $('#self_employed_business_type').on('input', function() {
+                const businessType = $(this).val();
+                if (businessType && businessType.trim() !== '') {
+                    $('#business_start_date').prop('required', true);
+                } else {
+                    $('#business_start_date').prop('required', false).val('');
+                }
+            });
+
+            // Conditional validation for other income fields
+            $('#other_income').on('input', function() {
+                const otherIncome = $(this).val();
+                if (otherIncome && otherIncome.trim() !== '') {
+                    $('#self_other_income_amount').prop('required', true);
+                } else {
+                    $('#self_other_income_amount').prop('required', false).val('');
+                }
+            });
+
+// Function to calculate net family income and total expenses
+function calculateFinancials() {
+    const monthly_income = safeParseFloat($('#monthly_income').val());
+    const selfOtherIncomeAmount = safeParseFloat($('#self_other_income_amount').val());
+    const maritalStatus = $('#maritalStatus').val();
+    
+    let spouseIncomeAmount = 0;
+    let spouseOtherIncomeAmount = 0;
+
+    if (maritalStatus === 'Married') {
+        spouseIncomeAmount = safeParseFloat($('#spouse_income_amount').val()) || 0;
+        spouseOtherIncomeAmount = safeParseFloat($('#spouse_other_income_amount').val()) || 0;
+    }
+
+    const foodGroceriesExpense = safeParseFloat($('#food_groceries_expense').val());
+    const gasOilTransportationExpense = safeParseFloat($('#gas_oil_transportation_expense').val());
+    const schoolingExpense = safeParseFloat($('#schooling_expense').val());
+    const utilitiesExpense = safeParseFloat($('#utilities_expense').val());
+    const miscellaneousExpense = safeParseFloat($('#miscellaneous_expense').val());
+
+    const totalIncome = monthly_income + selfOtherIncomeAmount + spouseIncomeAmount + spouseOtherIncomeAmount;
+    const totalExpenses = foodGroceriesExpense + gasOilTransportationExpense + schoolingExpense + utilitiesExpense + miscellaneousExpense;
+    const netFamilyIncome = totalIncome - totalExpenses;
+
+    // Update the display fields
+    $('#total_expenses').val(totalExpenses.toFixed(2));
+    $('#net_family_income').val(netFamilyIncome.toFixed(2));
+
+    return { 
+        totalIncome: totalIncome,
+        totalExpenses: totalExpenses,
+        netFamilyIncome: netFamilyIncome 
+    };
+}
 
 
 
@@ -1122,6 +1170,10 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
            // Override form submission
     $('form').on('submit', function (e) {
         // Trigger validation for all fields
+        if (!validateBusinessFields() || !validateOtherIncomeFields()) {
+        e.preventDefault();
+        return false;
+    }
         const fieldsToValidate = [/* ... existing field validation ... */];
         fieldsToValidate.forEach(field => {
             $(field.selector).trigger('change');

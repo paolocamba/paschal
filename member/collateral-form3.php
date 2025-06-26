@@ -58,7 +58,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>?Collateral Loan Form 3 | Member</title>
+    <title>Colateral Loan Form 3 | Member</title>
     <!-- plugins:css -->
     <link rel="stylesheet" href="../dist/assets/vendors/feather/feather.css">
     <link rel="stylesheet" href="../dist/assets/vendors/ti-icons/css/themify-icons.css">
@@ -567,9 +567,17 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                             <div class="row mb-4">
                                 <div class="col-md-4">
                                     <div class="form-group">
-                                        <label for="assets1" class="form-label">Assets 1<span style="color: red;">*</span></label>
-                                        <input type="text" class="form-control" name="assets1" id="assets1" required
-                                            placeholder="Enter asset type (e.g., Property, Vehicle)">
+                                         <label for="assets1" class="form-label">Assets 1<span style="color: red;">*</span></label>
+                                            <select class="form-control" name="assets1" id="assets1" required>
+                                                <option value="">Select Asset Type</option>
+                                                <option value="Property">Property</option>
+                                                <option value="Vehicle">Vehicle</option>
+                                                <option value="Other">Other (Specify)</option>
+                                            </select>
+                                    </div>
+                                    <div class="form-group other-asset-container" style="display: none;">
+                                        <label for="other_asset1" class="form-label">Specify Other Asset</label>
+                                        <input type="text" class="form-control" name="other_asset1" id="other_asset1">
                                     </div>
                                 </div>
                                 <div class="col-md-8 document-upload-1">
@@ -613,306 +621,300 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        $(document).ready(function () {
-            // Hide bank fields initially
-            $('#savings_bank, #savings_branch').closest('.form-group').hide();
-            $('#current_bank, #current_branch').closest('.form-group').hide();
+$(document).ready(function () {
+    // Hide bank fields initially
+    $('#savings_bank, #savings_branch').closest('.form-group').hide();
+    $('#current_bank, #current_branch').closest('.form-group').hide();
 
-            // Format number with commas for display
-            function formatNumber(num) {
-                return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    // Format number with commas for display
+    function formatNumber(num) {
+        return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
+    // Function to show validation message
+    function showValidation(element, isValid, message) {
+        const formGroup = $(element).closest('.form-group');
+        formGroup.find('.validation-message').remove(); // Remove existing message
+
+        if (!isValid) {
+            $(element).addClass('is-invalid').removeClass('is-valid');
+            formGroup.append(`<div class="validation-message text-danger small mt-1">${message}</div>`);
+        } else {
+            $(element).addClass('is-valid').removeClass('is-invalid');
+        }
+    }
+
+    // General input validation function
+    function validateInput(selector, validateFn, errorMessage) {
+        $(selector).on('input change', function () {
+            const value = $(this).val();
+            const isValid = validateFn(value);
+            showValidation(this, isValid, errorMessage);
+        });
+    }
+
+    // File input validation function
+    function validateFileInput(input) {
+        const formGroup = $(input).closest('.form-group');
+        formGroup.find('.validation-message').remove();
+
+        if (input.files && input.files[0]) {
+            $(input).addClass('is-valid').removeClass('is-invalid');
+            return true;
+        } else {
+            $(input).addClass('is-invalid').removeClass('is-valid');
+            formGroup.append('<div class="validation-message text-danger small mt-1">Please select a file</div>');
+            return false;
+        }
+    }
+
+    // Add file input validation handlers
+    function addFileValidation(fileInput) {
+        $(fileInput).on('change', function () {
+            validateFileInput(this);
+        });
+    }
+
+    // Initialize file validation for existing inputs
+    $('input[type="file"]').each(function () {
+        addFileValidation(this);
+    });
+
+    // Validation functions
+    const validationRules = {
+        textField: (value) => /^[a-zA-Z\s\p{P}]+$/u.test(value.trim()),
+        positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) > 0,
+        selectField: (value) => value && value !== '',
+        dateField: (value) => value ? true : false
+    };
+
+    // Function to create document upload fields for an asset
+    function createDocumentUploadFields(assetNumber) {
+        return `
+        <div class="col-md-6">
+            <div class="form-group deed-upload-${assetNumber}" style="display: none;">
+                <label for="deed_of_sale${assetNumber}" class="form-label">Deed Of Sale (If Property)</label>
+                <input type="file" class="form-control" name="deed_of_sale${assetNumber}" 
+                    id="deed_of_sale${assetNumber}" accept=".pdf,.jpg,.jpeg,.png,.gif">
+            </div>
+            <div class="form-group orcr-upload-${assetNumber}" style="display: none;">
+                <label for="orcr_vehicle${assetNumber}" class="form-label">ORCR For Vehicles</label>
+                <input type="file" class="form-control" name="orcr_vehicle${assetNumber}" 
+                    id="orcr_vehicle${assetNumber}" accept=".pdf,.jpg,.jpeg,.png,.gif">
+            </div>
+        </div>`;
+    }
+
+    // Function to handle asset type selection and show/hide relevant upload fields
+    function handleAssetTypeChange(assetNumber) {
+        $(`#assets${assetNumber}`).on('change', function () {
+            const assetValue = $(this).val();
+            const deedUpload = $(`.deed-upload-${assetNumber}`);
+            const orcrUpload = $(`.orcr-upload-${assetNumber}`);
+            const otherContainer = $(`.other-asset-container`).eq(assetNumber - 1);
+
+            // Reset required attributes and validation
+            const deedFile = $(`#deed_of_sale${assetNumber}`);
+            const orcrFile = $(`#orcr_vehicle${assetNumber}`);
+
+            deedFile.prop('required', false).removeClass('is-valid is-invalid');
+            orcrFile.prop('required', false).removeClass('is-valid is-invalid');
+
+            // Hide all upload sections initially
+            deedUpload.hide();
+            orcrUpload.hide();
+
+            // Show/hide other asset input
+            if (assetValue === 'Other') {
+                otherContainer.show();
+            } else {
+                otherContainer.hide();
+                $(`#other_asset${assetNumber}`).val('').removeClass('is-valid is-invalid');
+                otherContainer.find('.validation-message').remove();
             }
 
-            // Function to show validation message
-            function showValidation(element, isValid, message) {
-                const formGroup = $(element).closest('.form-group');
-                formGroup.find('.validation-message').remove(); // Remove existing message
-
-                if (!isValid) {
-                    $(element).addClass('is-invalid').removeClass('is-valid');
-                    formGroup.append(`<div class="validation-message text-danger small mt-1">${message}</div>`);
-                } else {
-                    $(element).addClass('is-valid').removeClass('is-invalid');
-                }
+            // Show relevant upload sections based on selection
+            if (assetValue === 'Property') {
+                deedUpload.show();
+                deedFile.prop('required', true);
+            } else if (assetValue === 'Vehicle') {
+                orcrUpload.show();
+                orcrFile.prop('required', true);
             }
+        });
+    }
 
-            // General input validation function
-            function validateInput(selector, validateFn, errorMessage) {
-                $(selector).on('input change', function () {
-                    const value = $(this).val();
-                    const isValid = validateFn(value);
-                    showValidation(this, isValid, errorMessage);
-                });
-            }
+    // Initialize document upload fields and validation for first asset
+    $('.document-upload-1').html(createDocumentUploadFields(1));
+    handleAssetTypeChange(1);
+    addFileValidation('#deed_of_sale1');
+    addFileValidation('#orcr_vehicle1');
+    $('#assets1').trigger('change');
 
-            // File input validation function
-            function validateFileInput(input) {
-                const formGroup = $(input).closest('.form-group');
-                formGroup.find('.validation-message').remove();
+    // Validation for bank fields
+    const bankFieldsToValidate = [
+        { selector: '#savings_bank', validate: validationRules.textField, message: 'Savings bank name is required' },
+        { selector: '#savings_branch', validate: validationRules.textField, message: 'Savings bank branch is required' },
+        { selector: '#current_bank', validate: validationRules.textField, message: 'Current bank name is required' },
+        { selector: '#current_branch', validate: validationRules.textField, message: 'Current bank branch is required' }
+    ];
 
-                if (input.files && input.files[0]) {
-                    $(input).addClass('is-valid').removeClass('is-invalid');
-                    return true;
-                } else {
-                    $(input).addClass('is-invalid').removeClass('is-valid');
-                    formGroup.append('<div class="validation-message text-danger small mt-1">Please select a file</div>');
-                    return false;
-                }
-            }
+    // Apply validation to bank fields
+    bankFieldsToValidate.forEach(field => {
+        validateInput(field.selector, field.validate, field.message);
+    });
 
-            // Add file input validation handlers
-            function addFileValidation(fileInput) {
-                $(fileInput).on('change', function () {
-                    validateFileInput(this);
-                });
-            }
+    // Validate asset dropdown
+    validateInput('#assets1', validationRules.selectField, 'Please select an asset type');
 
-            // Initialize file validation for existing inputs
-            $('input[type="file"]').each(function () {
-                addFileValidation(this);
-            });
+    // Checkbox behavior for savings account
+    $('#savings_account').on('change', function () {
+        const isSavingsChecked = $(this).is(':checked');
+        const savingsFields = $('#savings_bank, #savings_branch').closest('.form-group');
 
-            // Validation functions
-            const validationRules = {
-                textField: (value) => /^[a-zA-Z\s\p{P}]+$/u.test(value.trim()),
-                positiveNumber: (value) => !isNaN(parseFloat(value)) && parseFloat(value) > 0,
-                selectField: (value) => value && value !== '',
-                dateField: (value) => value ? true : false
-            };
+        if (isSavingsChecked) {
+            savingsFields.slideDown();
+            $('#savings_bank, #savings_branch').prop('required', true);
+        } else {
+            savingsFields.slideUp();
+            $('#savings_bank, #savings_branch')
+                .prop('required', false)
+                .val('')
+                .removeClass('is-valid is-invalid');
+            savingsFields.find('.validation-message').remove();
+        }
+    });
 
-            // Function to create document upload fields for an asset
-            function createDocumentUploadFields(assetNumber) {
-                return `
-            <div class="col-md-6">
-                <div class="form-group deed-upload-${assetNumber}" style="display: none;">
-                    <label for="deed_of_sale${assetNumber}" class="form-label">Deed Of Sale (If Property)</label>
-                    <input type="file" class="form-control" name="deed_of_sale${assetNumber}" 
-                        id="deed_of_sale${assetNumber}" accept=".pdf,.jpg,.jpeg,.png,.gif">
+    // Checkbox behavior for current account
+    $('#current_account').on('change', function () {
+        const isCurrentChecked = $(this).is(':checked');
+        const currentFields = $('#current_bank, #current_branch').closest('.form-group');
+
+        if (isCurrentChecked) {
+            currentFields.slideDown();
+            $('#current_bank, #current_branch').prop('required', true);
+        } else {
+            currentFields.slideUp();
+            $('#current_bank, #current_branch')
+                .prop('required', false)
+                .val('')
+                .removeClass('is-valid is-invalid');
+            currentFields.find('.validation-message').remove();
+        }
+    });
+
+    // Add more assets functionality with dropdown
+    let assetCount = 1;
+    $('.add-assets').click(function () {
+        assetCount++;
+        const newAssetHtml = `
+        <div class="row mb-4 asset-row">
+            <div class="col-md-4">
+                <div class="form-group">
+                    <label for="assets${assetCount}" class="form-label">Assets ${assetCount}</label>
+                    <select class="form-control" name="assets${assetCount}" id="assets${assetCount}" required>
+                        <option value="">Select Asset Type</option>
+                        <option value="Property">Property</option>
+                        <option value="Vehicle">Vehicle</option>
+                        <option value="Other">Other (Specify)</option>
+                    </select>
                 </div>
-                <div class="form-group orcr-upload-${assetNumber}" style="display: none;">
-                    <label for="orcr_vehicle${assetNumber}" class="form-label">ORCR For Vehicles</label>
-                    <input type="file" class="form-control" name="orcr_vehicle${assetNumber}" 
-                        id="orcr_vehicle${assetNumber}" accept=".pdf,.jpg,.jpeg,.png,.gif">
-                </div>
-            </div>`;
-            }
-
-            // Function to handle asset type selection and show/hide relevant upload fields
-            function handleAssetTypeChange(assetNumber) {
-                $(`#assets${assetNumber}`).on('input', function () {
-                    const assetValue = $(this).val().toLowerCase();
-                    const deedUpload = $(`.deed-upload-${assetNumber}`);
-                    const orcrUpload = $(`.orcr-upload-${assetNumber}`);
-
-                    // Reset required attributes and validation
-                    const deedFile = $(`#deed_of_sale${assetNumber}`);
-                    const orcrFile = $(`#orcr_vehicle${assetNumber}`);
-
-                    deedFile.prop('required', false).removeClass('is-valid is-invalid');
-                    orcrFile.prop('required', false).removeClass('is-valid is-invalid');
-
-                    // Hide both upload sections initially
-                    deedUpload.hide();
-                    orcrUpload.hide();
-
-                    // Extended property types
-                    const propertyTypes = [
-                        'property', 'house', 'lot', 'land', 'apartment',
-                        'condo', 'condominium', 'townhouse', 'building',
-                        'commercial space', 'office space', 'warehouse',
-                        'farm', 'residential', 'commercial'
-                    ];
-
-                    // Extended vehicle types
-                    const vehicleTypes = [
-                        'vehicle', 'car', 'motorcycle', 'truck', 'van',
-                        'suv', 'pickup', 'bus', 'trailer', 'boat',
-                        'atv', 'scooter', 'tricycle', 'jeep', 'jeepney'
-                    ];
-
-                    const isProperty = propertyTypes.some(type => assetValue.includes(type));
-                    const isVehicle = vehicleTypes.some(type => assetValue.includes(type));
-
-                    if (isProperty) {
-                        deedUpload.show();
-                        deedFile.prop('required', true);
-                    } else if (isVehicle) {
-                        orcrUpload.show();
-                        orcrFile.prop('required', true);
-                    }
-                });
-            }
-
-            // Initialize document upload fields and validation for first asset
-            $('.document-upload-1').html(createDocumentUploadFields(1));
-            handleAssetTypeChange(1);
-            addFileValidation('#deed_of_sale1');
-            addFileValidation('#orcr_vehicle1');
-            $('#assets1').trigger('input');
-
-            // Validation for bank fields
-            const bankFieldsToValidate = [
-                { selector: '#savings_bank', validate: validationRules.textField, message: 'Savings bank name is required' },
-                { selector: '#savings_branch', validate: validationRules.textField, message: 'Savings bank branch is required' },
-                { selector: '#current_bank', validate: validationRules.textField, message: 'Current bank name is required' },
-                { selector: '#current_branch', validate: validationRules.textField, message: 'Current bank branch is required' },
-                { selector: '#assets1', validate: validationRules.textField, message: 'Assets description is required' }
-            ];
-
-            // Apply validation to bank fields
-            bankFieldsToValidate.forEach(field => {
-                validateInput(field.selector, field.validate, field.message);
-            });
-
-            // Checkbox behavior for savings account
-            $('#savings_account').on('change', function () {
-                const isSavingsChecked = $(this).is(':checked');
-                const savingsFields = $('#savings_bank, #savings_branch').closest('.form-group');
-
-                if (isSavingsChecked) {
-                    savingsFields.slideDown();
-                    $('#savings_bank, #savings_branch').prop('required', true);
-                } else {
-                    savingsFields.slideUp();
-                    $('#savings_bank, #savings_branch')
-                        .prop('required', false)
-                        .val('')
-                        .removeClass('is-valid is-invalid');
-                    savingsFields.find('.validation-message').remove();
-                }
-            });
-
-            // Checkbox behavior for current account
-            $('#current_account').on('change', function () {
-                const isCurrentChecked = $(this).is(':checked');
-                const currentFields = $('#current_bank, #current_branch').closest('.form-group');
-
-                if (isCurrentChecked) {
-                    currentFields.slideDown();
-                    $('#current_bank, #current_branch').prop('required', true);
-                } else {
-                    currentFields.slideUp();
-                    $('#current_bank, #current_branch')
-                        .prop('required', false)
-                        .val('')
-                        .removeClass('is-valid is-invalid');
-                    currentFields.find('.validation-message').remove();
-                }
-            });
-
-            // Add more assets functionality
-            let assetCount = 1;
-            $('.add-assets').click(function () {
-                assetCount++;
-                const newAssetHtml = `
-            <div class="row mb-4 asset-row">
-                <div class="col-md-4">
-                    <div class="form-group">
-                        <label for="assets${assetCount}" class="form-label">Assets ${assetCount}</label>
-                        <input type="text" class="form-control" name="assets${assetCount}" 
-                            id="assets${assetCount}" required
-                            placeholder="Enter asset type (e.g., Property, Vehicle)">
-                    </div>
-                </div>
-                ${createDocumentUploadFields(assetCount)}
-                <div class="col-md-2">
-                    <button type="button" class="btn btn-danger remove-asset mt-4">Remove</button>
+                <div class="form-group other-asset-container" style="display: none;">
+                    <label for="other_asset${assetCount}" class="form-label">Specify Other Asset</label>
+                    <input type="text" class="form-control" name="other_asset${assetCount}" id="other_asset${assetCount}">
                 </div>
             </div>
+            ${createDocumentUploadFields(assetCount)}
+            <div class="col-md-2">
+                <button type="button" class="btn btn-danger remove-asset mt-4">Remove</button>
+            </div>
+        </div>
         `;
-                $('#additional-assets').append(newAssetHtml);
+        $('#additional-assets').append(newAssetHtml);
 
-                validateInput(`#assets${assetCount}`, validationRules.textField, `Assets ${assetCount} description is required`);
-                handleAssetTypeChange(assetCount);
+        validateInput(`#assets${assetCount}`, validationRules.selectField, `Please select an asset type for Assets ${assetCount}`);
+        validateInput(`#other_asset${assetCount}`, validationRules.textField, 'Please specify the other asset type');
+        handleAssetTypeChange(assetCount);
 
-                addFileValidation(`#deed_of_sale${assetCount}`);
-                addFileValidation(`#orcr_vehicle${assetCount}`);
-                $(`#assets${assetCount}`).trigger('input');
+        addFileValidation(`#deed_of_sale${assetCount}`);
+        addFileValidation(`#orcr_vehicle${assetCount}`);
+        $(`#assets${assetCount}`).trigger('change');
+    });
+
+    // Remove asset handler
+    $(document).on('click', '.remove-asset', function () {
+        $(this).closest('.asset-row').remove();
+        assetCount--;
+    });
+
+    // Form submission validation
+    $('form').on('submit', function (e) {
+        // Validate all asset fields and their required documents
+        for (let i = 1; i <= assetCount; i++) {
+            const assetValue = $(`#assets${i}`).val();
+            const deedFile = $(`#deed_of_sale${i}`);
+            const orcrFile = $(`#orcr_vehicle${i}`);
+
+            if (assetValue === 'Property' && deedFile.prop('required') && !deedFile.val()) {
+                e.preventDefault();
+                validateFileInput(deedFile[0]);
+                return;
+            }
+
+            if (assetValue === 'Vehicle' && orcrFile.prop('required') && !orcrFile.val()) {
+                e.preventDefault();
+                validateFileInput(orcrFile[0]);
+                return;
+            }
+            
+            // Validate other asset specification if "Other" is selected
+            if (assetValue === 'Other' && !$(`#other_asset${i}`).val()) {
+                e.preventDefault();
+                showValidation($(`#other_asset${i}`)[0], false, 'Please specify the other asset type');
+                return;
+            }
+        }
+
+        // Validate bank fields only if their respective checkboxes are checked
+        if ($('#savings_account').is(':checked')) {
+            if (!$('#savings_bank').val() || !$('#savings_branch').val()) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Savings Account',
+                    text: 'Please provide savings bank name and branch.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+        }
+
+        if ($('#current_account').is(':checked')) {
+            if (!$('#current_bank').val() || !$('#current_branch').val()) {
+                e.preventDefault();
+                Swal.fire({
+                    title: 'Current Account',
+                    text: 'Please provide current bank name and branch.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+                return;
+            }
+        }
+
+        // Check if any field is invalid
+        if ($('.is-invalid').length > 0) {
+            e.preventDefault();
+            Swal.fire({
+                title: 'Form Validation',
+                text: 'Please check all fields and correct the errors.',
+                icon: 'error',
+                confirmButtonText: 'OK'
             });
-
-            // Remove asset handler
-            $(document).on('click', '.remove-asset', function () {
-                $(this).closest('.asset-row').remove();
-                assetCount--;
-            });
-
-            // Form submission validation
-            $('form').on('submit', function (e) {
-                const propertyTypes = [
-                    'property', 'house', 'lot', 'land', 'apartment',
-                    'condo', 'condominium', 'townhouse', 'building',
-                    'commercial space', 'office space', 'warehouse',
-                    'farm', 'residential', 'commercial'
-                ];
-
-                const vehicleTypes = [
-                    'vehicle', 'car', 'motorcycle', 'truck', 'van',
-                    'suv', 'pickup', 'bus', 'trailer', 'boat',
-                    'atv', 'scooter', 'tricycle', 'jeep', 'jeepney'
-                ];
-
-                // Validate all asset fields and their required documents
-                for (let i = 1; i <= assetCount; i++) {
-                    const assetValue = $(`#assets${i}`).val().toLowerCase();
-                    const deedFile = $(`#deed_of_sale${i}`);
-                    const orcrFile = $(`#orcr_vehicle${i}`);
-
-                    const isProperty = propertyTypes.some(type => assetValue.includes(type));
-                    const isVehicle = vehicleTypes.some(type => assetValue.includes(type));
-
-                    if (isProperty && deedFile.prop('required') && !deedFile.val()) {
-                        e.preventDefault();
-                        validateFileInput(deedFile[0]);
-                        return;
-                    }
-
-                    if (isVehicle && orcrFile.prop('required') && !orcrFile.val()) {
-                        e.preventDefault();
-                        validateFileInput(orcrFile[0]);
-                        return;
-                    }
-                }
-
-                // Validate bank fields only if their respective checkboxes are checked
-                if ($('#savings_account').is(':checked')) {
-                    if (!$('#savings_bank').val() || !$('#savings_branch').val()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Savings Account',
-                            text: 'Please provide savings bank name and branch.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-                }
-
-                if ($('#current_account').is(':checked')) {
-                    if (!$('#current_bank').val() || !$('#current_branch').val()) {
-                        e.preventDefault();
-                        Swal.fire({
-                            title: 'Current Account',
-                            text: 'Please provide current bank name and branch.',
-                            icon: 'error',
-                            confirmButtonText: 'OK'
-                        });
-                        return;
-                    }
-                }
-
-                // Check if any field is invalid
-                if ($('.is-invalid').length > 0) {
-                    e.preventDefault();
-                    Swal.fire({
-                        title: 'Form Validation',
-                        text: 'Please check all fields and correct the errors.',
-                        icon: 'error',
-                        confirmButtonText: 'OK'
-                    });
-                }
-            });
-        });
-    </script>
+        }
+    });
+});
+</script>
     <!-- Bootstrap JS -->
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <!-- Add SweetAlert script -->
