@@ -943,6 +943,7 @@ document.addEventListener('click', function(e) {
         calculateCollateralValue(form, LoanID);
     }
 });
+
 async function calculateCollateralValue(form, LoanID) {
     try {
         Swal.fire({
@@ -974,28 +975,25 @@ async function calculateCollateralValue(form, LoanID) {
 
         const result = await response.json();
 
-        if (result.success) {
-            // Update the form fields with the returned values
-            form.querySelector('[name="final_zonal_value"]').value = result.prediction.final_zonal_value.toFixed(2);
-            form.querySelector('[name="EMV_per_sqm"]').value = result.prediction.EMV_per_sqm.toFixed(2);
-            form.querySelector('[name="total_value"]').value = result.prediction.total_value.toFixed(2);
-            form.querySelector('[name="loanable_amount"]').value = result.prediction.loanable_amount.toFixed(2);
-
-            Swal.fire({
-                icon: 'success',
-                title: 'Calculation Complete',
-                text: `Loanable Amount: ₱${result.prediction.loanable_amount.toFixed(2)}`,
-                didClose: () => {
-                    // Any post-calculation actions can go here
-                }
-            });
-        } else {
-            Swal.fire({
-                icon: 'error',
-                title: 'Error',
-                text: result.error || "Unknown error occurred."
-            });
+        if (!result.success) {
+            throw new Error(result.error || "Calculation failed");
         }
+
+        // Update the form fields with the returned values
+        const prediction = result.prediction;
+        form.querySelector('[name="final_zonal_value"]').value = prediction.final_zonal_value?.toFixed(2) || '0.00';
+        form.querySelector('[name="EMV_per_sqm"]').value = prediction.EMV_per_sqm?.toFixed(2) || '0.00';
+        form.querySelector('[name="total_value"]').value = prediction.total_value?.toFixed(2) || '0.00';
+        form.querySelector('[name="loanable_amount"]').value = prediction.loanable_amount?.toFixed(2) || '0.00';
+
+        Swal.fire({
+            icon: 'success',
+            title: 'Calculation Complete',
+            text: `Loanable Amount: ₱${prediction.loanable_amount?.toFixed(2) || '0.00'}`,
+            didClose: () => {
+                // Any post-calculation actions can go here
+            }
+        });
     } catch (error) {
         console.error("Error:", error);
         Swal.fire({

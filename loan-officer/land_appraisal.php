@@ -253,34 +253,35 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
             $limit = 10;
             $offset = ($page - 1) * $limit;
 
-            $sql = "SELECT 
-            l.*,
-            la.*,
-            u.first_name,
-            u.last_name
-            FROM credit_history l
-            JOIN land_appraisal la ON l.LoanID = la.LoanID
-            JOIN users u ON l.MemberID = u.user_id
-            WHERE l.LoanID LIKE ? 
-            OR u.first_name LIKE ?
-            OR u.last_name LIKE ?
-            OR l.LoanType LIKE ?
-            OR l.ApprovalStatus LIKE ?
-            LIMIT ? OFFSET ?";
+$sql = "SELECT 
+        la.*,  
+        l.LoanID as loan_id,  
+        l.DateOfLoan,
+        l.userID,
+        u.first_name,
+        u.last_name,
+        u.user_id
+    FROM land_appraisal la
+    LEFT JOIN loanapplication l ON la.LoanID = l.LoanID
+    LEFT JOIN users u ON l.userID = u.user_id
+    WHERE la.LoanID LIKE ? 
+    OR u.first_name LIKE ?
+    OR u.last_name LIKE ?
+    OR l.DateOfLoan LIKE ?
+    LIMIT ? OFFSET ?";
 
-            $stmt = $conn->prepare($sql);
-            $search_param = "%" . $search . "%";
-            $stmt->bind_param("sssssii", 
-                $search_param,
-                $search_param,
-                $search_param,
-                $search_param,
-                $search_param,
-                $limit,
-                $offset
-            );
-            $stmt->execute();
-            $result = $stmt->get_result();
+$stmt = $conn->prepare($sql);
+$search_param = "%" . $search . "%";
+$stmt->bind_param("ssssii",  // Changed to 6 parameters (4 search + limit + offset)
+    $search_param,
+    $search_param,
+    $search_param,
+    $search_param,
+    $limit,
+    $offset
+);
+$stmt->execute();
+$result = $stmt->get_result();
 
             $count_sql = "SELECT COUNT(*) as total 
                         FROM credit_history l
@@ -346,7 +347,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                                             <?php while($row = $result->fetch_assoc()): ?>
                                                 <tr>
                                                     <td><?php echo htmlspecialchars($row['LoanID']); ?></td>
-                                                    <td><?php echo htmlspecialchars($row['MemberID']); ?></td>
+                                                    <td><?php echo htmlspecialchars($row['userID']); ?></td>
                                                     <td><?php echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']); ?></td>
                                                     <td><?php echo number_format($row['loanable_amount'], 2); ?></td>
                                                     <td><?php echo htmlspecialchars($row['square_meters']); ?></td>

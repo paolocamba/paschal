@@ -1,19 +1,5 @@
-
 <?php
 header('Content-Type: application/json');
-
-$inputJSON = file_get_contents('php://input');
-error_log("Raw Input JSON: " . $inputJSON);
-
-$input = json_decode($inputJSON, true);
-
-if (json_last_error() !== JSON_ERROR_NONE) {
-    error_log("JSON Decode Error: " . json_last_error_msg());
-    echo json_encode(['success' => false, 'error' => 'Invalid JSON input: ' . json_last_error_msg()]);
-    exit;
-}
-
-
 
 try {
     // Get input data
@@ -38,12 +24,12 @@ try {
         'type_of_land' => $input['type_of_land'],
         'location' => $input['location_name'],
         'right_of_way' => $input['right_of_way'] ?? 'No',
-        'hospital' => $input['has_hospital'] ?? 'No',
-        'clinic' => $input['has_clinic'] ?? 'No',
-        'school' => $input['has_school'] ?? 'No',
-        'market' => $input['has_market'] ?? 'No',
-        'church' => $input['has_church'] ?? 'No',
-        'terminal' => $input['has_terminal'] ?? 'No'
+        'hospital' => $input['hospital'] ?? 'No',
+        'clinic' => $input['clinic'] ?? 'No',
+        'school' => $input['school'] ?? 'No',
+        'market' => $input['market'] ?? 'No',
+        'church' => $input['church'] ?? 'No',
+        'terminal' => $input['terminal'] ?? 'No'
     ];
 
     // Call Flask API
@@ -65,28 +51,34 @@ try {
 
     curl_close($ch);
 
-    // Log the response for debugging
-    error_log("API Response: " . $response);
-    
+    // Decode the response
     $result = json_decode($response, true);
     
     if ($httpCode !== 200) {
-        throw new Exception("API returned HTTP code $httpCode. Response: " . $response);
+        throw new Exception("API returned HTTP code $httpCode");
     }
 
-    if (!isset($result['success']) || !$result['success']) {
-        throw new Exception("Prediction failed: " . json_encode($result));
-
+    if (!isset($result['status']) || $result['status'] !== 'success') {
+        $error = $result['message'] ?? 'Unknown error';
+        throw new Exception("Prediction failed: $error");
     }
 
-    // Return the prediction results
+    if (!isset($result['prediction'])) {
+        throw new Exception("Missing prediction data in response");
+    }
+
+    // Return the prediction results in the expected format
     echo json_encode([
         'success' => true,
-        'prediction' => $result['prediction']
+        'prediction' => [
+            'final_zonal_value' => $result['prediction']['final_zonal_value'] ?? 0,
+            'EMV_per_sqm' => $result['prediction']['EMV_per_sqm'] ?? 0,
+            'total_value' => $result['prediction']['total_value'] ?? 0,
+            'loanable_amount' => $result['prediction']['loanable_amount'] ?? 0
+        ]
     ]);
 
 } catch (Exception $e) {
-    error_log("Error in run_prediction.php: " . $e->getMessage());
     http_response_code(500);
     echo json_encode([
         'success' => false,
