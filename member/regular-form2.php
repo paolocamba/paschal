@@ -404,149 +404,182 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                 $loan_id = $_SESSION['loan_application_id'];
 
-                // Handle form submission
-                if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                    // Ensure all required fields are properly sanitized and validated
-                    $yearStay = filter_input(INPUT_POST, 'yearStay', FILTER_VALIDATE_INT);
-                    $ownHouse = filter_input(INPUT_POST, 'ownHouse', FILTER_SANITIZE_STRING);
-                    $renting = filter_input(INPUT_POST, 'renting', FILTER_SANITIZE_STRING);
-                    $livingWithRelative = filter_input(INPUT_POST, 'livingWithRelative', FILTER_SANITIZE_STRING);
-                    $maritalStatus = filter_input(INPUT_POST, 'maritalStatus', FILTER_SANITIZE_STRING);
-                    $spouseName = filter_input(INPUT_POST, 'spouseName', FILTER_SANITIZE_STRING);
-                    $dependentCount = filter_input(INPUT_POST, 'dependentCount', FILTER_VALIDATE_INT);
-                    $dependentInSchool = filter_input(INPUT_POST, 'dependentInSchool', FILTER_VALIDATE_INT);
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Ensure all required fields are properly sanitized and validated
+    $yearStay = filter_input(INPUT_POST, 'yearStay', FILTER_VALIDATE_INT);
+    $ownHouse = filter_input(INPUT_POST, 'ownHouse', FILTER_SANITIZE_STRING);
+    $renting = filter_input(INPUT_POST, 'renting', FILTER_SANITIZE_STRING);
+    $livingWithRelative = filter_input(INPUT_POST, 'livingWithRelative', FILTER_SANITIZE_STRING);
+    $maritalStatus = filter_input(INPUT_POST, 'maritalStatus', FILTER_SANITIZE_STRING);
+    $spouseName = filter_input(INPUT_POST, 'spouseName', FILTER_SANITIZE_STRING);
+    $dependentCount = filter_input(INPUT_POST, 'dependentCount', FILTER_VALIDATE_INT);
+    $dependentInSchool = filter_input(INPUT_POST, 'dependentInSchool', FILTER_VALIDATE_INT);
 
-                    // Employment details
-                    $employerName = filter_input(INPUT_POST, 'employer_name', FILTER_SANITIZE_STRING);
-                    $employerAddress = filter_input(INPUT_POST, 'employer_address', FILTER_SANITIZE_STRING);
-                    $presentPosition = filter_input(INPUT_POST, 'present_position', FILTER_SANITIZE_STRING);
-                    $dateOfEmployment = filter_input(INPUT_POST, 'date_of_employment', FILTER_SANITIZE_STRING);
-                    $monthlyIncome = filter_input(INPUT_POST, 'monthly_income', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $contactPerson = filter_input(INPUT_POST, 'contact_person', FILTER_SANITIZE_STRING);
-                    $contactTelephoneNo = filter_input(INPUT_POST, 'contact_telephone_no', FILTER_SANITIZE_STRING);
-                    $selfEmployedBusinessType = !empty($_POST['self_employed_business_type']) ? 
-                        filter_input(INPUT_POST, 'self_employed_business_type', FILTER_SANITIZE_STRING) : NULL;
-                    $businessStartDate = !empty($_POST['business_start_date']) ? 
-                        filter_input(INPUT_POST, 'business_start_date', FILTER_SANITIZE_STRING) : NULL;
+    // Process dependents based on count
+    $dependent1Name = isset($_POST['dependent1Name']) ? trim($_POST['dependent1Name']) : '';
+    $dependent1Age = isset($_POST['dependent1Age']) ? (int)$_POST['dependent1Age'] : 0;
+    $dependent1Grade = isset($_POST['dependent1Grade']) ? trim($_POST['dependent1Grade']) : '';
 
-                    // Family and income details
-                    $familyMemberCount = filter_input(INPUT_POST, 'family_member_count', FILTER_VALIDATE_INT);
-                    $spouseIncome = filter_input(INPUT_POST, 'spouse_income', FILTER_SANITIZE_STRING);
-                    $spouseIncomeAmount = filter_input(INPUT_POST, 'spouse_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $spouseOtherIncome = filter_input(INPUT_POST, 'spouse_other_income', FILTER_SANITIZE_STRING);
-                    $spouseOtherIncomeAmount = filter_input(INPUT_POST, 'spouse_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $selfOtherIncomeAmount = filter_input(INPUT_POST, 'self_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+    $dependent2Name = isset($_POST['dependent2Name']) ? trim($_POST['dependent2Name']) : '';
+    $dependent2Age = isset($_POST['dependent2Age']) ? (int)$_POST['dependent2Age'] : 0;
+    $dependent2Grade = isset($_POST['dependent2Grade']) ? trim($_POST['dependent2Grade']) : '';
 
-                    // Expense details
-                    $foodGroceriesExpense = filter_input(INPUT_POST, 'food_groceries_expense', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $gasOilTransportationExpense = filter_input(INPUT_POST, 'gas_oil_transportation_expense', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $schoolingExpense = filter_input(INPUT_POST, 'schooling_expense', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $utilitiesExpense = filter_input(INPUT_POST, 'utilities_expense', FILTER_VALIDATE_FLOAT) ?: 0;
-                    $miscellaneousExpense = filter_input(INPUT_POST, 'miscellaneous_expense', FILTER_VALIDATE_FLOAT) ?: 0;
+    $dependent3Name = isset($_POST['dependent3Name']) ? trim($_POST['dependent3Name']) : '';
+    $dependent3Age = isset($_POST['dependent3Age']) ? (int)$_POST['dependent3Age'] : 0;
+    $dependent3Grade = isset($_POST['dependent3Grade']) ? trim($_POST['dependent3Grade']) : '';
 
-                    // Calculate net family income and total expenses
-                    $totalIncome = $monthlyIncome + $selfOtherIncomeAmount + $spouseIncomeAmount + $spouseOtherIncomeAmount;
-                    $totalExpenses = $foodGroceriesExpense + $gasOilTransportationExpense + $schoolingExpense + $utilitiesExpense + $miscellaneousExpense;
-                    $netFamilyIncome = $totalIncome - $totalExpenses;
-                    
+    $dependent4Name = isset($_POST['dependent4Name']) ? trim($_POST['dependent4Name']) : '';
+    $dependent4Age = isset($_POST['dependent4Age']) ? (int)$_POST['dependent4Age'] : 0;
+    $dependent4Grade = isset($_POST['dependent4Grade']) ? trim($_POST['dependent4Grade']) : '';
 
-                    // Minimum income validation
-                    $MIN_INCOME_THRESHOLD = 15000;
-                    $INCOME_TO_EXPENSE_RATIO = 3;
-                    if ($netFamilyIncome < $MIN_INCOME_THRESHOLD || $netFamilyIncome < ($totalExpenses * $INCOME_TO_EXPENSE_RATIO)) {
-                        echo "<script>
-                                alert('Your income does not meet the minimum requirements for this loan.');
-                                window.location.href = 'regular-form2.php?loanType=" . urlencode($loan_type) . "';
-                            </script>";
-                        exit();
-                    }
+    // Employment details
+    $employerName = filter_input(INPUT_POST, 'employer_name', FILTER_SANITIZE_STRING);
+    $employerAddress = filter_input(INPUT_POST, 'employer_address', FILTER_SANITIZE_STRING);
+    $presentPosition = filter_input(INPUT_POST, 'present_position', FILTER_SANITIZE_STRING);
+    $dateOfEmployment = filter_input(INPUT_POST, 'date_of_employment', FILTER_SANITIZE_STRING);
+    $monthlyIncome = filter_input(INPUT_POST, 'monthly_income', FILTER_VALIDATE_FLOAT) ?: 0;
+    $contactPerson = filter_input(INPUT_POST, 'contact_person', FILTER_SANITIZE_STRING);
+    $contactTelephoneNo = filter_input(INPUT_POST, 'contact_telephone_no', FILTER_SANITIZE_STRING);
+    $selfEmployedBusinessType = !empty($_POST['self_employed_business_type']) ? 
+        filter_input(INPUT_POST, 'self_employed_business_type', FILTER_SANITIZE_STRING) : '';
+    $businessStartDate = !empty($_POST['business_start_date']) ? 
+        filter_input(INPUT_POST, 'business_start_date', FILTER_SANITIZE_STRING) : '';
 
-                    $query = "SELECT LoanID FROM loanapplication WHERE userID = ? ORDER BY LoanID DESC LIMIT 1";
-                    $stmt = $conn->prepare($query);
-                    $stmt->bind_param("i", $user_id);
-                    $stmt->execute();
-                    $result = $stmt->get_result();
+    // Family and income details
+    $familyMemberCount = filter_input(INPUT_POST, 'family_member_count', FILTER_VALIDATE_INT);
+    $spouseIncome = filter_input(INPUT_POST, 'spouse_income', FILTER_SANITIZE_STRING);
+    $spouseIncomeAmount = filter_input(INPUT_POST, 'spouse_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+    $spouseOtherIncome = filter_input(INPUT_POST, 'spouse_other_income', FILTER_SANITIZE_STRING);
+    $spouseOtherIncomeAmount = filter_input(INPUT_POST, 'spouse_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
+    $selfOtherIncomeAmount = filter_input(INPUT_POST, 'self_other_income_amount', FILTER_VALIDATE_FLOAT) ?: 0;
 
-                    if ($row = $result->fetch_assoc()) {
-                        $_SESSION['loan_application_id'] = $row['LoanID']; // Force update session
-                        $loan_id = $row['LoanID']; // Set correct LoanID
-                    } else {
-                        die("Error: No loan application found for this user.");
-                    }
+    // Expense details
+    $foodGroceriesExpense = filter_input(INPUT_POST, 'food_groceries_expense', FILTER_VALIDATE_FLOAT) ?: 0;
+    $gasOilTransportationExpense = filter_input(INPUT_POST, 'gas_oil_transportation_expense', FILTER_VALIDATE_FLOAT) ?: 0;
+    $schoolingExpense = filter_input(INPUT_POST, 'schooling_expense', FILTER_VALIDATE_FLOAT) ?: 0;
+    $utilitiesExpense = filter_input(INPUT_POST, 'utilities_expense', FILTER_VALIDATE_FLOAT) ?: 0;
+    $miscellaneousExpense = filter_input(INPUT_POST, 'miscellaneous_expense', FILTER_VALIDATE_FLOAT) ?: 0;
 
-                    $stmt->close();
-                    
-                    echo "Debug: LoanID being updated is " . htmlspecialchars($loan_id);
+    // Calculate net family income and total expenses
+    $totalIncome = $monthlyIncome + $selfOtherIncomeAmount + $spouseIncomeAmount + $spouseOtherIncomeAmount;
+    $totalExpenses = $foodGroceriesExpense + $gasOilTransportationExpense + $schoolingExpense + $utilitiesExpense + $miscellaneousExpense;
+    $netFamilyIncome = $totalIncome - $totalExpenses;
 
+    // Minimum income validation
+    $MIN_INCOME_THRESHOLD = 15000;
+    $INCOME_TO_EXPENSE_RATIO = 1.5;
+    if ($netFamilyIncome < $MIN_INCOME_THRESHOLD || $netFamilyIncome < ($totalExpenses * $INCOME_TO_EXPENSE_RATIO)) {
+        echo "<script>
+                alert('Your income does not meet the minimum requirements for this loan.');
+                window.location.href = 'regular-form2.php?loanType=" . urlencode($loan_type) . "';
+            </script>";
+        exit();
+    }
 
-                    // Update query
-                    $query = "UPDATE loanapplication 
-                            SET years_stay_present_address=?, own_house=?, renting=?, living_with_relative=?, 
-                                marital_status=?, spouse_name=?, number_of_dependents=?, dependents_in_school=?, 
-                                employer_name=?, employer_address=?, present_position=?, date_of_employment=?, 
-                                monthly_income=?, contact_person=?, contact_telephone_no=?, 
-                                self_employed_business_type=?, business_start_date=?, family_member_count=?, 
-                                self_other_income_amount=?, spouse_income=?, spouse_income_amount=?, 
-                                spouse_other_income=?, spouse_other_income_amount=?, 
-                                food_groceries_expense=?, gas_oil_transportation_expense=?, 
-                                schooling_expense=?, utilities_expense=?, miscellaneous_expense=?, 
-                                total_expenses=?, net_family_income=? 
-                            WHERE LoanID=?";
+    // Get the latest loan application ID
+    $query = "SELECT LoanID FROM loanapplication WHERE userID = ? ORDER BY LoanID DESC LIMIT 1";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
 
-                    $stmt = $conn->prepare($query);
-                    if (!$stmt) {
-                        die("SQL preparation error: " . $conn->error);
-                    }
+    if ($row = $result->fetch_assoc()) {
+        $_SESSION['loan_application_id'] = $row['LoanID'];
+        $loan_id = $row['LoanID'];
+    } else {
+        die("Error: No loan application found for this user.");
+    }
+    $stmt->close();
 
-                /// Correct type specification string (29 characters for 29 parameters)
-$stmt->bind_param("isssssiissssdsssissddssdddddddi", 
-    $yearStay,                  // i (Integer)
-    $ownHouse,                  // s (String)
-    $renting,                   // s
-    $livingWithRelative,        // s
-    $maritalStatus,             // s
-    $spouseName,                // s
-    $dependentCount,            // i (Integer)
-    $dependentInSchool,         // i (Integer)
-    $employerName,              // s
-    $employerAddress,           // s
-    $presentPosition,           // s
-    $dateOfEmployment,          // s
-    $monthlyIncome,             // d (Double/Float)
-    $contactPerson,             // s
-    $contactTelephoneNo,        // s
-    $selfEmployedBusinessType,  // s
-    $businessStartDate,         // s
-    $familyMemberCount,         // i (Integer)
-    $selfOtherIncomeAmount,     // d (Double/Float)
-    $spouseIncome,              // s
-    $spouseIncomeAmount,        // d (Double/Float)
-    $spouseOtherIncome,         // s
-    $spouseOtherIncomeAmount,   // d (Double/Float)
-    $foodGroceriesExpense,      // d (Double/Float)
-    $gasOilTransportationExpense, // d (Double/Float)
-    $schoolingExpense,          // d (Double/Float)
-    $utilitiesExpense,          // d (Double/Float)
-    $miscellaneousExpense,      // d (Double/Float)
-    $totalExpenses,             // d (Double/Float)
-    $netFamilyIncome,           // d (Double/Float)
-    $loan_id                    // i (Primary Key, Integer)
+    // Update query with exactly 43 parameters
+// Update query with exactly 43 parameters
+$query = "UPDATE loanapplication 
+          SET years_stay_present_address=?, own_house=?, renting=?, living_with_relative=?, 
+              marital_status=?, spouse_name=?, number_of_dependents=?, dependents_in_school=?, 
+              employer_name=?, employer_address=?, present_position=?, date_of_employment=?, 
+              monthly_income=?, contact_person=?, contact_telephone_no=?, 
+              self_employed_business_type=?, business_start_date=?, family_member_count=?, 
+              self_other_income_amount=?, spouse_income=?, spouse_income_amount=?, 
+              spouse_other_income=?, spouse_other_income_amount=?, 
+              food_groceries_expense=?, gas_oil_transportation_expense=?, 
+              schooling_expense=?, utilities_expense=?, miscellaneous_expense=?, 
+              total_expenses=?, net_family_income=?,
+              dependent1_name=?, dependent1_age=?, dependent1_grade_level=?,
+              dependent2_name=?, dependent2_age=?, dependent2_grade_level=?,
+              dependent3_name=?, dependent3_age=?, dependent3_grade_level=?,
+              dependent4_name=?, dependent4_age=?, dependent4_grade_level=?
+          WHERE LoanID=?";
+
+// Correct type string (43 characters exactly matching the parameter order)
+$types = "isssssiissssdssssidsdsddddddddsissississisi";
+
+// Debug: Count parameters to verify
+$paramCount = substr_count($query, '?');
+if ($paramCount !== 43) {
+    die("Error: Query has $paramCount parameters but should have 43");
+}
+
+if (strlen($types) !== 43) {
+    die("Error: Type string has " . strlen($types) . " characters but should have 43");
+}
+
+// Prepare statement
+$stmt = $conn->prepare($query);
+if (!$stmt) {
+    die("SQL preparation error: " . $conn->error);
+}
+
+// Bind parameters - exactly 43 variables in correct order
+$bindResult = $stmt->bind_param(
+    $types,
+    // Basic info (11 params)
+    $yearStay, $ownHouse, $renting, $livingWithRelative,
+    $maritalStatus, $spouseName, $dependentCount, $dependentInSchool,
+    $employerName, $employerAddress, $presentPosition,
+    
+    // Dates and numbers (7 params)
+    $dateOfEmployment, $monthlyIncome, $contactPerson, $contactTelephoneNo,
+    $selfEmployedBusinessType, $businessStartDate, $familyMemberCount,
+    
+    // Income details (6 params)
+    $selfOtherIncomeAmount, $spouseIncome, $spouseIncomeAmount,
+    $spouseOtherIncome, $spouseOtherIncomeAmount,
+    
+    // Expenses (5 params)
+    $foodGroceriesExpense, $gasOilTransportationExpense,
+    $schoolingExpense, $utilitiesExpense, $miscellaneousExpense,
+    
+    // Financial totals (2 params)
+    $totalExpenses, $netFamilyIncome,
+    
+    // Dependents (12 params)
+    $dependent1Name, $dependent1Age, $dependent1Grade,
+    $dependent2Name, $dependent2Age, $dependent2Grade,
+    $dependent3Name, $dependent3Age, $dependent3Grade,
+    $dependent4Name, $dependent4Age, $dependent4Grade,
+    
+    // Where clause (1 param)
+    $loan_id
 );
 
+if (!$bindResult) {
+    die("Bind failed: " . $stmt->error);
+}
 
-                    // Execute and check success
-                    if ($stmt->execute()) {
-                        if ($stmt->affected_rows === 0) {
-                            echo "No rows were updated. Check if LoanID exists.";
-                            exit();
-                        }
-                        $stmt->close();
-                        header("Location: regular-form3.php?loanType=" . urlencode($loan_type));
-                        exit();
-                    } else {
-                        die("Database update failed: " . $stmt->error);
-                    }
-                }
+// Execute and check success
+if ($stmt->execute()) {
+    if ($stmt->affected_rows === 0) {
+        echo "No rows were updated. Check if LoanID exists.";
+        exit();
+    }
+    $stmt->close();
+    header("Location: regular-form3.php?loanType=" . urlencode($loan_type));
+    exit();
+} else {
+    die("Database update failed: " . $stmt->error);
+}
+}
 
                 ob_end_flush();
                 ?>
@@ -683,36 +716,35 @@ $stmt->bind_param("isssssiissssdsssissddssdddddddi",
                                 <script>
                                     // Function to create dependent fields dynamically
                                     function generateDependentFields(count) {
-                                        const container = document.getElementById('dependentFields');
-                                        container.innerHTML = ''; // Clear previous fields
-                                        
-                                        for (let i = 1; i <= count; i++) {
-                                            const dependentHtml = `
-                                                <div class="row mb-4 dependent-row">
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Name" class="form-label">Dependent ${i} Name <span style="color: red;">*</span></label>
-                                                            <input type="text" class="form-control" name="dependent${i}Name" id="dependent${i}Name" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Age" class="form-label">Dependent ${i} Age <span style="color: red;">*</span></label>
-                                                            <input type="number" class="form-control" name="dependent${i}Age" id="dependent${i}Age" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Grade" class="form-label">Dependent ${i} Grade Level <span style="color: red;">*</span></label>
-                                                            <input type="text" class="form-control" name="dependent${i}Grade" id="dependent${i}Grade" required>
-                                                        </div>
+                                    const container = document.getElementById('dependentFields');
+                                    container.innerHTML = ''; // Clear previous fields
+                                    
+                                    for (let i = 1; i <= count; i++) {
+                                        const dependentHtml = `
+                                            <div class="row mb-4 dependent-row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Name" class="form-label">Dependent ${i} Name <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" name="dependent${i}Name" id="dependent${i}Name" required>
                                                     </div>
                                                 </div>
-                                            `;
-                                            container.insertAdjacentHTML('beforeend', dependentHtml);
-                                        }
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Age" class="form-label">Dependent ${i} Age <span style="color: red;">*</span></label>
+                                                        <input type="number" class="form-control" name="dependent${i}Age" id="dependent${i}Age" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Grade" class="form-label">Dependent ${i} Grade Level <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" name="dependent${i}Grade" id="dependent${i}Grade" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                        container.insertAdjacentHTML('beforeend', dependentHtml);
                                     }
-
+                                }
                                     // Listen to input changes on dependentCount
                                     document.getElementById('dependentCount').addEventListener('input', function () {
                                         const count = parseInt(this.value) || 0;

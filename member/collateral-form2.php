@@ -415,6 +415,37 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
                     $spouseName = filter_input(INPUT_POST, 'spouseName', FILTER_SANITIZE_STRING);
                     $dependentCount = filter_input(INPUT_POST, 'dependentCount', FILTER_VALIDATE_INT);
                     $dependentInSchool = filter_input(INPUT_POST, 'dependentInSchool', FILTER_VALIDATE_INT);
+    
+                    // Initialize dependent fields
+                    $dependent1Name = $dependent1Age = $dependent1Grade = null;
+                    $dependent2Name = $dependent2Age = $dependent2Grade = null;
+                    $dependent3Name = $dependent3Age = $dependent3Grade = null;
+                    $dependent4Name = $dependent4Age = $dependent4Grade = null;
+                    
+                    // Process dependents based on count
+                    if ($dependentCount >= 1) {
+                        $dependent1Name = filter_input(INPUT_POST, 'dependent1Name', FILTER_SANITIZE_STRING);
+                        $dependent1Age = filter_input(INPUT_POST, 'dependent1Age', FILTER_VALIDATE_INT);
+                        $dependent1Grade = filter_input(INPUT_POST, 'dependent1Grade', FILTER_SANITIZE_STRING);
+                    }
+                    
+                    if ($dependentCount >= 2) {
+                        $dependent2Name = filter_input(INPUT_POST, 'dependent2Name', FILTER_SANITIZE_STRING);
+                        $dependent2Age = filter_input(INPUT_POST, 'dependent2Age', FILTER_VALIDATE_INT);
+                        $dependent2Grade = filter_input(INPUT_POST, 'dependent2Grade', FILTER_SANITIZE_STRING);
+                    }
+                    
+                    if ($dependentCount >= 3) {
+                        $dependent3Name = filter_input(INPUT_POST, 'dependent3Name', FILTER_SANITIZE_STRING);
+                        $dependent3Age = filter_input(INPUT_POST, 'dependent3Age', FILTER_VALIDATE_INT);
+                        $dependent3Grade = filter_input(INPUT_POST, 'dependent3Grade', FILTER_SANITIZE_STRING);
+                    }
+                    
+                    if ($dependentCount >= 4) {
+                        $dependent4Name = filter_input(INPUT_POST, 'dependent4Name', FILTER_SANITIZE_STRING);
+                        $dependent4Age = filter_input(INPUT_POST, 'dependent4Age', FILTER_VALIDATE_INT);
+                        $dependent4Grade = filter_input(INPUT_POST, 'dependent4Grade', FILTER_SANITIZE_STRING);
+                    }
 
                     // Employment details
                     $employerName = filter_input(INPUT_POST, 'employer_name', FILTER_SANITIZE_STRING);
@@ -452,7 +483,7 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                     // Minimum income validation
                     $MIN_INCOME_THRESHOLD = 15000;
-                    $INCOME_TO_EXPENSE_RATIO = 3;
+                    $INCOME_TO_EXPENSE_RATIO = 1.5;
                     if ($netFamilyIncome < $MIN_INCOME_THRESHOLD || $netFamilyIncome < ($totalExpenses * $INCOME_TO_EXPENSE_RATIO)) {
                         echo "<script>
                                 alert('Your income does not meet the minimum requirements for this loan.');
@@ -476,78 +507,96 @@ $_SESSION['is_logged_in'] = $row['is_logged_in']; // Add this line
 
                     $stmt->close();
                     
-                    echo "Debug: LoanID being updated is " . htmlspecialchars($loan_id);
+                    
 
 
-                    // Update query
-                    $query = "UPDATE loanapplication 
-                            SET years_stay_present_address=?, own_house=?, renting=?, living_with_relative=?, 
-                                marital_status=?, spouse_name=?, number_of_dependents=?, dependents_in_school=?, 
-                                employer_name=?, employer_address=?, present_position=?, date_of_employment=?, 
-                                monthly_income=?, contact_person=?, contact_telephone_no=?, 
-                                self_employed_business_type=?, business_start_date=?, family_member_count=?, 
-                                self_other_income_amount=?, spouse_income=?, spouse_income_amount=?, 
-                                spouse_other_income=?, spouse_other_income_amount=?, 
-                                food_groceries_expense=?, gas_oil_transportation_expense=?, 
-                                schooling_expense=?, utilities_expense=?, miscellaneous_expense=?, 
-                                total_expenses=?, net_family_income=? 
-                            WHERE LoanID=?";
+    // Update query with exactly 43 parameters
+$query = "UPDATE loanapplication 
+          SET years_stay_present_address=?, own_house=?, renting=?, living_with_relative=?, 
+              marital_status=?, spouse_name=?, number_of_dependents=?, dependents_in_school=?, 
+              employer_name=?, employer_address=?, present_position=?, date_of_employment=?, 
+              monthly_income=?, contact_person=?, contact_telephone_no=?, 
+              self_employed_business_type=?, business_start_date=?, family_member_count=?, 
+              self_other_income_amount=?, spouse_income=?, spouse_income_amount=?, 
+              spouse_other_income=?, spouse_other_income_amount=?, 
+              food_groceries_expense=?, gas_oil_transportation_expense=?, 
+              schooling_expense=?, utilities_expense=?, miscellaneous_expense=?, 
+              total_expenses=?, net_family_income=?,
+              dependent1_name=?, dependent1_age=?, dependent1_grade_level=?,
+              dependent2_name=?, dependent2_age=?, dependent2_grade_level=?,
+              dependent3_name=?, dependent3_age=?, dependent3_grade_level=?,
+              dependent4_name=?, dependent4_age=?, dependent4_grade_level=?
+          WHERE LoanID=?";
 
-                    $stmt = $conn->prepare($query);
-                    if (!$stmt) {
-                        die("SQL preparation error: " . $conn->error);
-                    }
+// Correct type string (43 characters exactly matching the parameter order)
+$types = "isssssiissssdssssidsdsddddddddsissississisi";
 
-                /// Correct type specification string (29 characters for 29 parameters)
-$stmt->bind_param("isssssiissssdsssissddssdddddddi", 
-    $yearStay,                  // i (Integer)
-    $ownHouse,                  // s (String)
-    $renting,                   // s
-    $livingWithRelative,        // s
-    $maritalStatus,             // s
-    $spouseName,                // s
-    $dependentCount,            // i (Integer)
-    $dependentInSchool,         // i (Integer)
-    $employerName,              // s
-    $employerAddress,           // s
-    $presentPosition,           // s
-    $dateOfEmployment,          // s
-    $monthlyIncome,             // d (Double/Float)
-    $contactPerson,             // s
-    $contactTelephoneNo,        // s
-    $selfEmployedBusinessType,  // s
-    $businessStartDate,         // s
-    $familyMemberCount,         // i (Integer)
-    $selfOtherIncomeAmount,     // d (Double/Float)
-    $spouseIncome,              // s
-    $spouseIncomeAmount,        // d (Double/Float)
-    $spouseOtherIncome,         // s
-    $spouseOtherIncomeAmount,   // d (Double/Float)
-    $foodGroceriesExpense,      // d (Double/Float)
-    $gasOilTransportationExpense, // d (Double/Float)
-    $schoolingExpense,          // d (Double/Float)
-    $utilitiesExpense,          // d (Double/Float)
-    $miscellaneousExpense,      // d (Double/Float)
-    $totalExpenses,             // d (Double/Float)
-    $netFamilyIncome,           // d (Double/Float)
-    $loan_id                    // i (Primary Key, Integer)
+// Debug: Count parameters to verify
+$paramCount = substr_count($query, '?');
+if ($paramCount !== 43) {
+    die("Error: Query has $paramCount parameters but should have 43");
+}
+
+if (strlen($types) !== 43) {
+    die("Error: Type string has " . strlen($types) . " characters but should have 43");
+}
+
+// Prepare statement
+$stmt = $conn->prepare($query);
+if (!$stmt) {
+    die("SQL preparation error: " . $conn->error);
+}
+
+// Bind parameters - exactly 43 variables in correct order
+$bindResult = $stmt->bind_param(
+    $types,
+    // Basic info (11 params)
+    $yearStay, $ownHouse, $renting, $livingWithRelative,
+    $maritalStatus, $spouseName, $dependentCount, $dependentInSchool,
+    $employerName, $employerAddress, $presentPosition,
+    
+    // Dates and numbers (7 params)
+    $dateOfEmployment, $monthlyIncome, $contactPerson, $contactTelephoneNo,
+    $selfEmployedBusinessType, $businessStartDate, $familyMemberCount,
+    
+    // Income details (6 params)
+    $selfOtherIncomeAmount, $spouseIncome, $spouseIncomeAmount,
+    $spouseOtherIncome, $spouseOtherIncomeAmount,
+    
+    // Expenses (5 params)
+    $foodGroceriesExpense, $gasOilTransportationExpense,
+    $schoolingExpense, $utilitiesExpense, $miscellaneousExpense,
+    
+    // Financial totals (2 params)
+    $totalExpenses, $netFamilyIncome,
+    
+    // Dependents (12 params)
+    $dependent1Name, $dependent1Age, $dependent1Grade,
+    $dependent2Name, $dependent2Age, $dependent2Grade,
+    $dependent3Name, $dependent3Age, $dependent3Grade,
+    $dependent4Name, $dependent4Age, $dependent4Grade,
+    
+    // Where clause (1 param)
+    $loan_id
 );
 
+if (!$bindResult) {
+    die("Bind failed: " . $stmt->error);
+}
 
-                    // Execute and check success
-                    if ($stmt->execute()) {
-                        if ($stmt->affected_rows === 0) {
-                            echo "No rows were updated. Check if LoanID exists.";
-                            exit();
-                        }
-                        $stmt->close();
-                        header("Location: collateral-form3.php?loanType=" . urlencode($loan_type));
-                        exit();
-                    } else {
-                        die("Database update failed: " . $stmt->error);
-                    }
-                }
-
+// Execute and check success
+if ($stmt->execute()) {
+    if ($stmt->affected_rows === 0) {
+        echo "No rows were updated. Check if LoanID exists.";
+        exit();
+    }
+    $stmt->close();
+    header("Location: collateral-form3.php?loanType=" . urlencode($loan_type));
+    exit();
+} else {
+    die("Database update failed: " . $stmt->error);
+}
+}
                 ob_end_flush();
                 ?>
 
@@ -683,36 +732,35 @@ $stmt->bind_param("isssssiissssdsssissddssdddddddi",
                                 <script>
                                     // Function to create dependent fields dynamically
                                     function generateDependentFields(count) {
-                                        const container = document.getElementById('dependentFields');
-                                        container.innerHTML = ''; // Clear previous fields
-                                        
-                                        for (let i = 1; i <= count; i++) {
-                                            const dependentHtml = `
-                                                <div class="row mb-4 dependent-row">
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Name" class="form-label">Dependent ${i} Name <span style="color: red;">*</span></label>
-                                                            <input type="text" class="form-control" name="dependent${i}Name" id="dependent${i}Name" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Age" class="form-label">Dependent ${i} Age <span style="color: red;">*</span></label>
-                                                            <input type="number" class="form-control" name="dependent${i}Age" id="dependent${i}Age" required>
-                                                        </div>
-                                                    </div>
-                                                    <div class="col-md-4">
-                                                        <div class="form-group">
-                                                            <label for="dependent${i}Grade" class="form-label">Dependent ${i} Grade Level <span style="color: red;">*</span></label>
-                                                            <input type="text" class="form-control" name="dependent${i}Grade" id="dependent${i}Grade" required>
-                                                        </div>
+                                    const container = document.getElementById('dependentFields');
+                                    container.innerHTML = ''; // Clear previous fields
+                                    
+                                    for (let i = 1; i <= count; i++) {
+                                        const dependentHtml = `
+                                            <div class="row mb-4 dependent-row">
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Name" class="form-label">Dependent ${i} Name <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" name="dependent${i}Name" id="dependent${i}Name" required>
                                                     </div>
                                                 </div>
-                                            `;
-                                            container.insertAdjacentHTML('beforeend', dependentHtml);
-                                        }
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Age" class="form-label">Dependent ${i} Age <span style="color: red;">*</span></label>
+                                                        <input type="number" class="form-control" name="dependent${i}Age" id="dependent${i}Age" required>
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <div class="form-group">
+                                                        <label for="dependent${i}Grade" class="form-label">Dependent ${i} Grade Level <span style="color: red;">*</span></label>
+                                                        <input type="text" class="form-control" name="dependent${i}Grade" id="dependent${i}Grade" required>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        `;
+                                        container.insertAdjacentHTML('beforeend', dependentHtml);
                                     }
-
+                                }
                                     // Listen to input changes on dependentCount
                                     document.getElementById('dependentCount').addEventListener('input', function () {
                                         const count = parseInt(this.value) || 0;
@@ -1204,7 +1252,7 @@ function calculateFinancials() {
 
         // Define income thresholds (these can be adjusted)
         const MIN_INCOME_THRESHOLD = 15000; // Minimum monthly income to qualify
-        const INCOME_TO_EXPENSE_RATIO = 3; // Income should be at least 3x expenses
+        const INCOME_TO_EXPENSE_RATIO = 1.5; // Income should be at least 3x expenses
 
         // Validate income
         if (financials.netFamilyIncome < MIN_INCOME_THRESHOLD) {
